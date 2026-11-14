@@ -208,8 +208,23 @@ export async function POST(req: Request) {
           throw new Error(`Product with ID ${productId} not found or inactive.`);
         }
 
-        const price = product.sellingPrice;
-        const lineTotal = Number(price) * qty;
+        // Configured rate takes priority if specified; otherwise fall back to catalog selling price
+        const configuredRate =
+          item.configuredPrice !== undefined &&
+          item.configuredPrice !== null &&
+          !isNaN(Number(item.configuredPrice)) &&
+          Number(item.configuredPrice) >= 0
+            ? Number(item.configuredPrice)
+            : item.unitPrice !== undefined &&
+              item.unitPrice !== null &&
+              !isNaN(Number(item.unitPrice)) &&
+              Number(item.unitPrice) >= 0 &&
+              Number(item.unitPrice) !== Number(product.sellingPrice)
+            ? Number(item.unitPrice)
+            : null;
+
+        const effectivePrice = configuredRate !== null ? configuredRate : Number(product.sellingPrice);
+        const lineTotal = effectivePrice * qty;
         subtotal += lineTotal;
 
         if (product.productType === "serialized" || product.productType === "electronics") {
@@ -250,7 +265,8 @@ export async function POST(req: Request) {
             productId: product.id,
             productUnitId: unit.id,
             quantity: 1,
-            unitPrice: price,
+            mrp: Number(product.sellingPrice),
+            unitPrice: effectivePrice,
             lineTotal: lineTotal,
           });
 
@@ -269,7 +285,8 @@ export async function POST(req: Request) {
           billItemsData.push({
             productId: product.id,
             quantity: qty,
-            unitPrice: price,
+            mrp: Number(product.sellingPrice),
+            unitPrice: effectivePrice,
             lineTotal: lineTotal,
           });
         }

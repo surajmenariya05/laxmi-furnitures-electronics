@@ -9,7 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 import InvoiceTemplate from "@/components/dashboard/InvoiceTemplate";
 import { Modal } from "@/components/ui/modal";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaEdit, FaCheck, FaUndo, FaCouch, FaTv } from "react-icons/fa";
 
 export default function BillingPage() {
   const { user } = useAuth();
@@ -56,6 +56,62 @@ export default function BillingPage() {
   const [isSearchingProduct, setIsSearchingProduct] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  // Inline rate editing state
+  const [editingRateCartItemId, setEditingRateCartItemId] = useState<string | null>(null);
+  const [tempRate, setTempRate] = useState<string>("");
+
+  const getItemEffectivePrice = (item: any): number => {
+    if (
+      item.configuredPrice !== undefined &&
+      item.configuredPrice !== null &&
+      !isNaN(Number(item.configuredPrice)) &&
+      Number(item.configuredPrice) >= 0
+    ) {
+      return Number(item.configuredPrice);
+    }
+    return Number(item.product?.sellingPrice || 0);
+  };
+
+  const startEditingRate = (item: any) => {
+    setEditingRateCartItemId(item.cartItemId);
+    const currentRate = item.configuredPrice !== undefined ? item.configuredPrice : item.product.sellingPrice;
+    setTempRate(currentRate.toString());
+  };
+
+  const saveCustomRate = (cartItemId: string) => {
+    const parsed = parseFloat(tempRate);
+    if (!isNaN(parsed) && parsed >= 0) {
+      setCart((prev) =>
+        prev.map((item) =>
+          item.cartItemId === cartItemId
+            ? { ...item, configuredPrice: parsed }
+            : item
+        )
+      );
+    }
+    setEditingRateCartItemId(null);
+    setTempRate("");
+  };
+
+  const cancelCustomRate = () => {
+    setEditingRateCartItemId(null);
+    setTempRate("");
+  };
+
+  const resetToCatalogRate = (cartItemId: string) => {
+    setCart((prev) =>
+      prev.map((item) =>
+        item.cartItemId === cartItemId
+          ? { ...item, configuredPrice: undefined }
+          : item
+      )
+    );
+    if (editingRateCartItemId === cartItemId) {
+      setEditingRateCartItemId(null);
+      setTempRate("");
+    }
+  };
   
   // Customer info
   const [phone, setPhone] = useState("");
@@ -251,7 +307,7 @@ export default function BillingPage() {
     );
   };
 
-  const grossTotal = cart.reduce((sum, item) => sum + item.product.sellingPrice * item.quantity, 0);
+  const grossTotal = cart.reduce((sum, item) => sum + getItemEffectivePrice(item) * item.quantity, 0);
   const discountVal = parseFloat(discount || "0");
   const grossAfterDiscount = grossTotal - discountVal;
 
@@ -298,13 +354,18 @@ export default function BillingPage() {
     setIsSaving(true);
 
     try {
-      const itemsPayload = cart.map((item) => ({
-        productId: item.product.id,
-        quantity: item.quantity,
-        productUnitId: (item.product.productType === "serialized" || item.product.productType === "electronics")
-          ? parseInt(item.selectedUnitId)
-          : undefined,
-      }));
+      const itemsPayload = cart.map((item) => {
+        const effectivePrice = getItemEffectivePrice(item);
+        return {
+          productId: item.product.id,
+          quantity: item.quantity,
+          configuredPrice: item.configuredPrice !== undefined ? Number(item.configuredPrice) : undefined,
+          unitPrice: effectivePrice,
+          productUnitId: (item.product.productType === "serialized" || item.product.productType === "electronics")
+            ? parseInt(item.selectedUnitId)
+            : undefined,
+        };
+      });
 
       const billData: any = {
         customerName: customerName.trim(),
@@ -400,7 +461,16 @@ export default function BillingPage() {
           customerName={customerName}
           customerAddress={customerAddress}
           customerPhone={phone}
-          cartItems={cart}
+          cartItems={cart.map((item) => {
+            const effectivePrice = getItemEffectivePrice(item);
+            return {
+              ...item,
+              unitPrice: effectivePrice,
+              configuredPrice: item.configuredPrice,
+              lineTotal: effectivePrice * item.quantity,
+              mrp: item.product.sellingPrice,
+            };
+          })}
           subtotal={taxableAmount}
           grossTotal={grossTotal}
           discount={parseFloat(discount || "0")}
@@ -538,59 +608,166 @@ export default function BillingPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200 text-sm">
-                {cart.map((item) => (
-                  <tr key={item.cartItemId} className="hover:bg-gray-50/50">
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="font-bold text-gray-900">{item.product.name}</div>
-                      <div className="text-[10px] text-gray-500 uppercase tracking-wider font-semibold">{item.product.productType}</div>
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-gray-900 font-medium">
-                      ₹{item.product.sellingPrice}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      {item.product.productType === "serialized" || item.product.productType === "electronics" ? (
-                        <select
-                          className="border border-gray-300 rounded-md px-2 py-1 text-xs max-w-[180px] font-medium focus:ring-1 focus:ring-blue-500"
-                          value={item.selectedUnitId}
-                          onChange={(e) => updateSelectedUnit(item.cartItemId, e.target.value)}
+                {cart.map((item) => {
+                  const effectivePrice = getItemEffectivePrice(item);
+                  const isConfigured = item.configuredPrice !== undefined && item.configuredPrice !== item.product.sellingPrice;
+                  const isFurniture = item.product.department === "FURNITURE" || item.product.productType === "quantity";
+
+                  return (
+                    <tr key={item.cartItemId} className="hover:bg-gray-50/50">
+                      {/* Item Details with 3D Pill Badge */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="font-bold text-gray-900">{item.product.name}</div>
+                        <div className="mt-1 flex items-center gap-1.5">
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                              isFurniture
+                                ? "bg-[#235347] text-white border border-[#2F6859] border-b-[#14352D] shadow-[0_2px_4px_rgba(20,83,45,0.2),inset_0_1px_0_rgba(255,255,255,0.35)]"
+                                : "bg-[#093F52] text-white border border-[#105269] border-b-[#052531] shadow-[0_2px_4px_rgba(9,63,82,0.2),inset_0_1px_0_rgba(255,255,255,0.35)]"
+                            }`}
+                          >
+                            {isFurniture ? (
+                              <>
+                                <FaCouch className="w-2.5 h-2.5" />
+                                <span>FURNITURE</span>
+                              </>
+                            ) : (
+                              <>
+                                <FaTv className="w-2.5 h-2.5" />
+                                <span>ELECTRONICS</span>
+                              </>
+                            )}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Configurable Unit Price Column */}
+                      <td className="px-4 py-3 whitespace-nowrap text-gray-900 font-medium">
+                        {editingRateCartItemId === item.cartItemId ? (
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-1 bg-blue-50/90 p-1.5 rounded-lg border border-blue-300 shadow-xs">
+                              <span className="text-xs font-bold text-gray-600">₹</span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="any"
+                                autoFocus
+                                value={tempRate}
+                                onChange={(e) => setTempRate(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") saveCustomRate(item.cartItemId);
+                                  if (e.key === "Escape") cancelCustomRate();
+                                  handleNumberKeyDown(e, true);
+                                }}
+                                className="w-24 px-2 py-1 text-xs font-bold text-gray-900 bg-white border border-blue-400 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Rate"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => saveCustomRate(item.cartItemId)}
+                                className="p-1 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-100/60 rounded transition"
+                                title="Apply Rate (Enter)"
+                              >
+                                <FaCheck className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={cancelCustomRate}
+                                className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-200/60 rounded transition"
+                                title="Cancel (Esc)"
+                              >
+                                <FaTimes className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                            {item.product.costPrice && parseFloat(tempRate) > 0 && parseFloat(tempRate) < parseFloat(item.product.costPrice) && (
+                              <span className="text-[9.5px] font-bold text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                                ⚠️ Below cost: ₹{item.product.costPrice}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 group">
+                            <div className="flex flex-col">
+                              <span className={`font-bold text-sm ${isConfigured ? "text-blue-700" : "text-gray-900"}`}>
+                                ₹{effectivePrice}
+                              </span>
+                              {isConfigured && (
+                                <span className="text-[10px] text-gray-400 line-through">
+                                  MRP ₹{item.product.sellingPrice}
+                                </span>
+                              )}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => startEditingRate(item)}
+                              className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                              title="Configure unit price"
+                            >
+                              <FaEdit className="w-3.5 h-3.5" />
+                            </button>
+                            {isConfigured && (
+                              <button
+                                type="button"
+                                onClick={() => resetToCatalogRate(item.cartItemId)}
+                                className="p-1 text-gray-300 hover:text-amber-600 hover:bg-amber-50 rounded-md transition"
+                                title="Reset to catalog price"
+                              >
+                                <FaUndo className="w-2.5 h-2.5" />
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </td>
+
+                      {/* Unit / Qty / IMEI Selection */}
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {item.product.productType === "serialized" || item.product.productType === "electronics" ? (
+                          <select
+                            className="border border-gray-300 rounded-md px-2 py-1 text-xs max-w-[180px] font-medium focus:ring-1 focus:ring-blue-500"
+                            value={item.selectedUnitId}
+                            onChange={(e) => updateSelectedUnit(item.cartItemId, e.target.value)}
+                          >
+                            {item.product.units?.map((u: any) => {
+                              const isAlreadySelected = cart.some(
+                                (cItem) => cItem.product.id === item.product.id && cItem.cartItemId !== item.cartItemId && cItem.selectedUnitId === u.id.toString()
+                              );
+                              return (
+                                <option key={u.id} value={u.id} disabled={isAlreadySelected}>
+                                  {u.imeiNumber} {isAlreadySelected ? "(Already Selected)" : ""}
+                                </option>
+                              );
+                            })}
+                          </select>
+                        ) : (
+                          <input
+                            type="number"
+                            min="1"
+                            max={item.product.quantityInStock}
+                            className="border border-gray-300 rounded-md px-2 py-1 text-xs w-16 text-center font-semibold focus:ring-1 focus:ring-blue-500"
+                            value={item.quantity}
+                            onChange={(e) => updateQuantity(item.cartItemId, Math.min(item.product.quantityInStock, Math.max(1, parseInt(e.target.value) || 1)))}
+                            onKeyDown={(e) => handleNumberKeyDown(e, false)}
+                            onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                          />
+                        )}
+                      </td>
+
+                      {/* Line Total */}
+                      <td className="px-4 py-3 whitespace-nowrap font-bold text-gray-900 text-right">
+                        ₹{effectivePrice * item.quantity}
+                      </td>
+
+                      <td className="px-4 py-3 whitespace-nowrap text-right text-xs">
+                        <button
+                          onClick={() => removeFromCart(item.cartItemId)}
+                          className="text-red-600 hover:text-red-900 font-bold"
                         >
-                          {item.product.units?.map((u: any) => {
-                            const isAlreadySelected = cart.some(
-                              (cItem) => cItem.product.id === item.product.id && cItem.cartItemId !== item.cartItemId && cItem.selectedUnitId === u.id.toString()
-                            );
-                            return (
-                              <option key={u.id} value={u.id} disabled={isAlreadySelected}>
-                                {u.imeiNumber} {isAlreadySelected ? "(Already Selected)" : ""}
-                              </option>
-                            );
-                          })}
-                        </select>
-                      ) : (
-                        <input
-                          type="number"
-                          min="1"
-                          max={item.product.quantityInStock}
-                          className="border border-gray-300 rounded-md px-2 py-1 text-xs w-16 text-center font-semibold focus:ring-1 focus:ring-blue-500"
-                          value={item.quantity}
-                          onChange={(e) => updateQuantity(item.cartItemId, Math.min(item.product.quantityInStock, Math.max(1, parseInt(e.target.value) || 1)))}
-                          onKeyDown={(e) => handleNumberKeyDown(e, false)}
-                          onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                        />
-                      )}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap font-bold text-gray-900 text-right">
-                      ₹{item.product.sellingPrice * item.quantity}
-                    </td>
-                    <td className="px-4 py-3 whitespace-nowrap text-right text-xs">
-                      <button
-                        onClick={() => removeFromCart(item.cartItemId)}
-                        className="text-red-600 hover:text-red-900 font-bold"
-                      >
-                        Remove
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           )}

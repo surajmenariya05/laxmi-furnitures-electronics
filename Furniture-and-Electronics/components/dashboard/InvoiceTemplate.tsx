@@ -170,27 +170,14 @@ export default function InvoiceTemplate({
       >
         {/* SHOP BANNER HEADER */}
         <div className="border-b border-black p-3.5 flex items-center justify-between">
-          {/* Logo container (Ready for user uploaded logo with clean fallback) */}
+          {/* Logo container */}
           <div className="w-20 flex items-center justify-center flex-shrink-0">
-            <div className="relative w-14 h-14 rounded-full border border-black flex flex-col items-center justify-center p-1 bg-white text-center shadow-2xs">
-              {/* Optional user-uploaded logo overlay */}
+            <div className="relative w-14 h-14 rounded-full border border-black flex items-center justify-center p-0.5 bg-white overflow-hidden shadow-2xs">
               <img
                 src="/uploads/branding/logo.png"
                 alt="Logo"
-                className="absolute inset-0 w-full h-full object-contain rounded-full"
-                onError={(e) => {
-                  e.currentTarget.style.display = "none";
-                }}
+                className="w-full h-full object-contain rounded-full"
               />
-              <span className="text-[9px] font-black text-blue-900 tracking-tight leading-none">
-                LAXMI
-              </span>
-              <span className="text-[7px] font-bold text-gray-600 leading-none my-0.5">
-                ★ ★ ★
-              </span>
-              <span className="text-[8px] font-black text-red-700 leading-none">
-                LFE
-              </span>
             </div>
           </div>
 
@@ -315,7 +302,12 @@ export default function InvoiceTemplate({
                 const pName = item.product?.name || item.name || "Item";
                 const pBrand = item.product?.brand || item.brand;
                 const pQty = parseInt(item.quantity, 10) || 1;
-                const pRate = Number(item.unitPrice || item.product?.sellingPrice || 0);
+                const pRate = Number(
+                  item.configuredPrice ??
+                  item.unitPrice ??
+                  item.product?.sellingPrice ??
+                  0
+                );
                 const pMrp = Number(
                   item.mrp ||
                   item.product?.mrp ||

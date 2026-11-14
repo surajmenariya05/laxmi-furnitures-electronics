@@ -174,9 +174,12 @@ export default function InvoiceTemplate({
           <div className="w-20 flex items-center justify-center flex-shrink-0">
             <div className="relative w-14 h-14 rounded-full border border-black flex items-center justify-center p-0.5 bg-white overflow-hidden shadow-2xs">
               <img
-                src="/uploads/branding/logo.png"
+                src="/LBF%20logo.png"
                 alt="Logo"
                 className="w-full h-full object-contain rounded-full"
+                onError={(e) => {
+                  e.currentTarget.src = "/logo.png";
+                }}
               />
             </div>
           </div>

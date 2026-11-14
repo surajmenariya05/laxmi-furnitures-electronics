@@ -53,7 +53,11 @@ export async function GET(req: Request) {
       include: {
         billItems: {
           include: {
-            product: true,
+            product: {
+              include: {
+                category: true,
+              },
+            },
             productUnit: true,
           },
         },
@@ -93,6 +97,8 @@ export async function GET(req: Request) {
           billNumber: b.billNumber,
           productName: item.product.name,
           productType: item.product.productType,
+          categoryName: item.product.category?.name || null,
+          department: item.product.department || "FURNITURE",
           quantity: item.quantity,
           unitPrice: Number(item.unitPrice),
           lineTotal: lineTotal,

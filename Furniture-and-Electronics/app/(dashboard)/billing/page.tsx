@@ -361,7 +361,7 @@ export default function BillingPage() {
           quantity: item.quantity,
           configuredPrice: item.configuredPrice !== undefined ? Number(item.configuredPrice) : undefined,
           unitPrice: effectivePrice,
-          productUnitId: (item.product.productType === "serialized" || item.product.productType === "electronics")
+          productUnitId: item.product.productType !== "quantity"
             ? parseInt(item.selectedUnitId)
             : undefined,
         };
@@ -602,7 +602,7 @@ export default function BillingPage() {
                 <tr>
                   <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase">Item</th>
                   <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase">Unit Price</th>
-                  <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase">Qty / IMEI</th>
+                  <th className="px-4 py-2.5 text-left text-xs font-bold text-gray-500 uppercase">Qty / Serial No.</th>
                   <th className="px-4 py-2.5 text-right text-xs font-bold text-gray-500 uppercase">Total</th>
                   <th className="px-4 py-2.5 text-right text-xs font-bold text-gray-500 uppercase"></th>
                 </tr>
@@ -719,9 +719,9 @@ export default function BillingPage() {
                         )}
                       </td>
 
-                      {/* Unit / Qty / IMEI Selection */}
+                      {/* Unit / Qty / Serial No. Selection */}
                       <td className="px-4 py-3 whitespace-nowrap">
-                        {item.product.productType === "serialized" || item.product.productType === "electronics" ? (
+                        {item.product.productType !== "quantity" ? (
                           <select
                             className="border border-gray-300 rounded-md px-2 py-1 text-xs max-w-[180px] font-medium focus:ring-1 focus:ring-blue-500"
                             value={item.selectedUnitId}

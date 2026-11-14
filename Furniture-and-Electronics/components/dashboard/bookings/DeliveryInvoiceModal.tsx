@@ -316,7 +316,7 @@ export default function DeliveryInvoiceModal({
                           <div className="mt-2.5">
                             <input
                               type="text"
-                              placeholder="Scan or enter Appliance Serial Number / IMEI (Optional)"
+                              placeholder="Scan or enter Appliance Serial Number / S/N (Optional)"
                               className="w-full text-xs border border-gray-300 rounded-lg px-2.5 py-1.5 font-mono focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none bg-white"
                               value={serialNumbers[item.id] || ""}
                               onChange={(e) => handleSerialChange(item.id, e.target.value)}

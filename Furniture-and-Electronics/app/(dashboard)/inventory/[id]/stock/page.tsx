@@ -30,7 +30,7 @@ export default function AddStockPage({ params }: { params: Promise<{ id: string 
     const newImei = editingImeis[unitId];
     if (!newImei || newImei === oldImei) return;
     
-    if (!window.confirm(`Are you sure you want to change IMEI/SN: ${oldImei} -> ${newImei}?`)) {
+    if (!window.confirm(`Are you sure you want to change Serial Number: ${oldImei} -> ${newImei}?`)) {
       return;
     }
 
@@ -42,9 +42,9 @@ export default function AddStockPage({ params }: { params: Promise<{ id: string 
         body: JSON.stringify({ imeiNumber: newImei }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to update IMEI");
+      if (!res.ok) throw new Error(data.error || "Failed to update Serial Number");
       
-      alert(`Success! IMEI/SN changed from ${oldImei} to ${newImei}`);
+      alert(`Success! Serial Number changed from ${oldImei} to ${newImei}`);
       await loadProduct(); 
     } catch (err: any) {
       alert(err.message || "Failed to update IMEI");
@@ -118,18 +118,14 @@ export default function AddStockPage({ params }: { params: Promise<{ id: string 
         costPrice: parseFloat(costPrice) || undefined,
       };
 
-      if (product.productType === "serialized" || product.productType === "electronics") {
+      if (product.productType !== "quantity") {
         const imeis = imeiInput
           .split(/[\n,]/)
           .map((i) => i.trim())
           .filter((i) => i.length > 0);
           
         if (imeis.length === 0) {
-          throw new Error(
-            product.productType === "electronics"
-              ? "Please enter at least one S M Number"
-              : "Please enter at least one IMEI"
-          );
+          throw new Error("Please enter at least one Serial Number");
         }
         payload.imeis = imeis;
       } else {
@@ -158,29 +154,21 @@ export default function AddStockPage({ params }: { params: Promise<{ id: string 
 
       <form onSubmit={handleSubmit} className="space-y-6">
         
-        {product.productType === "serialized" || product.productType === "electronics" ? (
+        {product.productType !== "quantity" ? (
           <div>
             <label className="block text-sm font-medium text-gray-700">
-              {product.productType === "electronics"
-                ? "S M Numbers (Comma separated or one per line)"
-                : "IMEI Numbers (Comma separated or one per line)"}
+              Serial Numbers (Comma separated or one per line)
             </label>
             <textarea
               required
               rows={5}
               className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder={
-                product.productType === "electronics"
-                  ? "e.g. SN123456, SN123457"
-                  : "e.g. 359123456789012, 359123456789013"
-              }
+              placeholder="e.g. SN123456, SN123457"
               value={imeiInput}
               onChange={(e) => setImeiInput(e.target.value)}
             />
             <p className="mt-1 text-sm text-gray-500">
-              {product.productType === "electronics"
-                ? "Stock quantity will be calculated based on the number of S M Numbers provided."
-                : "Stock quantity will be calculated based on the number of IMEIs provided."}
+              Stock quantity will be calculated based on the number of Serial Numbers provided.
             </p>
           </div>
         ) : (
@@ -199,14 +187,14 @@ export default function AddStockPage({ params }: { params: Promise<{ id: string 
           </div>
         )}
 
-        {(product.productType === "serialized" || product.productType === "electronics") && product.units && product.units.length > 0 && (
+        {product.productType !== "quantity" && product.units && product.units.length > 0 && (
           <div className="pt-4 border-t border-gray-100">
             <button
               type="button"
               onClick={() => setShowEditImei(!showEditImei)}
               className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-2 transition"
             >
-              ✏️ {showEditImei ? "Hide Existing IMEIs" : "Edit Existing IMEIs"}
+              ✏️ {showEditImei ? "Hide Existing Serial Numbers" : "Edit Existing Serial Numbers"}
             </button>
             
             {showEditImei && (

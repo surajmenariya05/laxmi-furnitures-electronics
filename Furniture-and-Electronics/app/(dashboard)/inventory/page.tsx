@@ -355,14 +355,14 @@ export default function InventoryPage() {
                       <div>
                         <div className="text-sm font-medium text-gray-900">{product.name}</div>
                         {product.brand && <div className="text-sm text-gray-500">{product.brand}</div>}
-                        {(product.productType === 'serialized' || product.productType === 'electronics') && product.quantityInStock > 0 && (
+                        {product.productType !== 'quantity' && product.quantityInStock > 0 && (
                           <div className="mt-1.5 relative imei-dropdown-container">
                             <button 
                               onClick={() => handleExpandImeis(product.id)}
                               className="flex items-center justify-between w-[170px] px-1 py-1 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-[11px] font-mono text-slate-700 transition-colors"
                             >
                               <span className="truncate mr-2">
-                                {product.productType === "electronics" ? "View SNs" : "View IMEIs"}
+                                View Serial Nos.
                               </span>
                               <span className="text-[9px] text-slate-400 bg-slate-200 px-1 rounded-sm">
                                 {product.quantityInStock}

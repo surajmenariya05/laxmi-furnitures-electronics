@@ -133,8 +133,8 @@ export default function NewProductPage() {
         lowStockThreshold: threshold,
         warrantyMonths: selectedDept === "ELECTRONICS" ? parseInt(formData.warrantyMonths || "12") : null,
         initialQuantity: formData.productType === "quantity" ? parseInt(formData.initialQuantity) || 0 : 0,
-        imeis: (formData.productType === "serialized" || formData.productType === "electronics")
-          ? formData.imeis.split(",").map(i => i.trim()).filter(Boolean)
+        imeis: formData.productType !== "quantity"
+          ? formData.imeis.split(/[\n,]+/).map(i => i.trim()).filter(Boolean)
           : [],
         imageUrl: formData.imageUrl || undefined,
         barcode: formData.barcode || undefined,
@@ -254,9 +254,8 @@ export default function NewProductPage() {
             value={formData.productType}
             onChange={(e) => setFormData({ ...formData, productType: e.target.value })}
           >
-            <option value="quantity">Quantity Based (e.g. Chargers, Cables)</option>
-            <option value="serialized">Serialized (e.g. Mobile Phones with IMEIs)</option>
-            <option value="electronics">Electronics (with S M No.)</option>
+            <option value="quantity">Quantity Based (e.g. Furniture, Chairs, Tables, Cables, Fans)</option>
+            <option value="serialized">Serial Number Based (e.g. Appliances, TVs, ACs, Refrigerators)</option>
           </select>
         </div>
 
@@ -312,25 +311,17 @@ export default function NewProductPage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">
-                  {formData.productType === "electronics"
-                    ? "Initial S M Numbers (Comma Separated)"
-                    : "Initial IMEIs (Comma Separated)"}
+                  Initial Serial Numbers (Comma separated or one per line)
                 </label>
                 <textarea
-                  placeholder={
-                    formData.productType === "electronics"
-                      ? "e.g. SN1000234, SN1000235"
-                      : "e.g. 866365081122723, 866365081122724"
-                  }
+                  placeholder="e.g. SN1000234, SN1000235"
                   rows={2}
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   value={formData.imeis}
                   onChange={(e) => setFormData({ ...formData, imeis: e.target.value })}
                 />
                 <span className="text-[10px] text-gray-500 mt-1 block">
-                  {formData.productType === "electronics"
-                    ? "Separate multiple S M Numbers with commas. The initial stock will count the number of entered S M Numbers."
-                    : "Separate multiple IMEI numbers with commas. The initial stock will count the number of entered IMEIs."}
+                  Separate multiple Serial Numbers with commas or new lines. The initial stock will count the number of entered Serial Numbers.
                 </span>
               </div>
             </div>

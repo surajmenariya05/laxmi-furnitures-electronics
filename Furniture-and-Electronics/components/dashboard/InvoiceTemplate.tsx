@@ -355,10 +355,10 @@ export default function InvoiceTemplate({
                         </div>
                       )}
 
-                      {/* Appliance Serial / IMEI (e.g. Samsung Ref item 1) */}
+                      {/* Appliance Serial Number (e.g. Samsung Ref item 1) */}
                       {imei && (
                         <div className="text-[9.5px] font-mono text-gray-800 mt-0.5">
-                          {imei}
+                          S/N: {imei}
                         </div>
                       )}
                     </td>

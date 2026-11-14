@@ -188,7 +188,7 @@ export default function SoldItemsHistoryModal({
                   <th className="px-4 py-3">Date</th>
                   <th className="px-4 py-3">Bill No</th>
                   <th className="px-4 py-3">Product details</th>
-                  <th className="px-4 py-3">IMEI / SN No.</th>
+                  <th className="px-4 py-3">Serial No. / S/N</th>
                   <th className="px-4 py-3 text-right">Amount</th>
                   <th className="px-4 py-3 text-center">Status</th>
                 </tr>

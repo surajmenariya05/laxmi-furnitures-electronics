@@ -29,13 +29,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     const result = await prisma.$transaction(async (tx) => {
       let quantityAdded = 0;
 
-      if (product.productType === "serialized" || product.productType === "electronics") {
+      if (product.productType !== "quantity") {
         if (!imeis || !Array.isArray(imeis) || imeis.length === 0) {
-          throw new Error(
-            product.productType === "electronics"
-              ? "S M Numbers are required for electronics products"
-              : "IMEIs are required for serialized products"
-          );
+          throw new Error("Serial Numbers are required for serialized products");
         }
 
         quantityAdded = imeis.length;
@@ -87,7 +83,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     console.error("Error adding stock:", error);
     // Handle unique constraint violation for IMEIs
     if (error.code === 'P2002') {
-       return NextResponse.json({ error: "One or more IMEIs already exist in the system." }, { status: 400 });
+       return NextResponse.json({ error: "One or more Serial Numbers already exist in the system." }, { status: 400 });
     }
     return NextResponse.json({ error: error.message || "Failed to add stock" }, { status: 500 });
   }

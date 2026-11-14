@@ -326,7 +326,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error("Error creating product:", error);
     if (error.code === 'P2002') {
-       return NextResponse.json({ error: "One or more IMEIs already exist in the system." }, { status: 400 });
+       return NextResponse.json({ error: "One or more Serial Numbers already exist in the system." }, { status: 400 });
     }
     return NextResponse.json({ error: error.message || "Failed to create product" }, { status: 500 });
   }

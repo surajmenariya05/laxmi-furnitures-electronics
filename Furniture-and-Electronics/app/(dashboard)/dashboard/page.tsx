@@ -1048,7 +1048,7 @@ export default function DashboardPage() {
                     <tr>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Bill No.</th>
                       <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Item Details</th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">IMEI / SN</th>
+                      <th scope="col" className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">SERIAL NO. / S/N</th>
                       <th scope="col" className="px-6 py-3 text-center text-xs font-bold text-gray-500 uppercase tracking-wider">Qty</th>
                       <th scope="col" className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Price / Total</th>
                       <th scope="col" className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Net Profit</th>
@@ -1068,8 +1068,21 @@ export default function DashboardPage() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-sm font-bold text-gray-900">{item.productName}</div>
-                          <div className="text-[10px] uppercase font-bold mt-1 tracking-wider text-gray-500 flex items-center gap-1">
-                            {item.productType === "serialized" ? "📱 Phone" : item.productType === "electronics" ? "🔌 Electronics" : "🎧 Accessory"}
+                          <div className="mt-1 flex items-center gap-1.5 flex-wrap">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                                item.department === "FURNITURE"
+                                  ? "bg-[#235347] text-white border border-[#2F6859] border-b-[#14352D] shadow-[0_1.5px_0_#14352D,inset_0_1px_0_rgba(255,255,255,0.25)]"
+                                  : "bg-[#093F52] text-white border border-[#105269] border-b-[#052531] shadow-[0_1.5px_0_#052531,inset_0_1px_0_rgba(255,255,255,0.25)]"
+                              }`}
+                            >
+                              {item.department === "FURNITURE" ? "🛋️ FURNITURE" : "⚡ ELECTRONICS"}
+                            </span>
+                            {item.categoryName && (
+                              <span className="text-[10.5px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                                {item.categoryName}
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

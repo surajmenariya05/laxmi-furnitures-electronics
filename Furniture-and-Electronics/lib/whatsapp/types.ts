@@ -68,6 +68,14 @@ export interface BookingSettledTemplateData {
   totalAmount: number;
 }
 
+export interface BookingDeliveredWithDueTemplateData {
+  customerName: string;
+  bookingNumber: string;
+  totalAmount: number;
+  paidAmount: number;
+  remainingDue: number;
+}
+
 export interface BookingSlipCopyTemplateData {
   customerName: string;
   bookingNumber: string;

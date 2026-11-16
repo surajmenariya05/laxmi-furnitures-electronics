@@ -56,6 +56,27 @@ export async function GET(
       return NextResponse.json({ error: "Booking not found" }, { status: 404 });
     }
 
+    // Self-healing synchronization for booking remainingBalance
+    const billsDue = (booking.bills || []).reduce((sum, bill) => sum + Number(bill.dueAmount || 0), 0);
+    const unbilledDue = (booking.bookingItems || [])
+      .filter((i) => !i.isBilled)
+      .reduce((sum, i) => sum + Number(i.lineTotal || 0), 0);
+    const trueRemaining =
+      booking.bills && booking.bills.length > 0 ? billsDue + unbilledDue : Number(booking.remainingBalance);
+
+    if (Number(booking.remainingBalance) !== trueRemaining) {
+      prisma.booking
+        .update({
+          where: { id: booking.id },
+          data: { remainingBalance: trueRemaining },
+        })
+        .catch((err) =>
+          console.error(`[Self-Healing] Failed to sync remainingBalance for booking #${booking.bookingNumber}:`, err)
+        );
+
+      booking.remainingBalance = trueRemaining as any;
+    }
+
     return NextResponse.json(booking);
   } catch (error: any) {
     console.error("Error fetching booking details:", error);

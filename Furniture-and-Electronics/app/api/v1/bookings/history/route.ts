@@ -96,8 +96,36 @@ export async function GET(req: Request) {
     const totalPages = Math.ceil(total / limit);
     const hasMore = skip + bookings.length < total;
 
+    // Self-healing synchronization for completed/historical bookings where remainingBalance drifted
+    const sanitizedBookings = bookings.map((b) => {
+      const billsDue = (b.bills || []).reduce((sum, bill) => sum + Number(bill.dueAmount || 0), 0);
+      const unbilledDue = (b.bookingItems || [])
+        .filter((i) => !i.isBilled)
+        .reduce((sum, i) => sum + Number(i.lineTotal || 0), 0);
+      const liveRemaining =
+        b.bills && b.bills.length > 0 ? billsDue + unbilledDue : Number(b.remainingBalance);
+
+      if (Number(b.remainingBalance) !== liveRemaining) {
+        // Fire-and-forget sync to repair database row
+        prisma.booking
+          .update({
+            where: { id: b.id },
+            data: { remainingBalance: liveRemaining },
+          })
+          .catch((err) =>
+            console.error(`[Self-Healing] Failed to sync remainingBalance for booking #${b.bookingNumber}:`, err)
+          );
+
+        return {
+          ...b,
+          remainingBalance: liveRemaining,
+        };
+      }
+      return b;
+    });
+
     return NextResponse.json({
-      items: bookings,
+      items: sanitizedBookings,
       total,
       page,
       totalPages,

@@ -38,13 +38,23 @@ export async function POST(
 
     const now = new Date();
 
-    // Update booking status to COMPLETED and all delivery schedules to DELIVERED
+    // Compute live remaining dues accurately from all linked bills & unbilled items
+    const totalBillsDue = (booking.bills || []).reduce(
+      (sum, b) => sum + Number(b.dueAmount || 0),
+      0
+    );
+    const unbilledItemsDue = (booking.bookingItems || [])
+      .filter((i) => !i.isBilled)
+      .reduce((sum, i) => sum + Number(i.lineTotal || 0), 0);
+    const trueRemainingBalance = totalBillsDue + unbilledItemsDue;
+
+    // Update booking status to COMPLETED with genuine remainingBalance and all delivery schedules to DELIVERED
     const updatedBooking = await prisma.$transaction(async (tx) => {
       const completed = await tx.booking.update({
         where: { id: bookingId },
         data: {
           status: "COMPLETED",
-          remainingBalance: 0,
+          remainingBalance: trueRemainingBalance,
         },
       });
 
@@ -59,27 +69,38 @@ export async function POST(
       return completed;
     });
 
-    // Auto-dispatch Settlement WhatsApp Message to Customer
+    // Auto-dispatch appropriate WhatsApp Message to Customer based on financial settlement
     if (booking.customer?.phone) {
       try {
         const { dispatchWhatsappNotification } = await import("@/lib/whatsapp/dispatch");
-        const { formatBookingSettledMessage } = await import("@/lib/whatsapp/templates");
+        const { formatBookingSettledMessage, formatBookingDeliveredWithDueMessage } = await import(
+          "@/lib/whatsapp/templates"
+        );
 
         const customerName = booking.customer?.name || "Valued Customer";
-        const settledMsg = formatBookingSettledMessage({
-          customerName,
-          bookingNumber: booking.bookingNumber,
-          totalAmount: Number(booking.totalEstimatedAmount),
-        });
+        const messageText =
+          trueRemainingBalance <= 0
+            ? formatBookingSettledMessage({
+                customerName,
+                bookingNumber: booking.bookingNumber,
+                totalAmount: Number(booking.totalEstimatedAmount),
+              })
+            : formatBookingDeliveredWithDueMessage({
+                customerName,
+                bookingNumber: booking.bookingNumber,
+                totalAmount: Number(booking.totalEstimatedAmount),
+                paidAmount: Math.max(0, Number(booking.totalEstimatedAmount) - trueRemainingBalance),
+                remainingDue: trueRemainingBalance,
+              });
 
         await dispatchWhatsappNotification({
           phone: booking.customer.phone,
-          text: settledMsg,
+          text: messageText,
           billNumber: booking.bookingNumber,
           customerName,
         });
       } catch (waErr) {
-        console.error("Failed to dispatch booking settlement WhatsApp message:", waErr);
+        console.error("Failed to dispatch booking completion WhatsApp message:", waErr);
       }
     }
 

@@ -5,6 +5,7 @@ import { Modal } from "@/components/ui/modal";
 import { BookingResponse } from "@/types/booking";
 import { FaPrint, FaTimes, FaCamera, FaSearchPlus } from "react-icons/fa";
 import { extractDesignPhotos } from "@/lib/booking-photos";
+import { useReactToPrint } from "react-to-print";
 
 interface BookingSlipModalProps {
   booking: BookingResponse | null;
@@ -19,6 +20,24 @@ export default function BookingSlipModal({
 }: BookingSlipModalProps) {
   const printRef = useRef<HTMLDivElement>(null);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `Laxmi_Booking_Slip_${booking?.bookingNumber || "Slip"}`,
+    pageStyle: `
+      @page {
+        size: A4 portrait;
+        margin: 8mm;
+      }
+      @media print {
+        body {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          background: #ffffff !important;
+        }
+      }
+    `,
+  });
 
   // Close modal or image preview on Escape key press
   useEffect(() => {
@@ -37,10 +56,6 @@ export default function BookingSlipModal({
   }, [isOpen, onClose, previewImageUrl]);
 
   if (!isOpen || !booking) return null;
-
-  const handlePrint = () => {
-    window.print();
-  };
 
   const formattedBookingDate = new Date(booking.createdAt).toLocaleDateString("en-IN", {
     day: "numeric",
@@ -83,7 +98,19 @@ export default function BookingSlipModal({
   const parsedDiscount = match ? parseFloat(match[1].replace(/,/g, "")) : 0;
   const discount = parsedDiscount > 0 ? parsedDiscount : Math.max(0, itemsTotal - total);
   const advance = Number(booking.advancePaid);
-  const balance = Number(booking.remainingBalance);
+
+  // Compute live remaining due across all bills and unbilled items (fallback to remainingBalance if no bills yet)
+  const totalBillsDue = (booking.bills || []).reduce(
+    (sum, b) => sum + Number(b.dueAmount || 0),
+    0
+  );
+  const unbilledItemsDue = (booking.bookingItems || [])
+    .filter((i) => !i.isBilled)
+    .reduce((sum, i) => sum + Number(i.lineTotal || 0), 0);
+  const balance =
+    booking.bills && booking.bills.length > 0
+      ? totalBillsDue + unbilledItemsDue
+      : Number(booking.remainingBalance);
 
   const furnitureBill = booking.bills?.find((b) => b.department === "FURNITURE");
   const electronicsBills = booking.bills?.filter((b) => b.department === "ELECTRONICS") || [];
@@ -142,7 +169,10 @@ export default function BookingSlipModal({
         </div>
 
         {/* Scrollable Printable Slip Body */}
-        <div ref={printRef} className="flex-1 overflow-y-auto p-6 sm:p-7 space-y-4 text-gray-900 bg-white">
+        <div
+          ref={printRef}
+          className="flex-1 overflow-y-auto print:overflow-visible booking-slip-print-container p-6 sm:p-7 space-y-4 text-gray-900 bg-white"
+        >
           {/* Header */}
           <div className="text-center border-b border-gray-300 pb-3">
             <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight uppercase">

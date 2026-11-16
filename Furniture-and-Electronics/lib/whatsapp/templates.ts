@@ -9,6 +9,7 @@ import {
   BookingNewTemplateData,
   DeliveryInvoiceTemplateData,
   BookingSettledTemplateData,
+  BookingDeliveredWithDueTemplateData,
   BookingSlipCopyTemplateData,
   DuePaymentTemplateData,
   VendorPaymentTemplateData,
@@ -136,6 +137,30 @@ export function formatBookingSettledMessage(data: BookingSettledTemplateData): s
     `• Total Paid: *₹${formatCurrency(data.totalAmount)}*`,
     `• Outstanding Balance: *₹0 (Fully Paid)*`,
     `• Delivery Status: *All Items Delivered* ✅`,
+    ``,
+    `Thank you for choosing Laxmi Electronics & Furnitures!`,
+    ``,
+    STORE_SIGNATURE,
+  ].join("\n");
+}
+
+/**
+ * 2.2b Booking Delivery with Pending Balance Message
+ */
+export function formatBookingDeliveredWithDueMessage(data: BookingDeliveredWithDueTemplateData): string {
+  return [
+    `🚚 *ORDER DELIVERED: LAXMI ELECTRONICS & FURNITURES*`,
+    ``,
+    `Namaste *${data.customerName}* ji 🙏,`,
+    `Your order *#${data.bookingNumber}* items have been successfully delivered and handed over!`,
+    ``,
+    `📊 *Order & Balance Summary:*`,
+    `• Total Order Value: *₹${formatCurrency(data.totalAmount)}*`,
+    `• Total Paid So Far: *₹${formatCurrency(data.paidAmount)}*`,
+    `• Pending Balance Due: *₹${formatCurrency(data.remainingDue)}*`,
+    `• Delivery Status: *All Items Delivered* ✅`,
+    ``,
+    `⚠️ Please settle the remaining balance of *₹${formatCurrency(data.remainingDue)}* at your earliest convenience.`,
     ``,
     `Thank you for choosing Laxmi Electronics & Furnitures!`,
     ``,

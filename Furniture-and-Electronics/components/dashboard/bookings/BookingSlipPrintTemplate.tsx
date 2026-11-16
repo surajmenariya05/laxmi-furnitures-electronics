@@ -52,7 +52,19 @@ export default function BookingSlipPrintTemplate({
   const parsedDiscount = match ? parseFloat(match[1].replace(/,/g, "")) : 0;
   const discount = parsedDiscount > 0 ? parsedDiscount : Math.max(0, itemsTotal - total);
   const advance = Number(booking.advancePaid);
-  const balance = Number(booking.remainingBalance);
+
+  // Compute live remaining due across all bills and unbilled items (fallback to remainingBalance if no bills yet)
+  const totalBillsDue = (booking.bills || []).reduce(
+    (sum, b) => sum + Number(b.dueAmount || 0),
+    0
+  );
+  const unbilledItemsDue = (booking.bookingItems || [])
+    .filter((i) => !i.isBilled)
+    .reduce((sum, i) => sum + Number(i.lineTotal || 0), 0);
+  const balance =
+    booking.bills && booking.bills.length > 0
+      ? totalBillsDue + unbilledItemsDue
+      : Number(booking.remainingBalance);
 
   const furnitureBill = booking.bills?.find((b) => b.department === "FURNITURE");
   const electronicsBills = booking.bills?.filter((b) => b.department === "ELECTRONICS") || [];
@@ -261,7 +273,7 @@ export default function BookingSlipPrintTemplate({
             </span>
             <span
               className={`font-extrabold ${
-                balance <= 0 ? "text-emerald-700" : "text-blue-950"
+                balance <= 0 ? "text-emerald-700" : "text-[#780000]"
               }`}
             >
               {balance <= 0 ? "₹0 (Fully Settled)" : `₹${balance.toLocaleString("en-IN")}`}

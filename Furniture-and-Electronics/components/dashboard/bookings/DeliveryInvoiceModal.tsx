@@ -29,8 +29,8 @@ export default function DeliveryInvoiceModal({
 
   const [serialNumbers, setSerialNumbers] = useState<Record<number, string>>({});
   const [paymentMode, setPaymentMode] = useState<string>("CASH");
-  const [sgstPercent, setSgstPercent] = useState<string>("0");
-  const [cgstPercent, setCgstPercent] = useState<string>("0");
+  const [sgstPercent, setSgstPercent] = useState<string>("");
+  const [cgstPercent, setCgstPercent] = useState<string>("");
   const [isGstInclusive, setIsGstInclusive] = useState<boolean>(true);
   const [deliveryDate, setDeliveryDate] = useState<string>(
     new Date().toISOString().split("T")[0]
@@ -71,13 +71,15 @@ export default function DeliveryInvoiceModal({
     }
   }
 
-  const [amountPaidNow, setAmountPaidNow] = useState<string>(
-    String(Math.min(finalBillTotal, Number(booking.remainingBalance)))
-  );
+  const [amountPaidNow, setAmountPaidNow] = useState<string>(() => {
+    const initialDue = Math.min(finalBillTotal, Number(booking.remainingBalance));
+    return initialDue > 0 ? String(initialDue) : "";
+  });
 
   // Update default payment amount whenever item selection or finalBillTotal changes
   useEffect(() => {
-    setAmountPaidNow(String(Math.min(finalBillTotal, Number(booking.remainingBalance))));
+    const calculatedDue = Math.min(finalBillTotal, Number(booking.remainingBalance));
+    setAmountPaidNow(calculatedDue > 0 ? String(calculatedDue) : "");
   }, [selectedItemIds, finalBillTotal, booking.remainingBalance]);
 
   const handleToggleItem = (itemId: number) => {

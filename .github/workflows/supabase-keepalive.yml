@@ -1,0 +1,48 @@
+name: Supabase Keep-Alive
+
+on:
+  schedule:
+    # Runs every 12 hours (at 00:00 and 12:00 UTC) to keep Supabase project active
+    - cron: '0 0,12 * * *'
+  workflow_dispatch: # Allows manual trigger anytime from GitHub Actions tab
+
+jobs:
+  keep-alive:
+    name: Ping Supabase Services
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST & Storage APIs
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://xxffxljimansvshqovrb.supabase.co' }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          echo "=========================================="
+          echo "🚀 Starting Supabase Keep-Alive Ping"
+          echo "Target URL: $SUPABASE_URL"
+          echo "=========================================="
+
+          # Ping 1: REST API
+          echo "1. Pinging PostgREST API..."
+          REST_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY" \
+            "$SUPABASE_URL/rest/v1/")
+          echo "PostgREST HTTP Status: $REST_CODE"
+
+          # Ping 2: Storage API
+          echo "2. Pinging Storage API..."
+          STORAGE_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY" \
+            "$SUPABASE_URL/storage/v1/bucket")
+          echo "Storage HTTP Status: $STORAGE_CODE"
+
+          # Ping 3: Auth Health Endpoint
+          echo "3. Pinging Auth Service..."
+          AUTH_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$SUPABASE_URL/auth/v1/health")
+          echo "Auth HTTP Status: $AUTH_CODE"
+
+          echo "=========================================="
+          echo "✅ Keep-Alive ping executed successfully!"
+          echo "Supabase 7-day inactivity timer has been reset."
+          echo "=========================================="

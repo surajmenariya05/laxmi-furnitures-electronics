@@ -46,6 +46,11 @@ try {
   };
 }
 
+let qrcodeTerminal = null;
+try {
+  qrcodeTerminal = require('qrcode-terminal');
+} catch (e) {}
+
 // ─── 3. Configuration ────────────────────────────────────────────
 const PORT = parseInt(process.env.WHATSAPP_LOCAL_PORT || '3001', 10);
 const sessionDir = path.resolve(__dirname, '..', '.whatsapp-sessions');
@@ -109,7 +114,6 @@ async function initWhatsappSocket() {
       version: versionToUse,
       auth: state,
       browser: Browsers.macOS('Desktop'),
-      printQRInTerminal: true,
       logger: logger,
       fireInitQueries: false,
       syncFullHistory: false,
@@ -126,8 +130,17 @@ async function initWhatsappSocket() {
       if (qr) {
         currentQrCode = qr;
         currentStatus = 'connecting';
-        console.log('\n📲 QR CODE GENERATED! Scan using your WhatsApp mobile app:');
-        console.log('   (WhatsApp Settings > Linked Devices > Link a Device)\n');
+        console.log('\n========================================================================');
+        console.log('📲 QR CODE READY! Scan using your WhatsApp mobile app:');
+        console.log(`   👉 Open in Browser: http://localhost:${PORT}/qr`);
+        console.log('   (WhatsApp Settings > Linked Devices > Link a Device)');
+        console.log('========================================================================\n');
+
+        if (qrcodeTerminal) {
+          try {
+            qrcodeTerminal.generate(qr, { small: true });
+          } catch (e) {}
+        }
       }
 
       if (connection === 'open') {
@@ -158,12 +171,14 @@ async function initWhatsappSocket() {
             isInitializing = false;
             setTimeout(() => initWhatsappSocket(), 4000);
           }
-        } else if (statusCode === DisconnectReason.loggedOut) {
-          console.log('🛑 Local session was logged out. Cleaning up.');
+        } else if (statusCode === DisconnectReason.loggedOut || statusCode === 401) {
+          console.log('🛑 Local session was logged out or expired. Cleaned up stale files.');
           globalSocket = null;
           isInitializing = false;
           currentStatus = 'disconnected';
           clearSessionFiles();
+          console.log('🔄 Restarting clean pairing session in 2s to generate fresh QR code...');
+          setTimeout(() => initWhatsappSocket(), 2000);
         } else {
           globalSocket = null;
           isInitializing = false;
@@ -303,6 +318,77 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const pathname = url.pathname;
 
+  // GET / or /qr -> Web QR Code Scanner Page
+  if (req.method === 'GET' && (pathname === '/' || pathname === '/qr')) {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    return res.end(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Laxmi WhatsApp QR Scanner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; box-sizing: border-box; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 32px; max-width: 440px; width: 100%; text-align: center; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+    h1 { font-size: 20px; font-weight: 800; margin: 0 0 8px; color: #38bdf8; }
+    p { font-size: 13px; color: #94a3b8; margin: 0 0 24px; line-height: 1.5; }
+    .qr-box { background: white; padding: 16px; border-radius: 12px; display: inline-block; margin-bottom: 24px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .qr-box img { display: block; width: 280px; height: 280px; }
+    .instructions { text-align: left; background: #0f172a; border-radius: 8px; padding: 14px 16px; font-size: 12px; color: #cbd5e1; }
+    .instructions ol { margin: 0; padding-left: 20px; }
+    .instructions li { margin-bottom: 6px; }
+    .status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 16px; }
+    .status-badge.connecting { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid #eab308; }
+    .status-badge.connected { background: rgba(34, 197, 94, 0.15); color: #4ade80; border: 1px solid #22c55e; }
+  </style>
+  <script>
+    async function checkStatus() {
+      try {
+        const res = await fetch('/status');
+        const data = await res.json();
+        if (data.status === 'connected') {
+          document.getElementById('content').innerHTML = \`
+            <div class="status-badge connected">● WhatsApp Connected</div>
+            <h1 style="color: #4ade80;">✅ Successfully Connected!</h1>
+            <p>Your WhatsApp is linked and ready to dispatch booking slips and invoices.</p>
+          \`;
+        } else if (data.qrCode) {
+          const img = document.getElementById('qr-img');
+          const newSrc = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data=' + encodeURIComponent(data.qrCode);
+          if (img && img.src !== newSrc) {
+            img.src = newSrc;
+          }
+        }
+      } catch (e) {}
+    }
+    setInterval(checkStatus, 2500);
+  </script>
+</head>
+<body>
+  <div class="card" id="content">
+    <div class="status-badge connecting">● Waiting for QR Scan</div>
+    <h1>Scan WhatsApp QR Code</h1>
+    <p>Laxmi Electronics & Furnitures — Local Message Daemon</p>
+    <div class="qr-box">
+      ${
+        currentQrCode
+          ? `<img id="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&margin=8&data=${encodeURIComponent(currentQrCode)}" alt="WhatsApp QR Code" />`
+          : `<div style="width:280px;height:280px;display:flex;align-items:center;justify-content:center;color:#64748b;font-size:13px;">Generating QR code...</div>`
+      }
+    </div>
+    <div class="instructions">
+      <ol>
+        <li>Open <b>WhatsApp</b> on your mobile phone</li>
+        <li>Tap <b>Settings</b> (or 3 dots on Android)</li>
+        <li>Select <b>Linked Devices</b> &gt; <b>Link a Device</b></li>
+        <li>Point your phone's camera at this QR code</li>
+      </ol>
+    </div>
+  </div>
+</body>
+</html>`);
+  }
+
   // GET /health
   if (req.method === 'GET' && pathname === '/health') {
     return sendJson(res, 200, {
@@ -378,10 +464,13 @@ server.listen(PORT, () => {
   console.log(`🟢 Local WhatsApp Development Daemon running on port ${PORT}`);
   console.log(`   Health:     http://localhost:${PORT}/health`);
   console.log(`   Status:     http://localhost:${PORT}/status`);
+  console.log(`   Scan QR:    http://localhost:${PORT}/qr`);
   console.log(`   Connect:    POST http://localhost:${PORT}/connect`);
   console.log(`   Disconnect: POST http://localhost:${PORT}/disconnect`);
   console.log(`   Send:       POST http://localhost:${PORT}/send`);
   console.log(`   Environment: Local Only (Safe from Vercel)`);
-  console.log(`========================================================\n`);
+  console.log(`========================================================`);
+  console.log(`⏸️  Daemon is ready and waiting.`);
+  console.log(`👉 Click "Connect" on the Dashboard (http://localhost:3000/dashboard) to generate QR code.\n`);
 });
 

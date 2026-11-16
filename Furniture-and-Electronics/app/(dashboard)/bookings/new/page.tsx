@@ -9,9 +9,12 @@ import CustomerDetailsStep from "@/components/dashboard/bookings/new/CustomerDet
 import ProductPicker from "@/components/dashboard/bookings/new/ProductPicker";
 import PackageItemsTable, { PackageItem } from "@/components/dashboard/bookings/new/PackageItemsTable";
 import AdvancePaymentCard from "@/components/dashboard/bookings/new/AdvancePaymentCard";
+import { useToast } from "@/components/dashboard/providers/ToastProvider";
+import { dispatchBookingWhatsAppInBackground } from "@/lib/whatsapp/background-booking-dispatch";
 
 export default function NewBookingPage() {
   const router = useRouter();
+  const { showToast } = useToast();
 
   const [formData, setFormData] = useState({
     customerName: "",
@@ -164,51 +167,30 @@ export default function NewBookingPage() {
         }
       }
 
-      // 3. Trigger WhatsApp Delivery for Booking Slip + Furniture Invoice (if customer phone exists)
+      // 3. Dispatch WhatsApp in Background (Non-blocking) & Immediately Navigate!
       if (formData.customerPhone && createdBooking?.id) {
-        try {
-          const { generateBookingSlipPdfBlob } = await import("@/lib/pdf/booking-slip");
-          const slipBlob = await generateBookingSlipPdfBlob(createdBooking as any, uploadedDesignUrls);
-          const base64data = await new Promise<string>((resolve) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              resolve((reader.result as string)?.split(",")[1] || "");
-            };
-            reader.readAsDataURL(slipBlob);
-          });
+        showToast({
+          type: "info",
+          title: "Booking Created",
+          message: `Booking #${createdBooking.bookingNumber} confirmed. Dispatching WhatsApp in background...`,
+          duration: 3500,
+        });
 
-          await fetch(`/api/v1/bookings/${createdBooking.id}/whatsapp/resend`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              pdfBase64: base64data,
-              isNewBooking: true,
-            }),
-          }).catch((waErr) => console.error("WhatsApp booking dispatch failed:", waErr));
-        } catch (slipErr) {
-          console.error("Failed to generate booking slip PDF for WhatsApp:", slipErr);
-        }
-
-        // Also auto-dispatch Furniture Tax Invoice if one was generated
-        const furnitureBill = (createdBooking as any).furnitureBill;
-        if (furnitureBill && furnitureBill.id) {
-          try {
-            const { generateBillPdfBlob } = await import("@/lib/client-pdf");
-            const furnBlob = await generateBillPdfBlob(furnitureBill);
-            const furnFormData = new FormData();
-            furnFormData.append("file", furnBlob, `Laxmi_Invoice_${furnitureBill.billNumber}.pdf`);
-            furnFormData.append("customerName", formData.customerName);
-            furnFormData.append("mobileNumber", formData.customerPhone);
-            furnFormData.append("billNumber", furnitureBill.billNumber);
-
-            await fetch(`/api/v1/bills/${furnitureBill.id}/whatsapp/upload`, {
-              method: "POST",
-              body: furnFormData,
-            }).catch((furnErr) => console.error("Furniture bill WhatsApp dispatch failed:", furnErr));
-          } catch (fErr) {
-            console.error("Failed to generate furniture invoice PDF:", fErr);
-          }
-        }
+        dispatchBookingWhatsAppInBackground({
+          booking: createdBooking,
+          uploadedDesignUrls,
+          customerName: formData.customerName,
+          customerPhone: formData.customerPhone,
+          furnitureBill: (createdBooking as any).furnitureBill,
+          showToast,
+        });
+      } else {
+        showToast({
+          type: "success",
+          title: "Booking Confirmed",
+          message: `Booking #${createdBooking.bookingNumber} created successfully.`,
+          duration: 4000,
+        });
       }
 
       router.push("/bookings");

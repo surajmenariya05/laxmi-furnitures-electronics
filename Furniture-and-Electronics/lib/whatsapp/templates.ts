@@ -12,6 +12,7 @@ import {
   BookingSlipCopyTemplateData,
   DuePaymentTemplateData,
   VendorPaymentTemplateData,
+  BookingCancelledTemplateData,
 } from "./types";
 
 const STORE_SIGNATURE = `📞 Helpline & Support: +91 820 939 9683\n_Laxmi Electronics & Furnitures, Main Market, Bhinder_`;
@@ -249,3 +250,37 @@ export function formatVendorPaymentMessage(data: VendorPaymentTemplateData): str
     STORE_SIGNATURE,
   ].join("\n");
 }
+
+/**
+ * 5. Advance Booking Cancellation & Refund Advice Message
+ */
+export function formatBookingCancelledMessage(data: BookingCancelledTemplateData): string {
+  const hasRefund = data.refundAmount > 0;
+
+  const lines = [
+    `❌ *BOOKING CANCELLED: LAXMI ELECTRONICS & FURNITURES*`,
+    ``,
+    `Namaste *${data.customerName}* ji 🙏,`,
+    `Your Advance Booking *#${data.bookingNumber}* has been cancelled upon your request.`,
+  ];
+
+  if (hasRefund) {
+    lines.push(
+      ``,
+      `💰 *Refund Details:*`,
+      `• Advance Received: *₹${formatCurrency(data.advancePaid)}*`,
+      `• Refund Amount: *₹${formatCurrency(data.refundAmount)}*`,
+      ``,
+      `ℹ️ Your refund is being processed by our store team. If you haven't received it yet in cash or UPI, please visit our store or contact us.`
+    );
+  }
+
+  lines.push(
+    ``,
+    `For any assistance or questions, please feel free to reach out to us:`,
+    STORE_SIGNATURE
+  );
+
+  return lines.join("\n");
+}
+

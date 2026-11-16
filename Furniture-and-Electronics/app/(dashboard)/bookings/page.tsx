@@ -11,6 +11,8 @@ import BookingCard from "@/components/dashboard/bookings/BookingCard";
 import BookingListEmptyState from "@/components/dashboard/bookings/BookingListEmptyState";
 import DeliveryInvoiceModal from "@/components/dashboard/bookings/DeliveryInvoiceModal";
 import BookingSlipModal from "@/components/dashboard/bookings/BookingSlipModal";
+import EditBookingModal from "@/components/dashboard/bookings/EditBookingModal";
+import CollectDuePaymentModal from "@/components/dashboard/due-payments/CollectDuePaymentModal";
 
 const fetcher = async (url: string) => {
   const res = await fetch(url);
@@ -28,6 +30,10 @@ export default function BookingsPage() {
   const [activeBookingForDelivery, setActiveBookingForDelivery] = useState<BookingResponse | null>(null);
   const [isDeliveryModalOpen, setIsDeliveryModalOpen] = useState(false);
   const [selectedSlipBooking, setSelectedSlipBooking] = useState<BookingResponse | null>(null);
+  const [selectedEditBooking, setSelectedEditBooking] = useState<BookingResponse | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedDueBill, setSelectedDueBill] = useState<any | null>(null);
+  const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
 
   // Construct SWR URL based on active filters
   const params = new URLSearchParams();
@@ -82,6 +88,65 @@ export default function BookingsPage() {
       alert(e.message || "Failed to complete booking");
     } finally {
       setCompletingBookingId(null);
+    }
+  };
+
+  const handleEditBooking = (booking: BookingResponse) => {
+    setSelectedEditBooking(booking);
+    setIsEditModalOpen(true);
+  };
+
+  const handleCloseEditModal = () => {
+    setIsEditModalOpen(false);
+    setSelectedEditBooking(null);
+  };
+
+  const handleDeleteBooking = async (booking: BookingResponse) => {
+    const adv = Number(booking.advancePaid || 0);
+    const hasAdv = adv > 0;
+    const custName = booking.customer?.name || "Customer";
+
+    const confirmMsg = hasAdv
+      ? `⚠️ CRITICAL CONFIRMATION: Advance Booking #${booking.bookingNumber} for "${custName}" has an Advance Payment of ₹${adv.toLocaleString("en-IN")}.\n\n` +
+        `Deleting this booking will:\n` +
+        `1. Restore inventory stock for all billed furniture items.\n` +
+        `2. Revert reserved serialized units to in-stock.\n` +
+        `3. Permanently remove linked bills from sales records.\n` +
+        `4. Dispatch a cancellation WhatsApp message with refund advice to ${custName}.\n\n` +
+        `⚠️ IMPORTANT: You MUST refund ₹${adv.toLocaleString("en-IN")} to ${custName}.\n\n` +
+        `Are you sure you want to permanently delete this booking?`
+      : `Confirm deletion of Advance Booking #${booking.bookingNumber} for "${custName}"?\n\n` +
+        `All reserved stock will be restored and linked bills removed. This action cannot be undone.`;
+
+    const isConfirmed = window.confirm(confirmMsg);
+    if (!isConfirmed) return;
+
+    setDeletingBookingId(booking.id);
+    try {
+      const res = await fetch(`/api/v1/bookings/${booking.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Deletion not possible. All database operations have been reverted.");
+      }
+
+      if (data.refundRequired) {
+        alert(
+          `✅ Advance Booking #${booking.bookingNumber} deleted successfully!\n\n` +
+          `⚠️ REFUND REMINDER:\n` +
+          `Please refund ₹${adv.toLocaleString("en-IN")} to ${custName} immediately in cash or UPI.`
+        );
+      } else {
+        alert(`✅ Advance Booking #${booking.bookingNumber} deleted successfully and inventory stock restored.`);
+      }
+
+      mutate();
+    } catch (e: any) {
+      console.error("Booking deletion failed:", e);
+      alert(`❌ Deletion not possible: ${e.message || "An error occurred while deleting the booking."}`);
+    } finally {
+      setDeletingBookingId(null);
     }
   };
 
@@ -144,6 +209,9 @@ export default function BookingsPage() {
               onViewSlip={setSelectedSlipBooking}
               onCompleteBooking={handleCompleteBooking}
               completingBookingId={completingBookingId}
+              onEdit={handleEditBooking}
+              onDelete={handleDeleteBooking}
+              onCollectDue={(bill) => setSelectedDueBill(bill)}
             />
           ))}
         </div>
@@ -162,6 +230,22 @@ export default function BookingsPage() {
         booking={selectedSlipBooking}
         isOpen={Boolean(selectedSlipBooking)}
         onClose={() => setSelectedSlipBooking(null)}
+      />
+
+      {/* 7. Edit Advance Booking Modal */}
+      <EditBookingModal
+        booking={selectedEditBooking}
+        isOpen={isEditModalOpen}
+        onClose={handleCloseEditModal}
+        onSuccess={() => mutate()}
+      />
+
+      {/* 8. Collect Due Payment Modal */}
+      <CollectDuePaymentModal
+        isOpen={Boolean(selectedDueBill)}
+        bill={selectedDueBill}
+        onClose={() => setSelectedDueBill(null)}
+        onSuccess={() => mutate()}
       />
     </div>
   );

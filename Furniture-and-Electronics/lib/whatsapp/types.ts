@@ -103,3 +103,12 @@ export interface VendorPaymentTemplateData {
   isFullySettled: boolean;
 }
 
+export interface BookingCancelledTemplateData {
+  customerName: string;
+  bookingNumber: string;
+  advancePaid: number;
+  refundAmount: number;
+  cancellationDate?: string;
+}
+
+

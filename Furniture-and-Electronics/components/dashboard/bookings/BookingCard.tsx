@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { BookingResponse } from "@/types/booking";
-import { FaWhatsapp } from "react-icons/fa";
+import { FaWhatsapp, FaPen, FaTrashAlt } from "react-icons/fa";
+import DuePaymentPill from "@/components/ui/DuePaymentPill";
 
 interface BookingCardProps {
   booking: BookingResponse;
@@ -10,6 +11,9 @@ interface BookingCardProps {
   onViewSlip?: (booking: BookingResponse) => void;
   onCompleteBooking?: (bookingId: number) => void;
   completingBookingId?: number | null;
+  onEdit?: (booking: BookingResponse) => void;
+  onDelete?: (booking: BookingResponse) => void;
+  onCollectDue?: (bill: any) => void;
 }
 
 export default function BookingCard({
@@ -18,7 +22,11 @@ export default function BookingCard({
   onViewSlip,
   onCompleteBooking,
   completingBookingId,
+  onEdit,
+  onDelete,
+  onCollectDue,
 }: BookingCardProps) {
+  const [showBillSelector, setShowBillSelector] = useState(false);
   const total = Number(booking.totalEstimatedAmount);
   const advance = Number(booking.advancePaid);
 
@@ -184,19 +192,58 @@ export default function BookingCard({
           </div>
         </div>
 
-        {/* Customer Information */}
-        <div className="mb-3">
-          <h4 className="text-base font-bold text-gray-900 leading-snug">
-            {booking.customer.name || "Customer"}
-          </h4>
-          <div className="text-xs text-gray-500 flex flex-wrap items-center gap-x-3 gap-y-1 mt-0.5">
-            <span className="font-mono text-gray-600 font-medium">
-              {booking.customer.phone || "No phone"}
-            </span>
-            {booking.customer.address && (
-              <span className="truncate max-w-[210px] text-gray-500">
-                {booking.customer.address}
+        {/* Customer Information & 3D Action Pills (Below Status Badge) */}
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="min-w-0 pr-1">
+            <h4 className="text-base font-bold text-gray-900 leading-snug truncate">
+              {booking.customer?.name || "Customer"}
+            </h4>
+            <div className="text-xs text-gray-500 flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+              <span className="font-mono text-gray-600 font-medium">
+                {booking.customer?.phone || "No phone"}
               </span>
+              {booking.customer?.address && (
+                <span className="truncate max-w-[150px] text-gray-500">
+                  {booking.customer.address}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* 3D Pill Micro-Actions: Edit and Delete Buttons */}
+          <div className="flex items-center gap-1.5 shrink-0 pt-0.5">
+            {onEdit && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(booking);
+                }}
+                className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-amber-800 bg-[#FFFDF5] hover:bg-amber-50 border border-amber-300/80 border-b-2 border-b-amber-400 rounded-full shadow-[0_2px_4px_rgba(217,119,6,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200"
+                title="Edit Booking"
+              >
+                <FaPen className="w-2.5 h-2.5 text-amber-700 transition-transform group-hover:scale-110 shrink-0" />
+                <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                  Edit
+                </span>
+              </button>
+            )}
+
+            {onDelete && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(booking);
+                }}
+                className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-rose-800 bg-[#FFF5F5] hover:bg-rose-50 border border-rose-300/80 border-b-2 border-b-rose-400 rounded-full shadow-[0_2px_4px_rgba(225,29,72,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200"
+                title="Delete Booking"
+              >
+                <FaTrashAlt className="w-2.5 h-2.5 text-rose-700 transition-transform group-hover:scale-110 shrink-0" />
+                <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[50px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                  Delete
+                </span>
+              </button>
             )}
           </div>
         </div>
@@ -276,13 +323,132 @@ export default function BookingCard({
 
       {/* Footer: Financial Progress & Delivery Invoice Action */}
       <div className="border-t border-gray-100 pt-3 mt-2">
-        <div className="flex justify-between items-baseline mb-1 text-xs">
+        <div className="flex justify-between items-center mb-1.5 text-xs">
           <span className="text-gray-500 font-medium">
             Advance: <strong className="text-[#15803D] font-bold">₹{advance.toLocaleString("en-IN")}</strong> ({paidPercent}%)
           </span>
-          <span className="text-gray-500 font-medium">
-            Due: <strong className="text-[#780000] font-bold">₹{liveRemainingDue.toLocaleString("en-IN")}</strong>
-          </span>
+
+          <div className="flex items-center gap-1">
+            <span className="text-gray-500 font-medium">Due:</span>
+            {liveRemainingDue <= 0 ? (
+              <DuePaymentPill dueAmount={0} />
+            ) : (() => {
+              const billsWithDue = (booking.bills || []).filter(
+                (b) => Number(b.dueAmount || 0) > 0
+              );
+
+              if (billsWithDue.length === 1 && onCollectDue) {
+                return (
+                  <DuePaymentPill
+                    dueAmount={billsWithDue[0].dueAmount}
+                    bill={{
+                      ...billsWithDue[0],
+                      customer: booking.customer,
+                      customerPhone: booking.customer?.phone,
+                    }}
+                    onClick={onCollectDue}
+                  />
+                );
+              }
+
+              if (billsWithDue.length > 1 && onCollectDue) {
+                return (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowBillSelector(!showBillSelector);
+                      }}
+                      className="group relative inline-flex items-center justify-center gap-1 text-[10px] font-extrabold bg-[#FDF2F2] hover:bg-[#FCE8E8] text-[#780000] border border-[#780000]/30 border-b-2 border-b-[#780000]/60 shadow-[0_2px_4px_rgba(120,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px px-2 py-0.5 rounded transition-all duration-200 cursor-pointer"
+                      title="Multiple bills have pending dues. Click to select a bill to pay."
+                    >
+                      <span className="font-mono">Due: ₹{liveRemainingDue.toLocaleString("en-IN")}</span>
+                      <span className="text-[9px] font-bold text-gray-500 bg-white/80 px-1 rounded border border-gray-200 ml-0.5">
+                        {billsWithDue.length} bills ▾
+                      </span>
+                    </button>
+
+                    {showBillSelector && (
+                      <>
+                        <div
+                          className="fixed inset-0 z-30 cursor-default"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowBillSelector(false);
+                          }}
+                        />
+                        <div
+                          className="absolute right-0 bottom-7 z-40 bg-white border border-gray-200 rounded-xl shadow-2xl p-2.5 min-w-[230px] text-xs"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-gray-100">
+                            <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">
+                              Select Bill to Collect
+                            </span>
+                            <span className="text-[10px] font-bold text-gray-500 font-mono">
+                              {billsWithDue.length} Invoices
+                            </span>
+                          </div>
+                          <div className="space-y-1.5">
+                            {billsWithDue.map((b) => {
+                              const isFurn = b.department === "FURNITURE";
+                              return (
+                                <div
+                                  key={b.id}
+                                  className="flex items-center justify-between p-1.5 rounded-lg bg-gray-50 hover:bg-amber-50/60 border border-gray-100 transition-colors"
+                                >
+                                  <div>
+                                    <div className="flex items-center gap-1 font-mono font-bold text-[11px] text-gray-800">
+                                      <span>{isFurn ? "🛋️" : "⚡"}</span>
+                                      <span>{b.billNumber}</span>
+                                    </div>
+                                    <span className="text-[10px] text-red-700 font-extrabold block">
+                                      Due: ₹{Number(b.dueAmount).toLocaleString("en-IN")}
+                                    </span>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setShowBillSelector(false);
+                                      onCollectDue({
+                                        ...b,
+                                        customer: booking.customer,
+                                        customerPhone: booking.customer?.phone,
+                                      });
+                                    }}
+                                    className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold shadow-2xs transition"
+                                  >
+                                    Pay 💳
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              }
+
+              return (
+                <span
+                  className="font-bold text-[#780000] font-mono"
+                  title={
+                    unbilledElectronics.length > 0
+                      ? "Pending appliances not yet billed. Click 'Generate Delivery Invoice' below."
+                      : undefined
+                  }
+                >
+                  ₹{liveRemainingDue.toLocaleString("en-IN")}
+                  {unbilledElectronics.length > 0 && billsWithDue.length === 0 && (
+                    <span className="text-[9px] text-gray-400 font-normal ml-1">(Unbilled)</span>
+                  )}
+                </span>
+              );
+            })()}
+          </div>
         </div>
 
         {/* Progress bar */}

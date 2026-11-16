@@ -8,6 +8,7 @@ import { getBookingHistory } from "@/lib/api/booking";
 import BookingHistoryFilters from "@/components/dashboard/bookings/history/BookingHistoryFilters";
 import BookingHistoryTable from "@/components/dashboard/bookings/history/BookingHistoryTable";
 import BookingSlipModal from "@/components/dashboard/bookings/BookingSlipModal";
+import CollectDuePaymentModal from "@/components/dashboard/due-payments/CollectDuePaymentModal";
 import { useDebounce } from "@/hooks/useDebounce";
 
 export default function BookingHistoryPage() {
@@ -20,6 +21,7 @@ export default function BookingHistoryPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [selectedSlipBooking, setSelectedSlipBooking] = useState<BookingResponse | null>(null);
+  const [selectedDueBill, setSelectedDueBill] = useState<any | null>(null);
 
   useEffect(() => {
     fetchHistory();
@@ -91,6 +93,7 @@ export default function BookingHistoryPage() {
         totalPages={totalPages}
         onPageChange={setPage}
         onViewSlip={setSelectedSlipBooking}
+        onCollectDue={(bill) => setSelectedDueBill(bill)}
       />
 
       {/* Printable Booking Slip Modal */}
@@ -98,6 +101,16 @@ export default function BookingHistoryPage() {
         booking={selectedSlipBooking}
         isOpen={Boolean(selectedSlipBooking)}
         onClose={() => setSelectedSlipBooking(null)}
+      />
+
+      {/* Collect Due Payment Modal */}
+      <CollectDuePaymentModal
+        isOpen={Boolean(selectedDueBill)}
+        bill={selectedDueBill}
+        onClose={() => setSelectedDueBill(null)}
+        onSuccess={() => {
+          fetchHistory();
+        }}
       />
     </div>
   );

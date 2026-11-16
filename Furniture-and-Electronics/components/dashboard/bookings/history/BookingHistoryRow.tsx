@@ -4,15 +4,18 @@ import React from "react";
 import Link from "next/link";
 import { BookingResponse } from "@/types/booking";
 import { FaFileInvoice, FaEye } from "react-icons/fa";
+import DuePaymentPill from "@/components/ui/DuePaymentPill";
 
 interface BookingHistoryRowProps {
   booking: BookingResponse;
   onViewSlip: (booking: BookingResponse) => void;
+  onCollectDue?: (bill: any) => void;
 }
 
 export default function BookingHistoryRow({
   booking,
   onViewSlip,
+  onCollectDue,
 }: BookingHistoryRowProps) {
   const furnitureBill = booking.bills?.find((b) => b.department === "FURNITURE");
   const electronicsBills = booking.bills?.filter((b) => b.department === "ELECTRONICS") || [];
@@ -122,15 +125,15 @@ export default function BookingHistoryRow({
               <img src="/furniture-logo-icon.png" alt="Furniture" className="w-3.5 h-3.5 object-contain inline-block shrink-0" />
               <span>{furnitureBill.billNumber}</span>
             </Link>
-            {Number(furnitureBill.dueAmount || 0) === 0 ? (
-              <span className="text-[10px] font-extrabold bg-[#EBFDE7] text-[#14532D] border border-[#81FF7A]/80 border-b-[#4ADE80] shadow-[0_2px_4px_rgba(20,83,45,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] px-1.5 py-0.5 rounded">
-                ✓ Paid
-              </span>
-            ) : (
-              <span className="text-[10px] font-extrabold bg-[#FDF2F2] text-[#780000] border border-[#780000]/30 border-b-[#780000]/60 shadow-[0_2px_4px_rgba(120,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] px-1.5 py-0.5 rounded">
-                Due: ₹{Number(furnitureBill.dueAmount).toLocaleString("en-IN")}
-              </span>
-            )}
+            <DuePaymentPill
+              dueAmount={furnitureBill.dueAmount}
+              bill={{
+                ...furnitureBill,
+                customer: booking.customer,
+                customerPhone: booking.customer?.phone,
+              }}
+              onClick={onCollectDue}
+            />
           </div>
         ) : (
           <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-[#FEF9E7] text-[#854D0E] border border-[#FFCA3A] border-b-[#E5B020] shadow-[0_2px_4px_rgba(180,83,9,0.14),inset_0_1px_0_rgba(255,255,255,0.9)] px-2 py-0.5 rounded">
@@ -160,15 +163,15 @@ export default function BookingHistoryRow({
               <span>⚡</span>
               <span>{electronicsBills[0].billNumber}</span>
             </Link>
-            {Number(electronicsBills[0].dueAmount || 0) === 0 ? (
-              <span className="text-[10px] font-extrabold bg-[#EBFDE7] text-[#14532D] border border-[#81FF7A]/80 border-b-[#4ADE80] shadow-[0_2px_4px_rgba(20,83,45,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] px-1.5 py-0.5 rounded">
-                ✓ Paid
-              </span>
-            ) : (
-              <span className="text-[10px] font-extrabold bg-[#FDF2F2] text-[#780000] border border-[#780000]/30 border-b-[#780000]/60 shadow-[0_2px_4px_rgba(120,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] px-1.5 py-0.5 rounded">
-                Due: ₹{Number(electronicsBills[0].dueAmount).toLocaleString("en-IN")}
-              </span>
-            )}
+            <DuePaymentPill
+              dueAmount={electronicsBills[0].dueAmount}
+              bill={{
+                ...electronicsBills[0],
+                customer: booking.customer,
+                customerPhone: booking.customer?.phone,
+              }}
+              onClick={onCollectDue}
+            />
           </div>
         ) : (
           /* Multiple Invoices: Split interactive pill with direct link + dropdown toggle, Due/Paid status underneath */
@@ -210,9 +213,8 @@ export default function BookingHistoryRow({
                       const bDue = Number(b.dueAmount || 0);
                       const isCurrent = b.id === currentElecBill.id;
                       return (
-                        <button
+                        <div
                           key={b.id}
-                          type="button"
                           onClick={() => {
                             setSelectedElecBillId(b.id);
                             setIsDropdownOpen(false);
@@ -227,13 +229,29 @@ export default function BookingHistoryRow({
                             {isCurrent && <span className="text-purple-600">●</span>}
                           </span>
                           <span
-                            className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded ${
-                              bDue === 0 ? "bg-[#EBFDE7] text-[#14532D] border border-[#81FF7A]/80 border-b-[#4ADE80] shadow-[0_2px_4px_rgba(20,83,45,0.12),inset_0_1px_0_rgba(255,255,255,0.9)]" : "bg-[#FDF2F2] text-[#780000] border border-[#780000]/30 border-b-[#780000]/60 shadow-[0_2px_4px_rgba(120,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)]"
-                            }`}
+                            onClick={(e) => {
+                              if (bDue > 0 && onCollectDue) {
+                                e.stopPropagation();
+                                setIsDropdownOpen(false);
+                                onCollectDue({
+                                  ...b,
+                                  customer: booking.customer,
+                                  customerPhone: booking.customer?.phone,
+                                });
+                              }
+                            }}
                           >
-                            {bDue === 0 ? "✓ Paid" : `Due ₹${bDue.toLocaleString("en-IN")}`}
+                            <DuePaymentPill
+                              dueAmount={bDue}
+                              bill={{
+                                ...b,
+                                customer: booking.customer,
+                                customerPhone: booking.customer?.phone,
+                              }}
+                              onClick={onCollectDue}
+                            />
                           </span>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
@@ -242,15 +260,15 @@ export default function BookingHistoryRow({
             </div>
 
             {/* Live Due / Paid status for the selected bill */}
-            {Number(currentElecBill.dueAmount || 0) === 0 ? (
-              <span className="text-[10px] font-extrabold bg-[#EBFDE7] text-[#14532D] border border-[#81FF7A]/80 border-b-[#4ADE80] shadow-[0_2px_4px_rgba(20,83,45,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] px-1.5 py-0.5 rounded">
-                ✓ Paid
-              </span>
-            ) : (
-              <span className="text-[10px] font-extrabold bg-[#FDF2F2] text-[#780000] border border-[#780000]/30 border-b-[#780000]/60 shadow-[0_2px_4px_rgba(120,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] px-1.5 py-0.5 rounded">
-                Due: ₹{Number(currentElecBill.dueAmount).toLocaleString("en-IN")}
-              </span>
-            )}
+            <DuePaymentPill
+              dueAmount={currentElecBill.dueAmount}
+              bill={{
+                ...currentElecBill,
+                customer: booking.customer,
+                customerPhone: booking.customer?.phone,
+              }}
+              onClick={onCollectDue}
+            />
           </div>
         )}
       </td>
@@ -266,7 +284,29 @@ export default function BookingHistoryRow({
         {liveRemainingDue <= 0 ? (
           <span className="text-[#15803D]">₹0 (Paid)</span>
         ) : (
-          <span className="text-[#780000]">₹{liveRemainingDue.toLocaleString("en-IN")}</span>
+          (() => {
+            const billsWithDue = (booking.bills || []).filter(
+              (b) => Number(b.dueAmount || 0) > 0
+            );
+            if (billsWithDue.length === 1 && onCollectDue) {
+              return (
+                <DuePaymentPill
+                  dueAmount={liveRemainingDue}
+                  bill={{
+                    ...billsWithDue[0],
+                    customer: booking.customer,
+                    customerPhone: booking.customer?.phone,
+                  }}
+                  onClick={onCollectDue}
+                />
+              );
+            }
+            return (
+              <span className="text-[#780000]">
+                ₹{liveRemainingDue.toLocaleString("en-IN")}
+              </span>
+            );
+          })()
         )}
       </td>
 

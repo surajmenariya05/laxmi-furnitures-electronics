@@ -13,6 +13,7 @@ interface BookingHistoryTableProps {
   totalPages: number;
   onPageChange: (newPage: number) => void;
   onViewSlip: (booking: BookingResponse) => void;
+  onCollectDue?: (bill: any) => void;
 }
 
 export default function BookingHistoryTable({
@@ -22,6 +23,7 @@ export default function BookingHistoryTable({
   totalPages,
   onPageChange,
   onViewSlip,
+  onCollectDue,
 }: BookingHistoryTableProps) {
   if (loading && bookings.length === 0) {
     return (
@@ -80,6 +82,7 @@ export default function BookingHistoryTable({
                 key={booking.id}
                 booking={booking}
                 onViewSlip={onViewSlip}
+                onCollectDue={onCollectDue}
               />
             ))}
           </tbody>

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { BookingResponse } from "@/types/booking";
 import { FaWhatsapp, FaPen, FaTrashAlt } from "react-icons/fa";
 import DuePaymentPill from "@/components/ui/DuePaymentPill";
+import BookingDueBreakdownModal from "./BookingDueBreakdownModal";
 
 interface BookingCardProps {
   booking: BookingResponse;
@@ -26,7 +27,7 @@ export default function BookingCard({
   onDelete,
   onCollectDue,
 }: BookingCardProps) {
-  const [showBillSelector, setShowBillSelector] = useState(false);
+  const [showDueBreakdownModal, setShowDueBreakdownModal] = useState(false);
   const total = Number(booking.totalEstimatedAmount);
   const advance = Number(booking.advancePaid);
 
@@ -40,7 +41,7 @@ export default function BookingCard({
   const liveRemainingDue =
     booking.bills && booking.bills.length > 0
       ? totalBillsDue + unbilledItemsDue
-      : Number(booking.remainingBalance);
+      : Math.max(0, total - advance);
 
   const [sendingWhatsApp, setSendingWhatsApp] = useState(false);
 
@@ -328,126 +329,62 @@ export default function BookingCard({
             Advance: <strong className="text-[#15803D] font-bold">₹{advance.toLocaleString("en-IN")}</strong> ({paidPercent}%)
           </span>
 
-          <div className="flex items-center gap-1">
-            <span className="text-gray-500 font-medium">Due:</span>
-            {liveRemainingDue <= 0 ? (
-              <DuePaymentPill dueAmount={0} />
-            ) : (() => {
-              const billsWithDue = (booking.bills || []).filter(
-                (b) => Number(b.dueAmount || 0) > 0
-              );
+          <div className="flex flex-col items-end">
+            <div className="flex items-center gap-1.5">
+              <span className="text-gray-500 font-medium">Total Due:</span>
+              {liveRemainingDue <= 0 ? (
+                <DuePaymentPill dueAmount={0} />
+              ) : (() => {
+                const billsWithDue = (booking.bills || []).filter(
+                  (b) => Number(b.dueAmount || 0) > 0
+                );
 
-              if (billsWithDue.length === 1 && onCollectDue) {
                 return (
-                  <DuePaymentPill
-                    dueAmount={billsWithDue[0].dueAmount}
-                    bill={{
-                      ...billsWithDue[0],
-                      customer: booking.customer,
-                      customerPhone: booking.customer?.phone,
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // If no unbilled items and exactly 1 bill has due, directly open CollectDuePaymentModal
+                      if (unbilledItemsDue === 0 && billsWithDue.length === 1 && onCollectDue) {
+                        onCollectDue({
+                          ...billsWithDue[0],
+                          customer: booking.customer,
+                          customerPhone: booking.customer?.phone,
+                        });
+                        return;
+                      }
+                      setShowDueBreakdownModal(true);
                     }}
-                    onClick={onCollectDue}
-                  />
-                );
-              }
-
-              if (billsWithDue.length > 1 && onCollectDue) {
-                return (
-                  <div className="relative">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowBillSelector(!showBillSelector);
-                      }}
-                      className="group relative inline-flex items-center justify-center gap-1 text-[10px] font-extrabold bg-[#FDF2F2] hover:bg-[#FCE8E8] text-[#780000] border border-[#780000]/30 border-b-2 border-b-[#780000]/60 shadow-[0_2px_4px_rgba(120,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px px-2 py-0.5 rounded transition-all duration-200 cursor-pointer"
-                      title="Multiple bills have pending dues. Click to select a bill to pay."
-                    >
-                      <span className="font-mono">Due: ₹{liveRemainingDue.toLocaleString("en-IN")}</span>
-                      <span className="text-[9px] font-bold text-gray-500 bg-white/80 px-1 rounded border border-gray-200 ml-0.5">
-                        {billsWithDue.length} bills ▾
+                    className="group relative inline-flex items-center justify-center gap-1 text-[10px] font-extrabold bg-[#FDF2F2] hover:bg-[#FCE8E8] text-[#780000] border border-[#780000]/30 border-b-2 border-b-[#780000]/60 shadow-[0_2px_4px_rgba(120,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px px-2 py-0.5 rounded transition-all duration-200 cursor-pointer"
+                    title="Click to view due breakdown or collect payment"
+                  >
+                    <span className="font-mono">Due: ₹{liveRemainingDue.toLocaleString("en-IN")}</span>
+                    {unbilledItemsDue === 0 && billsWithDue.length === 1 ? (
+                      <span className="text-[9px] font-black text-emerald-800 bg-emerald-100/90 px-1 rounded border border-emerald-300 ml-0.5">
+                        Pay 💳
                       </span>
-                    </button>
-
-                    {showBillSelector && (
-                      <>
-                        <div
-                          className="fixed inset-0 z-30 cursor-default"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowBillSelector(false);
-                          }}
-                        />
-                        <div
-                          className="absolute right-0 bottom-7 z-40 bg-white border border-gray-200 rounded-xl shadow-2xl p-2.5 min-w-[230px] text-xs"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <div className="flex items-center justify-between pb-1.5 mb-1.5 border-b border-gray-100">
-                            <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider">
-                              Select Bill to Collect
-                            </span>
-                            <span className="text-[10px] font-bold text-gray-500 font-mono">
-                              {billsWithDue.length} Invoices
-                            </span>
-                          </div>
-                          <div className="space-y-1.5">
-                            {billsWithDue.map((b) => {
-                              const isFurn = b.department === "FURNITURE";
-                              return (
-                                <div
-                                  key={b.id}
-                                  className="flex items-center justify-between p-1.5 rounded-lg bg-gray-50 hover:bg-amber-50/60 border border-gray-100 transition-colors"
-                                >
-                                  <div>
-                                    <div className="flex items-center gap-1 font-mono font-bold text-[11px] text-gray-800">
-                                      <span>{isFurn ? "🛋️" : "⚡"}</span>
-                                      <span>{b.billNumber}</span>
-                                    </div>
-                                    <span className="text-[10px] text-red-700 font-extrabold block">
-                                      Due: ₹{Number(b.dueAmount).toLocaleString("en-IN")}
-                                    </span>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => {
-                                      setShowBillSelector(false);
-                                      onCollectDue({
-                                        ...b,
-                                        customer: booking.customer,
-                                        customerPhone: booking.customer?.phone,
-                                      });
-                                    }}
-                                    className="px-2 py-0.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-[10px] font-bold shadow-2xs transition"
-                                  >
-                                    Pay 💳
-                                  </button>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      </>
+                    ) : (
+                      <span className="text-[9px] font-black text-gray-600 bg-white/90 px-1 rounded border border-gray-200 ml-0.5">
+                        ▾
+                      </span>
                     )}
-                  </div>
+                  </button>
                 );
-              }
+              })()}
+            </div>
 
-              return (
-                <span
-                  className="font-bold text-[#780000] font-mono"
-                  title={
-                    unbilledElectronics.length > 0
-                      ? "Pending appliances not yet billed. Click 'Generate Delivery Invoice' below."
-                      : undefined
-                  }
-                >
-                  ₹{liveRemainingDue.toLocaleString("en-IN")}
-                  {unbilledElectronics.length > 0 && billsWithDue.length === 0 && (
-                    <span className="text-[9px] text-gray-400 font-normal ml-1">(Unbilled)</span>
-                  )}
-                </span>
-              );
-            })()}
+            {/* Micro Breakdown Sub-label */}
+            {liveRemainingDue > 0 && unbilledItemsDue > 0 && (
+              <span className="text-[10px] text-gray-400 font-medium mt-0.5 text-right">
+                {totalBillsDue > 0 ? (
+                  <span>
+                    ₹{totalBillsDue.toLocaleString("en-IN")} Invoiced · ₹{unbilledItemsDue.toLocaleString("en-IN")} Pending
+                  </span>
+                ) : (
+                  <span>₹{unbilledItemsDue.toLocaleString("en-IN")} Pending Delivery</span>
+                )}
+              </span>
+            )}
           </div>
         </div>
 
@@ -491,6 +428,14 @@ export default function BookingCard({
           </div>
         )}
       </div>
+
+      <BookingDueBreakdownModal
+        isOpen={showDueBreakdownModal}
+        onClose={() => setShowDueBreakdownModal(false)}
+        booking={booking}
+        onCollectBillDue={onCollectDue}
+        onOpenDeliveryInvoice={onOpenDeliveryModal}
+      />
     </div>
   );
 }

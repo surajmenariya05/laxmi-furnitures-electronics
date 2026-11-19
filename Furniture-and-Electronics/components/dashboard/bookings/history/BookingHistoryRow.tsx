@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { BookingResponse } from "@/types/booking";
 import { FaFileInvoice, FaEye } from "react-icons/fa";
 import DuePaymentPill from "@/components/ui/DuePaymentPill";
+import BookingDueBreakdownModal from "../BookingDueBreakdownModal";
 
 interface BookingHistoryRowProps {
   booking: BookingResponse;
@@ -32,6 +33,7 @@ export default function BookingHistoryRow({
     );
 
   const [isDropdownOpen, setIsDropdownOpen] = React.useState<boolean>(false);
+  const [showDueBreakdownModal, setShowDueBreakdownModal] = React.useState<boolean>(false);
 
   // Default to the most recent electronics delivery bill (last in list)
   const [selectedElecBillId, setSelectedElecBillId] = React.useState<number>(() => {
@@ -288,7 +290,7 @@ export default function BookingHistoryRow({
             const billsWithDue = (booking.bills || []).filter(
               (b) => Number(b.dueAmount || 0) > 0
             );
-            if (billsWithDue.length === 1 && onCollectDue) {
+            if (unbilledItemsDue === 0 && billsWithDue.length === 1 && onCollectDue) {
               return (
                 <DuePaymentPill
                   dueAmount={liveRemainingDue}
@@ -302,9 +304,17 @@ export default function BookingHistoryRow({
               );
             }
             return (
-              <span className="text-[#780000]">
-                ₹{liveRemainingDue.toLocaleString("en-IN")}
-              </span>
+              <button
+                type="button"
+                onClick={() => setShowDueBreakdownModal(true)}
+                className="group relative inline-flex items-center justify-center gap-1 text-[10px] font-extrabold bg-[#FDF2F2] hover:bg-[#FCE8E8] text-[#780000] border border-[#780000]/30 border-b-2 border-b-[#780000]/60 shadow-[0_2px_4px_rgba(120,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px px-2 py-0.5 rounded transition-all duration-200 cursor-pointer"
+                title="Click to view due breakdown or collect payment"
+              >
+                <span className="font-mono">Due: ₹{liveRemainingDue.toLocaleString("en-IN")}</span>
+                <span className="text-[9px] font-black text-gray-600 bg-white/90 px-1 rounded border border-gray-200 ml-0.5">
+                  ▾
+                </span>
+              </button>
             );
           })()
         )}
@@ -338,6 +348,13 @@ export default function BookingHistoryRow({
           <FaEye className="w-3 h-3 text-white/90" />
           <span>Package Slip</span>
         </button>
+
+        <BookingDueBreakdownModal
+          isOpen={showDueBreakdownModal}
+          onClose={() => setShowDueBreakdownModal(false)}
+          booking={booking}
+          onCollectBillDue={onCollectDue}
+        />
       </td>
     </tr>
   );

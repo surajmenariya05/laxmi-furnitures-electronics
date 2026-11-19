@@ -6,6 +6,7 @@ import { FaTimes, FaPlus, FaTrash, FaCheck, FaBuilding } from "react-icons/fa";
 import { Vendor, Department, PurchasePaymentMode, PurchaseItemInput } from "@/types/purchase";
 import { createPurchase } from "@/lib/api/purchase";
 import { getProducts, getCategories } from "@/lib/api/inventory";
+import { serializeTransportNotes } from "@/lib/purchase-transport";
 import ConfirmStockModal from "./ConfirmStockModal";
 import CatalogProductPicker from "./CatalogProductPicker";
 
@@ -34,6 +35,8 @@ export default function NewPurchaseModal({
 
   const [vendorInvoiceNo, setVendorInvoiceNo] = useState("");
   const [purchaseDate, setPurchaseDate] = useState(new Date().toISOString().split("T")[0]);
+  const [vehicleNumber, setVehicleNumber] = useState("");
+  const [transportAmount, setTransportAmount] = useState<string>("");
   const [notes, setNotes] = useState("");
 
   // Items State
@@ -199,6 +202,12 @@ export default function NewPurchaseModal({
 
     try {
       setSubmitting(true);
+      const serializedNotes = serializeTransportNotes(
+        vehicleNumber,
+        transportAmount ? parseFloat(transportAmount) : undefined,
+        notes
+      );
+
       await createPurchase({
         vendorId: !isNewVendor ? parseInt(vendorId) : undefined,
         newVendor: isNewVendor
@@ -212,7 +221,9 @@ export default function NewPurchaseModal({
         vendorInvoiceNo: vendorInvoiceNo.trim() || undefined,
         department,
         purchaseDate,
-        notes: notes.trim() || undefined,
+        vehicleNumber: vehicleNumber.trim() ? vehicleNumber.trim().toUpperCase() : undefined,
+        transportAmount: transportAmount ? parseFloat(transportAmount) : undefined,
+        notes: serializedNotes || undefined,
         items: preparedItems,
         paidAmount: numPaid,
         paymentMode: numPaid > 0 ? paymentMode : undefined,
@@ -358,8 +369,8 @@ export default function NewPurchaseModal({
             </div>
           </div>
 
-          {/* Section 2: Bill Metadata */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Section 2: Bill & Transport Metadata (4 Fields) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs font-bold text-gray-600 mb-1">Supplier Bill / Challan #</label>
               <input
@@ -367,7 +378,7 @@ export default function NewPurchaseModal({
                 placeholder="e.g. INV-8842 or 3042"
                 value={vendorInvoiceNo}
                 onChange={(e) => setVendorInvoiceNo(e.target.value)}
-                className="w-full py-2 px-3 border border-gray-300 rounded-lg text-xs"
+                className="w-full py-2 px-3 border border-gray-300 rounded-lg text-xs font-medium focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
             </div>
             <div>
@@ -376,19 +387,42 @@ export default function NewPurchaseModal({
                 type="date"
                 value={purchaseDate}
                 onChange={(e) => setPurchaseDate(e.target.value)}
-                className="w-full py-2 px-3 border border-gray-300 rounded-lg text-xs font-semibold"
+                className="w-full py-2 px-3 border border-gray-300 rounded-lg text-xs font-semibold focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1">Transport / Vehicle Notes</label>
+              <label className="block text-xs font-bold text-gray-600 mb-1 flex items-center justify-between">
+                <span>Vehicle Number</span>
+                <span className="text-[10px] text-gray-400 font-normal">🚚 Transport</span>
+              </label>
               <input
                 type="text"
-                placeholder="e.g. Delivered via RJ27 tempo"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                className="w-full py-2 px-3 border border-gray-300 rounded-lg text-xs"
+                placeholder="e.g. RJ 09 BA 3112"
+                value={vehicleNumber}
+                onChange={(e) => setVehicleNumber(e.target.value.toUpperCase())}
+                className="w-full py-2 px-3 border border-gray-300 rounded-lg text-xs font-mono uppercase tracking-wider focus:ring-2 focus:ring-blue-500 focus:outline-none"
               />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-600 mb-1 flex items-center justify-between">
+                <span>Transport Amount</span>
+                <span className="text-[10px] text-gray-400 font-normal">Freight</span>
+              </label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">
+                  ₹
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="0"
+                  value={transportAmount}
+                  onChange={(e) => setTransportAmount(e.target.value)}
+                  className="w-full py-2 pl-7 pr-3 border border-gray-300 rounded-lg text-xs font-mono font-bold text-gray-800 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                />
+              </div>
             </div>
           </div>
 

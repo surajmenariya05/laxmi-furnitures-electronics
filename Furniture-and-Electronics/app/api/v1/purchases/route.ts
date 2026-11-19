@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { parseTransportDetails, serializeTransportNotes } from "@/lib/purchase-transport";
 
 export async function GET(req: Request) {
   try {
@@ -123,8 +124,17 @@ export async function GET(req: Request) {
       unpaidPurchasesCount: allPurchases.filter((p) => p.paymentStatus !== "PAID").length,
     };
 
+    const enrichedPurchases = purchases.map((p) => {
+      const t = parseTransportDetails(p.notes);
+      return {
+        ...p,
+        vehicleNumber: t.vehicleNumber || null,
+        transportAmount: t.transportAmount || null,
+      };
+    });
+
     return NextResponse.json({
-      items: purchases,
+      items: enrichedPurchases,
       total: totalCount,
       page,
       totalPages: Math.ceil(totalCount / limit),
@@ -151,6 +161,8 @@ export async function POST(req: Request) {
       department = "FURNITURE",
       purchaseDate = new Date().toISOString(),
       notes,
+      vehicleNumber,
+      transportAmount,
       items,
       paidAmount: inputPaidAmount = 0,
       paymentMode = "CASH",
@@ -293,6 +305,11 @@ export async function POST(req: Request) {
       const due = Math.max(0, grandTotal - paid);
       const paymentStatus = due === 0 ? "PAID" : paid > 0 ? "PARTIAL" : "UNPAID";
 
+      const resolvedNotes =
+        vehicleNumber || (transportAmount !== undefined && transportAmount !== null && transportAmount !== "")
+          ? serializeTransportNotes(vehicleNumber, transportAmount, notes)
+          : (notes?.trim() || null);
+
       // 4. Create Master Purchase
       const createdPurchase = await tx.purchase.create({
         data: {
@@ -306,7 +323,7 @@ export async function POST(req: Request) {
           dueAmount: due,
           paymentStatus,
           isStockAdded: Boolean(isStockAdded),
-          notes: notes?.trim() || null,
+          notes: resolvedNotes,
           createdByUserId: currentUserId,
         },
       });
@@ -417,7 +434,19 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(hydratedPurchase, { status: 201 });
+    if (!hydratedPurchase) {
+      return NextResponse.json({ error: "Purchase created but failed to hydrate" }, { status: 500 });
+    }
+
+    const t = parseTransportDetails(hydratedPurchase.notes);
+    return NextResponse.json(
+      {
+        ...hydratedPurchase,
+        vehicleNumber: t.vehicleNumber || null,
+        transportAmount: t.transportAmount || null,
+      },
+      { status: 201 }
+    );
   } catch (error: any) {
     console.error("Error creating purchase:", error);
     return NextResponse.json(

@@ -67,6 +67,8 @@ export interface Purchase {
   paymentStatus: PurchasePaymentStatus;
   isStockAdded: boolean;
   notes?: string | null;
+  vehicleNumber?: string | null;
+  transportAmount?: number | null;
   createdAt: string;
   updatedAt?: string;
   vendor: {
@@ -108,6 +110,8 @@ export interface CreatePurchaseInput {
   department: Department;
   purchaseDate: string;
   notes?: string;
+  vehicleNumber?: string;
+  transportAmount?: number | string;
   items: PurchaseItemInput[];
   paidAmount: number;
   paymentMode?: PurchasePaymentMode;

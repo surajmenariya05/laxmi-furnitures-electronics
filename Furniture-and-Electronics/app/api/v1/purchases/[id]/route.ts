@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { parseTransportDetails } from "@/lib/purchase-transport";
 
 export async function GET(
   req: Request,
@@ -47,7 +48,12 @@ export async function GET(
       return NextResponse.json({ error: "Purchase not found" }, { status: 404 });
     }
 
-    return NextResponse.json(purchase);
+    const t = parseTransportDetails(purchase.notes);
+    return NextResponse.json({
+      ...purchase,
+      vehicleNumber: t.vehicleNumber || null,
+      transportAmount: t.transportAmount || null,
+    });
   } catch (error) {
     console.error("Error fetching purchase details:", error);
     return NextResponse.json({ error: "Failed to fetch purchase" }, { status: 500 });

@@ -1,0 +1,7 @@
+node_modules
+whatsapp-sessions
+.env
+.env.local
+npm-debug.log
+.git
+.DS_Store

@@ -71,7 +71,6 @@ async function initWhatsappSocket() {
       version: versionToUse,
       auth: state,
       browser: Browsers.ubuntu('Chrome'),
-      printQRInTerminal: true,
       logger: logger,
       fireInitQueries: false,
       syncFullHistory: false, // Prevent high memory usage / OOM

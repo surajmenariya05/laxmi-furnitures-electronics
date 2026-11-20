@@ -35,6 +35,7 @@ router.get('/status', async (req, res) => {
     res.json({
       id: settings.id,
       ownerPhone: settings.owner_phone,
+      ownerName: settings.owner_name || null,
       status: settings.status,
       qrCode: settings.qr_code,
       simulateFailures: settings.simulate_failures,

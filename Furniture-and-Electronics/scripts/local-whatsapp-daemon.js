@@ -60,6 +60,8 @@ let globalSocket = null;
 let isInitializing = false;
 let currentStatus = 'disconnected'; // 'disconnected' | 'connecting' | 'connected'
 let currentQrCode = null;
+let currentOwnerPhone = 'Local Testing';
+let currentOwnerName = null;
 let cachedWaVersion = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 3;
@@ -147,7 +149,15 @@ async function initWhatsappSocket() {
         reconnectAttempts = 0;
         currentStatus = 'connected';
         currentQrCode = null;
-        console.log('\n✅ Local WhatsApp connected successfully! Ready to send messages.\n');
+
+        if (sock.user && sock.user.id) {
+          const rawJid = sock.user.id;
+          const numOnly = rawJid.split(':')[0].split('@')[0];
+          currentOwnerPhone = (numOnly.length === 12 && numOnly.startsWith('91')) ? numOnly.slice(2) : numOnly;
+          currentOwnerName = sock.user.name || sock.user.notify || sock.user.verifiedName || null;
+        }
+
+        console.log(`\n✅ Local WhatsApp connected successfully! Account: ${currentOwnerName || ''} (${currentOwnerPhone})\n`);
       }
 
       if (connection === 'close') {
@@ -403,7 +413,8 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && pathname === '/status') {
     return sendJson(res, 200, {
       id: 1,
-      ownerPhone: 'Local Testing',
+      ownerPhone: currentOwnerPhone,
+      ownerName: currentOwnerName,
       status: currentStatus,
       qrCode: currentQrCode,
     });

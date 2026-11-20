@@ -371,9 +371,15 @@ export default function DashboardPage() {
               Connect WhatsApp account to automatically deliver professionally-formatted PDF invoices directly to clients upon checkout.
             </p>
             {whatsappSettings?.status === "connected" && whatsappSettings?.ownerPhone && (
-              <p className="text-xs font-semibold text-green-700 mt-2 flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-green-550 animate-ping"></span>
-                ✓ Currently paired with: {whatsappSettings.ownerPhone}
+              <p className="text-xs font-semibold text-green-700 mt-2 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-green-500 animate-ping"></span>
+                <span>
+                  ✓ Currently paired with:{" "}
+                  <strong className="text-gray-900 font-bold">
+                    {whatsappSettings.ownerName ? `${whatsappSettings.ownerName} ` : ""}
+                    ({whatsappSettings.ownerPhone.length === 10 ? `+91 ${whatsappSettings.ownerPhone}` : whatsappSettings.ownerPhone})
+                  </strong>
+                </span>
               </p>
             )}
           </div>

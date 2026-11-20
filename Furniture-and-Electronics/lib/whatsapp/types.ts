@@ -5,6 +5,7 @@
 export interface WhatsAppSettings {
   id: number;
   ownerPhone: string;
+  ownerName?: string | null;
   status: "connected" | "disconnected" | "connecting";
   qrCode?: string | null;
   simulateFailures: boolean;

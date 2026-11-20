@@ -108,7 +108,25 @@ async function initWhatsappSocket() {
         clearTimeout(globalConnectionTimeout);
         reconnectAttempts = 0;
         console.log('✅ WhatsApp connected successfully!');
-        await updateSettings(settings.id, { status: 'connected', qr_code: null });
+
+        let ownerPhone = undefined;
+        let ownerName = undefined;
+
+        if (sock.user && sock.user.id) {
+          const rawJid = sock.user.id;
+          const numOnly = rawJid.split(':')[0].split('@')[0];
+          // Normalize Indian 12-digit number (91xxxxxxxxxx -> xxxxxxxxxx)
+          ownerPhone = (numOnly.length === 12 && numOnly.startsWith('91')) ? numOnly.slice(2) : numOnly;
+          ownerName = sock.user.name || sock.user.notify || sock.user.verifiedName || '';
+          console.log(`👤 Paired WhatsApp account: ${ownerName ? ownerName + ' ' : ''}(${ownerPhone})`);
+        }
+
+        await updateSettings(settings.id, {
+          status: 'connected',
+          qr_code: null,
+          ...(ownerPhone ? { owner_phone: ownerPhone } : {}),
+          ...(ownerName !== undefined ? { owner_name: ownerName } : {}),
+        });
       }
 
       if (connection === 'close') {

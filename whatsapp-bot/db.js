@@ -3,6 +3,14 @@ const { DATABASE_URL } = require('./config');
 
 const pool = new Pool({ connectionString: DATABASE_URL });
 
+// Ensure owner_name column exists in database
+pool.query(`
+  ALTER TABLE "whatsapp_settings" 
+  ADD COLUMN IF NOT EXISTS "owner_name" text;
+`).catch(err => {
+  console.warn('Notice ensuring owner_name column:', err.message);
+});
+
 async function getSettings() {
   const res = await pool.query('SELECT * FROM "whatsapp_settings" ORDER BY id ASC LIMIT 1');
   if (res.rows.length === 0) {
@@ -28,6 +36,14 @@ async function updateSettings(id, data) {
   if (data.qr_code !== undefined) {
     setClauses.push(`qr_code = $${idx++}`);
     values.push(data.qr_code);
+  }
+  if (data.owner_phone !== undefined) {
+    setClauses.push(`owner_phone = $${idx++}`);
+    values.push(data.owner_phone);
+  }
+  if (data.owner_name !== undefined) {
+    setClauses.push(`owner_name = $${idx++}`);
+    values.push(data.owner_name);
   }
 
   if (setClauses.length === 0) return;

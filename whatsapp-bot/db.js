@@ -3,19 +3,47 @@ const { DATABASE_URL } = require('./config');
 
 const pool = new Pool({ connectionString: DATABASE_URL });
 
-// Ensure owner_name column exists in database
-pool.query(`
-  ALTER TABLE "whatsapp_settings" 
-  ADD COLUMN IF NOT EXISTS "owner_name" text;
-`).catch(err => {
-  console.warn('Notice ensuring owner_name column:', err.message);
-});
+let tableInitialized = false;
+
+// Ensure tables and columns exist automatically on startup or before first query
+async function ensureTableExists() {
+  if (tableInitialized) return;
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS public."whatsapp_settings" (
+        id SERIAL PRIMARY KEY,
+        owner_phone VARCHAR(50) DEFAULT '8209399683',
+        owner_name VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'disconnected',
+        qr_code TEXT,
+        simulate_failures BOOLEAN DEFAULT false,
+        simulate_session_error BOOLEAN DEFAULT false
+      );
+      ALTER TABLE public."whatsapp_settings" ADD COLUMN IF NOT EXISTS "owner_name" text;
+      CREATE TABLE IF NOT EXISTS public."whatsapp_audit_logs" (
+        id SERIAL PRIMARY KEY,
+        bill_id INTEGER,
+        bill_number VARCHAR(100),
+        event VARCHAR(100),
+        details TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    tableInitialized = true;
+  } catch (err) {
+    console.warn('Notice ensuring whatsapp tables:', err.message);
+  }
+}
+
+// Initial bootstrap check
+ensureTableExists().catch(e => console.warn('Bootstrap table check:', e.message));
 
 async function getSettings() {
-  const res = await pool.query('SELECT * FROM "whatsapp_settings" ORDER BY id ASC LIMIT 1');
+  await ensureTableExists();
+  const res = await pool.query('SELECT * FROM public."whatsapp_settings" ORDER BY id ASC LIMIT 1');
   if (res.rows.length === 0) {
     const created = await pool.query(`
-      INSERT INTO "whatsapp_settings" (owner_phone, status, simulate_failures, simulate_session_error)
+      INSERT INTO public."whatsapp_settings" (owner_phone, status, simulate_failures, simulate_session_error)
       VALUES ('8209399683', 'disconnected', false, false)
       RETURNING *
     `);
@@ -25,6 +53,7 @@ async function getSettings() {
 }
 
 async function updateSettings(id, data) {
+  await ensureTableExists();
   const setClauses = [];
   const values = [];
   let idx = 1;
@@ -49,14 +78,15 @@ async function updateSettings(id, data) {
   if (setClauses.length === 0) return;
   values.push(id);
 
-  const query = `UPDATE "whatsapp_settings" SET ${setClauses.join(', ')} WHERE id = $${idx}`;
+  const query = `UPDATE public."whatsapp_settings" SET ${setClauses.join(', ')} WHERE id = $${idx}`;
   await pool.query(query, values);
 }
 
 async function logAuditEvent(billId, billNumber, event, details) {
   try {
+    await ensureTableExists();
     await pool.query(`
-      INSERT INTO "whatsapp_audit_logs" (bill_id, bill_number, event, details)
+      INSERT INTO public."whatsapp_audit_logs" (bill_id, bill_number, event, details)
       VALUES ($1, $2, $3, $4)
     `, [billId, billNumber, event, details]);
   } catch (err) {

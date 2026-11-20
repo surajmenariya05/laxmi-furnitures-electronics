@@ -1,0 +1,59 @@
+name: Nightly Database Backup
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs at midnight UTC every day (5:30 AM IST)
+  workflow_dispatch:   # Allows manual trigger from Actions tab anytime
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Grants permission to push to database-backups branch
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create backup folder if it doesn't exist
+        run: mkdir -p db-backups
+
+      - name: Run Database Backup
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::error::DATABASE_URL secret is not set!"
+            exit 1
+          fi
+
+          # Generate filename with timestamp
+          FILENAME="backup-$(date +'%Y-%m-%d_%H-%M-%S').sql"
+
+          # Use official Postgres 16 Alpine Docker image matching Neon PostgreSQL
+          docker run --rm postgres:16-alpine pg_dump "$DATABASE_URL" -F p --no-owner --no-acl > "db-backups/$FILENAME"
+
+          echo "Successfully created backup: $FILENAME"
+          ls -lh "db-backups/$FILENAME"
+
+      - name: Cleanup backups older than 10 days
+        run: |
+          echo "Cleaning up backups older than 10 days..."
+          find db-backups -type f -name "backup-*.sql" -mtime +10 -exec rm {} \;
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Fetch and checkout the dedicated database-backups branch
+          git fetch origin database-backups || true
+          git checkout database-backups 2>/dev/null || git checkout -b database-backups
+
+          git add db-backups/
+          git commit -m "chore: nightly database backup [skip ci]" || echo "No changes to commit"
+
+          # Push strictly to database-backups branch (never to master, keeping Vercel & Northflank untouched)
+          git push origin database-backups

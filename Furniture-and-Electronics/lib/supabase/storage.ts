@@ -7,7 +7,7 @@
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "https://pueggvcwhpxoxyltjxqt.supabase.co";
 const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_PUBLISHABLE_KEY || "";
-const BUCKET_NAME = process.env.SUPABASE_STORAGE_BUCKET || "temp-images";
+const BUCKET_NAME = process.env.SUPABASE_STORAGE_BUCKET || "laxmi-designs";
 
 export interface UploadResult {
   path: string;

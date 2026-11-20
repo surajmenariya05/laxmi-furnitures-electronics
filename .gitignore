@@ -5,3 +5,8 @@ session_auth_info/
 hostinger-recovery-codes.txt
 *-recovery-codes.txt
 *.recovery-codes*
+
+# Local backup directories
+.temp_*
+db-backups/
+storage-backups/

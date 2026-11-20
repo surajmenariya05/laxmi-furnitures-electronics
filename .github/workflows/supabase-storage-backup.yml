@@ -1,0 +1,50 @@
+name: Nightly Supabase Storage Backup
+
+on:
+  schedule:
+    - cron: '30 0 * * *' # Runs daily at 00:30 UTC (6:00 AM IST)
+  workflow_dispatch:   # Allows manual trigger from Actions tab anytime
+
+jobs:
+  storage-backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Grants permission to push to the storage-backups branch
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create backup directory
+        run: mkdir -p storage-backups
+
+      - name: Run Supabase Storage Backup
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          SUPABASE_STORAGE_BUCKET: laxmi-designs
+          BACKUP_RETENTION_DAYS: 10
+        run: |
+          node scripts/backup-supabase-storage.js
+
+      - name: Commit and Push to dedicated storage-backups branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Fetch and checkout the dedicated storage-backups branch
+          git fetch origin storage-backups || true
+          git checkout storage-backups 2>/dev/null || git checkout -b storage-backups
+
+          git add -f storage-backups/
+          git commit -m "chore: nightly supabase storage backup [skip ci]" || echo "No changes to commit"
+
+          # Push ONLY to storage-backups branch (never triggers Vercel/Northflank)
+          git push origin storage-backups

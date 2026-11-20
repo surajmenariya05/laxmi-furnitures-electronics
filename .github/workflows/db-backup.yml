@@ -32,8 +32,8 @@ jobs:
           # Generate filename with timestamp
           FILENAME="backup-$(date +'%Y-%m-%d_%H-%M-%S').sql"
 
-          # Use official Postgres 16 Alpine Docker image matching Neon PostgreSQL
-          docker run --rm postgres:16-alpine pg_dump "$DATABASE_URL" -F p --no-owner --no-acl > "db-backups/$FILENAME"
+          # Use official Postgres 18 Alpine Docker image matching Neon PostgreSQL
+          docker run --rm postgres:18-alpine pg_dump "$DATABASE_URL" -F p --no-owner --no-acl > "db-backups/$FILENAME"
 
           echo "Successfully created backup: $FILENAME"
           ls -lh "db-backups/$FILENAME"
@@ -52,7 +52,7 @@ jobs:
           git fetch origin database-backups || true
           git checkout database-backups 2>/dev/null || git checkout -b database-backups
 
-          git add db-backups/
+          git add -f db-backups/
           git commit -m "chore: nightly database backup [skip ci]" || echo "No changes to commit"
 
           # Push strictly to database-backups branch (never to master, keeping Vercel & Northflank untouched)

@@ -1,0 +1,2829 @@
+--
+-- PostgreSQL database dump
+--
+
+\restrict xYly7U0yOavQFZ28S0OdCcLpLTkcrFfhHQftpepVto8cL4hhaYpNrwMkOaUrli6
+
+-- Dumped from database version 18.7 (84da7d8)
+-- Dumped by pg_dump version 18.7
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SELECT pg_catalog.set_config('search_path', '', false);
+SET check_function_bodies = false;
+SET xmloption = content;
+SET client_min_messages = warning;
+SET row_security = off;
+
+SET default_tablespace = '';
+
+SET default_table_access_method = heap;
+
+--
+-- Name: _prisma_migrations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public._prisma_migrations (
+    id character varying(36) NOT NULL,
+    checksum character varying(64) NOT NULL,
+    finished_at timestamp with time zone,
+    migration_name character varying(255) NOT NULL,
+    logs text,
+    rolled_back_at timestamp with time zone,
+    started_at timestamp with time zone DEFAULT now() NOT NULL,
+    applied_steps_count integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: bill_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bill_items (
+    id integer NOT NULL,
+    bill_id integer NOT NULL,
+    product_id integer NOT NULL,
+    product_unit_id integer,
+    quantity integer NOT NULL,
+    unit_price numeric(65,30) NOT NULL,
+    line_total numeric(65,30) NOT NULL,
+    customisations text,
+    mrp numeric(65,30)
+);
+
+
+--
+-- Name: bill_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.bill_items_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: bill_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.bill_items_id_seq OWNED BY public.bill_items.id;
+
+
+--
+-- Name: bills; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bills (
+    id integer NOT NULL,
+    bill_number text NOT NULL,
+    customer_id integer,
+    created_by_user_id integer NOT NULL,
+    subtotal numeric(65,30) NOT NULL,
+    discount numeric(65,30) DEFAULT 0 NOT NULL,
+    sgst_percent numeric(65,30) DEFAULT 0 NOT NULL,
+    cgst_percent numeric(65,30) DEFAULT 0 NOT NULL,
+    sgst_amount numeric(65,30) DEFAULT 0 NOT NULL,
+    cgst_amount numeric(65,30) DEFAULT 0 NOT NULL,
+    total_amount numeric(65,30) NOT NULL,
+    paid_amount numeric(65,30) DEFAULT 0 NOT NULL,
+    due_amount numeric(65,30) DEFAULT 0 NOT NULL,
+    payment_status text DEFAULT 'PAID'::text NOT NULL,
+    payment_mode text NOT NULL,
+    status text NOT NULL,
+    whatsapp_status text,
+    whatsapp_sent_at timestamp(3) without time zone,
+    is_settled boolean DEFAULT false NOT NULL,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    bill_type text DEFAULT 'REGULAR'::text NOT NULL,
+    booking_id integer,
+    delivery_date timestamp(3) without time zone,
+    department text DEFAULT 'FURNITURE'::text NOT NULL,
+    warranty_starts timestamp(3) without time zone
+);
+
+
+--
+-- Name: bills_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.bills_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: bills_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.bills_id_seq OWNED BY public.bills.id;
+
+
+--
+-- Name: booking_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.booking_items (
+    id integer NOT NULL,
+    booking_id integer NOT NULL,
+    product_id integer NOT NULL,
+    department text NOT NULL,
+    quantity integer NOT NULL,
+    mrp numeric(65,30),
+    unit_price numeric(65,30) NOT NULL,
+    line_total numeric(65,30) NOT NULL,
+    customisations text,
+    is_billed boolean DEFAULT false NOT NULL,
+    bill_id integer
+);
+
+
+--
+-- Name: booking_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.booking_items_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: booking_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.booking_items_id_seq OWNED BY public.booking_items.id;
+
+
+--
+-- Name: bookings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.bookings (
+    id integer NOT NULL,
+    booking_number text NOT NULL,
+    customer_id integer NOT NULL,
+    event_date timestamp(3) without time zone,
+    expected_delivery_date timestamp(3) without time zone NOT NULL,
+    total_estimated_amount numeric(65,30) NOT NULL,
+    advance_paid numeric(65,30) DEFAULT 0 NOT NULL,
+    remaining_balance numeric(65,30) DEFAULT 0 NOT NULL,
+    status text DEFAULT 'CONFIRMED'::text NOT NULL,
+    notes text,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(3) without time zone NOT NULL
+);
+
+
+--
+-- Name: bookings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.bookings_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: bookings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.bookings_id_seq OWNED BY public.bookings.id;
+
+
+--
+-- Name: categories; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.categories (
+    id integer NOT NULL,
+    name text NOT NULL,
+    parent_category_id integer,
+    is_active boolean DEFAULT true NOT NULL,
+    department text DEFAULT 'FURNITURE'::text NOT NULL
+);
+
+
+--
+-- Name: categories_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.categories_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: categories_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.categories_id_seq OWNED BY public.categories.id;
+
+
+--
+-- Name: customers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.customers (
+    id integer NOT NULL,
+    name text,
+    phone text,
+    address text
+);
+
+
+--
+-- Name: customers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.customers_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: customers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.customers_id_seq OWNED BY public.customers.id;
+
+
+--
+-- Name: delivery_schedules; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.delivery_schedules (
+    id integer NOT NULL,
+    booking_id integer NOT NULL,
+    scheduled_date timestamp(3) without time zone NOT NULL,
+    actual_delivery timestamp(3) without time zone,
+    status text DEFAULT 'SCHEDULED'::text NOT NULL,
+    driver_notes text,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: delivery_schedules_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.delivery_schedules_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: delivery_schedules_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.delivery_schedules_id_seq OWNED BY public.delivery_schedules.id;
+
+
+--
+-- Name: finance_providers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.finance_providers (
+    id integer NOT NULL,
+    name text NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: finance_providers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.finance_providers_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: finance_providers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.finance_providers_id_seq OWNED BY public.finance_providers.id;
+
+
+--
+-- Name: finance_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.finance_records (
+    id integer NOT NULL,
+    bill_id integer NOT NULL,
+    finance_provider_id integer NOT NULL,
+    emi_amount numeric(65,30) NOT NULL,
+    months integer,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: finance_records_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.finance_records_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: finance_records_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.finance_records_id_seq OWNED BY public.finance_records.id;
+
+
+--
+-- Name: password_reset_tokens; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.password_reset_tokens (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    token text NOT NULL,
+    expires_at timestamp(3) without time zone NOT NULL,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: password_reset_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.password_reset_tokens_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: password_reset_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.password_reset_tokens_id_seq OWNED BY public.password_reset_tokens.id;
+
+
+--
+-- Name: product_units; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.product_units (
+    id integer NOT NULL,
+    product_id integer NOT NULL,
+    imei_number text NOT NULL,
+    status text NOT NULL,
+    cost_price numeric(65,30) NOT NULL,
+    added_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    sold_at timestamp(3) without time zone
+);
+
+
+--
+-- Name: product_units_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.product_units_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: product_units_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.product_units_id_seq OWNED BY public.product_units.id;
+
+
+--
+-- Name: products; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.products (
+    id integer NOT NULL,
+    category_id integer NOT NULL,
+    name text NOT NULL,
+    barcode text,
+    brand text,
+    product_type text NOT NULL,
+    cost_price numeric(65,30) NOT NULL,
+    selling_price numeric(65,30) NOT NULL,
+    quantity_in_stock integer DEFAULT 0 NOT NULL,
+    low_stock_threshold integer DEFAULT 5 NOT NULL,
+    image_url text,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(3) without time zone NOT NULL,
+    department text DEFAULT 'FURNITURE'::text NOT NULL,
+    warranty_months integer DEFAULT 12
+);
+
+
+--
+-- Name: products_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.products_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: products_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.products_id_seq OWNED BY public.products.id;
+
+
+--
+-- Name: purchase_items; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.purchase_items (
+    id integer NOT NULL,
+    purchase_id integer NOT NULL,
+    product_id integer,
+    item_name text NOT NULL,
+    quantity integer NOT NULL,
+    unit_cost_price numeric(65,30) NOT NULL,
+    line_total numeric(65,30) NOT NULL,
+    serial_numbers text,
+    warranty_months integer,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: purchase_items_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.purchase_items_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: purchase_items_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.purchase_items_id_seq OWNED BY public.purchase_items.id;
+
+
+--
+-- Name: purchase_payments; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.purchase_payments (
+    id integer NOT NULL,
+    purchase_id integer NOT NULL,
+    amount_paid numeric(65,30) NOT NULL,
+    payment_date timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    payment_mode text DEFAULT 'CASH'::text NOT NULL,
+    transaction_ref text,
+    notes text,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: purchase_payments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.purchase_payments_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: purchase_payments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.purchase_payments_id_seq OWNED BY public.purchase_payments.id;
+
+
+--
+-- Name: purchases; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.purchases (
+    id integer NOT NULL,
+    purchase_number text NOT NULL,
+    vendor_invoice_no text,
+    vendor_id integer NOT NULL,
+    department text DEFAULT 'FURNITURE'::text NOT NULL,
+    purchase_date timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    total_amount numeric(65,30) NOT NULL,
+    paid_amount numeric(65,30) DEFAULT 0 NOT NULL,
+    due_amount numeric(65,30) DEFAULT 0 NOT NULL,
+    payment_status text DEFAULT 'UNPAID'::text NOT NULL,
+    is_stock_added boolean DEFAULT true NOT NULL,
+    notes text,
+    created_by_user_id integer,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(3) without time zone NOT NULL
+);
+
+
+--
+-- Name: purchases_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.purchases_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: purchases_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.purchases_id_seq OWNED BY public.purchases.id;
+
+
+--
+-- Name: stock_in_records; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.stock_in_records (
+    id integer NOT NULL,
+    product_id integer NOT NULL,
+    quantity_added integer NOT NULL,
+    cost_price numeric(65,30) NOT NULL,
+    added_by_user_id integer NOT NULL,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    purchase_id integer
+);
+
+
+--
+-- Name: stock_in_records_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.stock_in_records_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: stock_in_records_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.stock_in_records_id_seq OWNED BY public.stock_in_records.id;
+
+
+--
+-- Name: users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.users (
+    id integer NOT NULL,
+    name text NOT NULL,
+    username text NOT NULL,
+    email text,
+    password_hash text NOT NULL,
+    role text NOT NULL,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: users_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.users_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: users_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
+
+
+--
+-- Name: vendors; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.vendors (
+    id integer NOT NULL,
+    name text NOT NULL,
+    phone text NOT NULL,
+    address text,
+    gstin text,
+    is_active boolean DEFAULT true NOT NULL,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp(3) without time zone NOT NULL
+);
+
+
+--
+-- Name: vendors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.vendors_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: vendors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.vendors_id_seq OWNED BY public.vendors.id;
+
+
+--
+-- Name: whatsapp_audit_logs; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.whatsapp_audit_logs (
+    id integer NOT NULL,
+    bill_id integer NOT NULL,
+    bill_number text NOT NULL,
+    event text NOT NULL,
+    details text,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: whatsapp_audit_logs_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.whatsapp_audit_logs_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: whatsapp_audit_logs_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.whatsapp_audit_logs_id_seq OWNED BY public.whatsapp_audit_logs.id;
+
+
+--
+-- Name: whatsapp_deliveries; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.whatsapp_deliveries (
+    id integer NOT NULL,
+    bill_id integer NOT NULL,
+    bill_number text NOT NULL,
+    customer_name text NOT NULL,
+    mobile_number text NOT NULL,
+    pdf_path text NOT NULL,
+    custom_message text,
+    status text DEFAULT 'pending'::text NOT NULL,
+    failure_reason text,
+    sent_at timestamp(3) without time zone,
+    created_at timestamp(3) without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: whatsapp_deliveries_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.whatsapp_deliveries_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: whatsapp_deliveries_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.whatsapp_deliveries_id_seq OWNED BY public.whatsapp_deliveries.id;
+
+
+--
+-- Name: whatsapp_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.whatsapp_settings (
+    id integer NOT NULL,
+    owner_phone text DEFAULT '6375591682'::text NOT NULL,
+    status text DEFAULT 'disconnected'::text NOT NULL,
+    qr_code text,
+    simulate_failures boolean DEFAULT false NOT NULL,
+    simulate_session_error boolean DEFAULT false NOT NULL,
+    owner_name text
+);
+
+
+--
+-- Name: whatsapp_settings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.whatsapp_settings_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: whatsapp_settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.whatsapp_settings_id_seq OWNED BY public.whatsapp_settings.id;
+
+
+--
+-- Name: bill_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bill_items ALTER COLUMN id SET DEFAULT nextval('public.bill_items_id_seq'::regclass);
+
+
+--
+-- Name: bills id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills ALTER COLUMN id SET DEFAULT nextval('public.bills_id_seq'::regclass);
+
+
+--
+-- Name: booking_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.booking_items ALTER COLUMN id SET DEFAULT nextval('public.booking_items_id_seq'::regclass);
+
+
+--
+-- Name: bookings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bookings ALTER COLUMN id SET DEFAULT nextval('public.bookings_id_seq'::regclass);
+
+
+--
+-- Name: categories id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories ALTER COLUMN id SET DEFAULT nextval('public.categories_id_seq'::regclass);
+
+
+--
+-- Name: customers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customers ALTER COLUMN id SET DEFAULT nextval('public.customers_id_seq'::regclass);
+
+
+--
+-- Name: delivery_schedules id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_schedules ALTER COLUMN id SET DEFAULT nextval('public.delivery_schedules_id_seq'::regclass);
+
+
+--
+-- Name: finance_providers id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.finance_providers ALTER COLUMN id SET DEFAULT nextval('public.finance_providers_id_seq'::regclass);
+
+
+--
+-- Name: finance_records id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.finance_records ALTER COLUMN id SET DEFAULT nextval('public.finance_records_id_seq'::regclass);
+
+
+--
+-- Name: password_reset_tokens id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.password_reset_tokens ALTER COLUMN id SET DEFAULT nextval('public.password_reset_tokens_id_seq'::regclass);
+
+
+--
+-- Name: product_units id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_units ALTER COLUMN id SET DEFAULT nextval('public.product_units_id_seq'::regclass);
+
+
+--
+-- Name: products id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products ALTER COLUMN id SET DEFAULT nextval('public.products_id_seq'::regclass);
+
+
+--
+-- Name: purchase_items id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_items ALTER COLUMN id SET DEFAULT nextval('public.purchase_items_id_seq'::regclass);
+
+
+--
+-- Name: purchase_payments id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_payments ALTER COLUMN id SET DEFAULT nextval('public.purchase_payments_id_seq'::regclass);
+
+
+--
+-- Name: purchases id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchases ALTER COLUMN id SET DEFAULT nextval('public.purchases_id_seq'::regclass);
+
+
+--
+-- Name: stock_in_records id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_in_records ALTER COLUMN id SET DEFAULT nextval('public.stock_in_records_id_seq'::regclass);
+
+
+--
+-- Name: users id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_id_seq'::regclass);
+
+
+--
+-- Name: vendors id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendors ALTER COLUMN id SET DEFAULT nextval('public.vendors_id_seq'::regclass);
+
+
+--
+-- Name: whatsapp_audit_logs id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.whatsapp_audit_logs ALTER COLUMN id SET DEFAULT nextval('public.whatsapp_audit_logs_id_seq'::regclass);
+
+
+--
+-- Name: whatsapp_deliveries id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.whatsapp_deliveries ALTER COLUMN id SET DEFAULT nextval('public.whatsapp_deliveries_id_seq'::regclass);
+
+
+--
+-- Name: whatsapp_settings id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.whatsapp_settings ALTER COLUMN id SET DEFAULT nextval('public.whatsapp_settings_id_seq'::regclass);
+
+
+--
+-- Data for Name: _prisma_migrations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public._prisma_migrations (id, checksum, finished_at, migration_name, logs, rolled_back_at, started_at, applied_steps_count) FROM stdin;
+b440ad56-9245-48f5-b147-152bb0b5ceb1	00f02f3b304732dc625deb598edaeb3c3ecc614701ae978286436b7ea8d0aad0	2026-11-04 11:32:39.428485+00	20260705080138_init	\N	\N	2026-11-04 11:32:38.080429+00	1
+\.
+
+
+--
+-- Data for Name: bill_items; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.bill_items (id, bill_id, product_id, product_unit_id, quantity, unit_price, line_total, customisations, mrp) FROM stdin;
+1	1	2	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+2	2	40	\N	1	18000.000000000000000000000000000000	18000.000000000000000000000000000000	\N	\N
+5	4	1	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+6	4	15	\N	1	14800.000000000000000000000000000000	14800.000000000000000000000000000000	\N	\N
+7	4	42	\N	1	9900.000000000000000000000000000000	9900.000000000000000000000000000000	\N	\N
+8	5	43	\N	1	3700.000000000000000000000000000000	3700.000000000000000000000000000000	\N	\N
+9	6	4	\N	1	22500.000000000000000000000000000000	22500.000000000000000000000000000000	\N	\N
+10	6	18	\N	1	12800.000000000000000000000000000000	12800.000000000000000000000000000000	\N	\N
+11	6	44	\N	1	9900.000000000000000000000000000000	9900.000000000000000000000000000000	\N	\N
+12	7	17	\N	2	13800.000000000000000000000000000000	27600.000000000000000000000000000000	\N	\N
+13	8	45	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+14	9	7	\N	1	26000.000000000000000000000000000000	26000.000000000000000000000000000000	\N	29000.000000000000000000000000000000
+15	9	42	\N	1	8000.000000000000000000000000000000	8000.000000000000000000000000000000	\N	9900.000000000000000000000000000000
+16	9	15	\N	1	13000.000000000000000000000000000000	13000.000000000000000000000000000000	\N	14800.000000000000000000000000000000
+17	9	21	\N	2	20500.000000000000000000000000000000	41000.000000000000000000000000000000	\N	23800.000000000000000000000000000000
+18	10	1	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+19	10	44	\N	1	9900.000000000000000000000000000000	9900.000000000000000000000000000000	\N	\N
+20	11	50	\N	1	26000.000000000000000000000000000000	26000.000000000000000000000000000000	\N	\N
+21	12	17	\N	1	13800.000000000000000000000000000000	13800.000000000000000000000000000000	\N	\N
+22	13	6	\N	1	22000.000000000000000000000000000000	22000.000000000000000000000000000000	\N	\N
+23	13	51	\N	1	13500.000000000000000000000000000000	13500.000000000000000000000000000000	\N	\N
+24	14	33	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+25	14	53	\N	1	8500.000000000000000000000000000000	8500.000000000000000000000000000000	\N	\N
+26	14	34	\N	1	2200.000000000000000000000000000000	2200.000000000000000000000000000000	\N	\N
+27	15	46	\N	1	11500.000000000000000000000000000000	11500.000000000000000000000000000000	\N	\N
+28	16	16	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+29	17	3	\N	1	14800.000000000000000000000000000000	14800.000000000000000000000000000000	\N	\N
+30	18	7	\N	1	29000.000000000000000000000000000000	29000.000000000000000000000000000000	\N	\N
+31	18	44	\N	1	9900.000000000000000000000000000000	9900.000000000000000000000000000000	\N	\N
+32	19	9	\N	1	13800.000000000000000000000000000000	13800.000000000000000000000000000000	\N	\N
+33	19	3	\N	1	14800.000000000000000000000000000000	14800.000000000000000000000000000000	\N	\N
+34	20	1	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+35	20	13	\N	1	14500.000000000000000000000000000000	14500.000000000000000000000000000000	\N	\N
+36	20	54	\N	1	9900.000000000000000000000000000000	9900.000000000000000000000000000000	\N	\N
+37	21	3	\N	1	14800.000000000000000000000000000000	14800.000000000000000000000000000000	\N	\N
+38	22	27	\N	1	23000.000000000000000000000000000000	23000.000000000000000000000000000000	25'' BETAK KARNI HAI	24500.000000000000000000000000000000
+39	23	1	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+40	23	42	\N	1	9900.000000000000000000000000000000	9900.000000000000000000000000000000	\N	\N
+41	24	17	\N	1	13800.000000000000000000000000000000	13800.000000000000000000000000000000	\N	\N
+42	25	51	\N	2	13500.000000000000000000000000000000	27000.000000000000000000000000000000	\N	\N
+43	26	1	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+44	27	55	\N	1	11800.000000000000000000000000000000	11800.000000000000000000000000000000	\N	\N
+45	28	56	\N	1	6500.000000000000000000000000000000	6500.000000000000000000000000000000	\N	\N
+46	28	1	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+47	29	2	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+48	30	16	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+49	31	57	\N	1	34000.000000000000000000000000000000	34000.000000000000000000000000000000	\N	40500.000000000000000000000000000000
+50	32	61	\N	1	13000.000000000000000000000000000000	13000.000000000000000000000000000000	\N	15000.000000000000000000000000000000
+51	32	59	\N	1	5800.000000000000000000000000000000	5800.000000000000000000000000000000	\N	7800.000000000000000000000000000000
+52	32	60	\N	4	500.000000000000000000000000000000	2000.000000000000000000000000000000	\N	600.000000000000000000000000000000
+53	32	58	\N	2	6500.000000000000000000000000000000	13000.000000000000000000000000000000	\N	8800.000000000000000000000000000000
+54	32	55	\N	1	9200.000000000000000000000000000000	9200.000000000000000000000000000000	\N	11800.000000000000000000000000000000
+55	33	14	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	\N
+56	33	30	\N	1	11000.000000000000000000000000000000	11000.000000000000000000000000000000	\N	\N
+57	33	59	\N	1	7800.000000000000000000000000000000	7800.000000000000000000000000000000	\N	\N
+58	34	4	\N	1	22500.000000000000000000000000000000	22500.000000000000000000000000000000	\N	\N
+59	35	9	\N	2	13800.000000000000000000000000000000	27600.000000000000000000000000000000	\N	\N
+60	35	17	\N	2	13800.000000000000000000000000000000	27600.000000000000000000000000000000	\N	\N
+61	36	30	\N	1	11000.000000000000000000000000000000	11000.000000000000000000000000000000	\N	\N
+62	37	17	\N	1	13800.000000000000000000000000000000	13800.000000000000000000000000000000	\N	13800.000000000000000000000000000000
+63	38	3	\N	1	14800.000000000000000000000000000000	14800.000000000000000000000000000000	\N	14800.000000000000000000000000000000
+64	39	27	\N	1	24500.000000000000000000000000000000	24500.000000000000000000000000000000	\N	24500.000000000000000000000000000000
+65	40	63	\N	1	9000.000000000000000000000000000000	9000.000000000000000000000000000000	\N	9000.000000000000000000000000000000
+66	40	64	\N	1	3500.000000000000000000000000000000	3500.000000000000000000000000000000	\N	3500.000000000000000000000000000000
+67	40	65	\N	2	100.000000000000000000000000000000	200.000000000000000000000000000000	\N	100.000000000000000000000000000000
+68	40	17	\N	2	13800.000000000000000000000000000000	27600.000000000000000000000000000000	\N	13800.000000000000000000000000000000
+69	41	1	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	16800.000000000000000000000000000000
+70	41	16	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	16800.000000000000000000000000000000
+71	41	61	\N	1	15000.000000000000000000000000000000	15000.000000000000000000000000000000	\N	15000.000000000000000000000000000000
+72	41	70	\N	1	500.000000000000000000000000000000	500.000000000000000000000000000000	\N	500.000000000000000000000000000000
+73	41	69	\N	4	600.000000000000000000000000000000	2400.000000000000000000000000000000	\N	600.000000000000000000000000000000
+74	41	34	\N	1	2200.000000000000000000000000000000	2200.000000000000000000000000000000	\N	2200.000000000000000000000000000000
+75	41	56	\N	1	6500.000000000000000000000000000000	6500.000000000000000000000000000000	\N	6500.000000000000000000000000000000
+93	47	110	\N	1	26000.000000000000000000000000000000	26000.000000000000000000000000000000	GYREY CLOUR	30500.000000000000000000000000000000
+94	47	111	\N	1	12500.000000000000000000000000000000	12500.000000000000000000000000000000	\N	16800.000000000000000000000000000000
+95	47	16	\N	1	13500.000000000000000000000000000000	13500.000000000000000000000000000000	\N	16800.000000000000000000000000000000
+96	48	24	\N	1	19000.000000000000000000000000000000	19000.000000000000000000000000000000	\N	20500.000000000000000000000000000000
+97	48	5	\N	1	18500.000000000000000000000000000000	18500.000000000000000000000000000000	\N	21500.000000000000000000000000000000
+76	42	72	\N	1	7500.000000000000000000000000000000	7500.000000000000000000000000000000	\N	9800.000000000000000000000000000000
+77	42	5	\N	1	17500.000000000000000000000000000000	17500.000000000000000000000000000000	\N	21500.000000000000000000000000000000
+78	42	13	\N	1	13000.000000000000000000000000000000	13000.000000000000000000000000000000	\N	14500.000000000000000000000000000000
+79	42	2	\N	1	13000.000000000000000000000000000000	13000.000000000000000000000000000000	\N	16800.000000000000000000000000000000
+80	42	71	\N	3	8000.000000000000000000000000000000	24000.000000000000000000000000000000	\N	10800.000000000000000000000000000000
+81	43	2	\N	1	16800.000000000000000000000000000000	16800.000000000000000000000000000000	\N	16800.000000000000000000000000000000
+82	44	4	\N	1	17000.000000000000000000000000000000	17000.000000000000000000000000000000	\N	22500.000000000000000000000000000000
+83	44	27	\N	1	20500.000000000000000000000000000000	20500.000000000000000000000000000000	\N	24500.000000000000000000000000000000
+84	44	16	\N	1	13000.000000000000000000000000000000	13000.000000000000000000000000000000	\N	16800.000000000000000000000000000000
+85	44	51	\N	1	9000.000000000000000000000000000000	9000.000000000000000000000000000000	\N	13500.000000000000000000000000000000
+86	44	2	\N	1	13003.000000000000000000000000000000	13003.000000000000000000000000000000	\N	16800.000000000000000000000000000000
+87	44	73	\N	1	20000.000000000000000000000000000000	20000.000000000000000000000000000000	\N	30000.000000000000000000000000000000
+88	44	70	\N	1	500.000000000000000000000000000000	500.000000000000000000000000000000	\N	500.000000000000000000000000000000
+3	3	14	\N	1	14500.000000000000000000000000000000	14500.000000000000000000000000000000	\N	16800.000000000000000000000000000000
+4	3	7	\N	1	26000.000000000000000000000000000000	26000.000000000000000000000000000000	\N	29000.000000000000000000000000000000
+89	3	42	\N	1	8800.000000000000000000000000000000	8800.000000000000000000000000000000	\N	9900.000000000000000000000000000000
+90	45	101	\N	1	6500.000000000000000000000000000000	6500.000000000000000000000000000000	\N	7375.000000000000000000000000000000
+91	46	109	\N	2	13500.000000000000000000000000000000	27000.000000000000000000000000000000	\N	16500.000000000000000000000000000000
+92	46	106	\N	4	300.000000000000000000000000000000	1200.000000000000000000000000000000	\N	250.000000000000000000000000000000
+98	48	44	\N	1	7000.000000000000000000000000000000	7000.000000000000000000000000000000	\N	9900.000000000000000000000000000000
+99	48	32	\N	1	14000.000000000000000000000000000000	14000.000000000000000000000000000000	\N	14800.000000000000000000000000000000
+100	48	112	\N	1	4000.000000000000000000000000000000	4000.000000000000000000000000000000	\N	5800.000000000000000000000000000000
+101	48	70	\N	1	500.000000000000000000000000000000	500.000000000000000000000000000000	\N	500.000000000000000000000000000000
+102	49	113	\N	1	30000.000000000000000000000000000000	30000.000000000000000000000000000000	\N	38000.000000000000000000000000000000
+103	49	51	\N	1	10000.000000000000000000000000000000	10000.000000000000000000000000000000	\N	13500.000000000000000000000000000000
+104	49	21	\N	1	21000.000000000000000000000000000000	21000.000000000000000000000000000000	\N	23800.000000000000000000000000000000
+105	49	70	\N	1	500.000000000000000000000000000000	500.000000000000000000000000000000	\N	500.000000000000000000000000000000
+106	50	1	\N	2	13000.000000000000000000000000000000	26000.000000000000000000000000000000	\N	16800.000000000000000000000000000000
+107	50	54	\N	2	8000.000000000000000000000000000000	16000.000000000000000000000000000000	\N	9900.000000000000000000000000000000
+108	50	18	\N	2	9500.000000000000000000000000000000	19000.000000000000000000000000000000	\N	12800.000000000000000000000000000000
+109	50	32	\N	2	10500.000000000000000000000000000000	21000.000000000000000000000000000000	\N	14800.000000000000000000000000000000
+110	50	65	\N	4	100.000000000000000000000000000000	400.000000000000000000000000000000	\N	100.000000000000000000000000000000
+111	51	1	\N	1	14000.000000000000000000000000000000	14000.000000000000000000000000000000	\N	16800.000000000000000000000000000000
+112	51	54	\N	1	8000.000000000000000000000000000000	8000.000000000000000000000000000000	\N	9900.000000000000000000000000000000
+113	51	17	\N	1	12000.000000000000000000000000000000	12000.000000000000000000000000000000	\N	13800.000000000000000000000000000000
+114	52	51	\N	1	9000.000000000000000000000000000000	9000.000000000000000000000000000000	\N	13500.000000000000000000000000000000
+115	52	4	\N	1	18000.000000000000000000000000000000	18000.000000000000000000000000000000	\N	22500.000000000000000000000000000000
+\.
+
+
+--
+-- Data for Name: bills; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.bills (id, bill_number, customer_id, created_by_user_id, subtotal, discount, sgst_percent, cgst_percent, sgst_amount, cgst_amount, total_amount, paid_amount, due_amount, payment_status, payment_mode, status, whatsapp_status, whatsapp_sent_at, is_settled, created_at, bill_type, booking_id, delivery_date, department, warranty_starts) FROM stdin;
+24	24	23	1	11300.000000000000000000000000000000	2500.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	11300.000000000000000000000000000000	11300.000000000000000000000000000000	0.000000000000000000000000000000	PAID	CASH	completed	failed	\N	t	2026-11-09 10:11:15.209	REGULAR	\N	\N	FURNITURE	\N
+1	1	1	1	14000.000000000000000000000000000000	2800.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	14000.000000000000000000000000000000	16800.000000000000000000000000000000	-2800.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-05 04:28:00.222	REGULAR	\N	\N	FURNITURE	\N
+15	15	14	1	11000.000000000000000000000000000000	500.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	11000.000000000000000000000000000000	11000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-06 13:25:08.634	REGULAR	\N	\N	FURNITURE	\N
+2	2	2	1	15000.000000000000000000000000000000	3000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	15000.000000000000000000000000000000	15000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-05 06:05:00.538	REGULAR	\N	\N	FURNITURE	\N
+31	FURN-2026-0031	29	1	34000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	34000.000000000000000000000000000000	34000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	CASH	completed	failed	\N	t	2026-11-10 11:56:54.482	REGULAR	4	2026-11-10 11:56:54.482	FURNITURE	\N
+16	16	15	1	14500.000000000000000000000000000000	2300.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	14500.000000000000000000000000000000	14500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-07 08:41:26.278	REGULAR	\N	\N	FURNITURE	\N
+17	17	16	1	12000.000000000000000000000000000000	2800.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	12000.000000000000000000000000000000	12000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-07 11:43:08.429	REGULAR	\N	\N	FURNITURE	\N
+4	4	4	1	35500.000000000000000000000000000000	6000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	35500.000000000000000000000000000000	35500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-05 08:12:05.86	REGULAR	\N	\N	FURNITURE	\N
+5	5	1	1	3700.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	3700.000000000000000000000000000000	3700.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-05 08:25:53.141	REGULAR	\N	\N	FURNITURE	\N
+25	25	24	1	21000.000000000000000000000000000000	6000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	21000.000000000000000000000000000000	21000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-09 11:03:36.581	REGULAR	\N	\N	FURNITURE	\N
+6	6	5	1	34500.000000000000000000000000000000	10700.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	34500.000000000000000000000000000000	34500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-05 10:41:39.992	REGULAR	\N	\N	FURNITURE	\N
+18	18	17	1	33500.000000000000000000000000000000	5400.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	33500.000000000000000000000000000000	33500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-07 12:29:44.709	REGULAR	\N	\N	FURNITURE	\N
+7	7	6	1	20500.000000000000000000000000000000	7100.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	20500.000000000000000000000000000000	20500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-05 10:58:29.28	REGULAR	\N	\N	FURNITURE	\N
+8	8	7	1	15000.000000000000000000000000000000	1800.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	15000.000000000000000000000000000000	15000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-05 12:00:05.293	REGULAR	\N	\N	FURNITURE	\N
+19	19	18	1	22500.000000000000000000000000000000	6100.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	22500.000000000000000000000000000000	22500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-08 08:13:27.839	REGULAR	\N	\N	FURNITURE	\N
+10	10	9	1	21000.000000000000000000000000000000	5700.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	21000.000000000000000000000000000000	21000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-06 06:17:37.606	REGULAR	\N	\N	FURNITURE	\N
+26	26	25	1	14000.000000000000000000000000000000	2800.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	14000.000000000000000000000000000000	14000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-10 08:56:10.546	REGULAR	\N	\N	FURNITURE	\N
+11	11	10	1	26000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	26000.000000000000000000000000000000	26000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-06 08:15:59.117	REGULAR	\N	\N	FURNITURE	\N
+12	12	11	1	12500.000000000000000000000000000000	1300.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	12500.000000000000000000000000000000	12500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-06 08:43:07.707	REGULAR	\N	\N	FURNITURE	\N
+9	FURN-2026-0009	8	1	88000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	88000.000000000000000000000000000000	88000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	CASH	completed	failed	\N	t	2026-11-05 12:49:15.884	REGULAR	2	2026-11-05 12:49:15.884	FURNITURE	\N
+13	13	12	1	30000.000000000000000000000000000000	5500.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	30000.000000000000000000000000000000	30000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-06 09:39:49.324	REGULAR	\N	\N	FURNITURE	\N
+14	14	13	1	23500.000000000000000000000000000000	4000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	23500.000000000000000000000000000000	23500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-06 10:00:14.372	REGULAR	\N	\N	FURNITURE	\N
+41	41	36	1	50200.000000000000000000000000000000	10000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	50200.000000000000000000000000000000	50200.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-19 10:06:57.335	REGULAR	\N	\N	FURNITURE	\N
+20	20	19	1	35000.000000000000000000000000000000	6200.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	35000.000000000000000000000000000000	35000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-08 09:39:58.408	REGULAR	\N	\N	FURNITURE	\N
+27	27	26	1	9400.000000000000000000000000000000	2400.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	9400.000000000000000000000000000000	9400.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-10 09:51:43.45	REGULAR	\N	\N	FURNITURE	\N
+21	21	20	1	13500.000000000000000000000000000000	1300.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	13500.000000000000000000000000000000	13500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-08 10:12:03.429	REGULAR	\N	\N	FURNITURE	\N
+23	23	22	1	22700.000000000000000000000000000000	4000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	22700.000000000000000000000000000000	22700.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-09 09:24:48.143	REGULAR	\N	\N	FURNITURE	\N
+3	FURN-2026-0003	3	1	49300.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	49300.000000000000000000000000000000	10000.000000000000000000000000000000	39300.000000000000000000000000000000	PARTIAL	CASH	completed	failed	\N	f	2026-11-05 06:39:04.775	REGULAR	1	2026-11-05 06:39:04.775	FURNITURE	\N
+28	28	27	1	21000.000000000000000000000000000000	2300.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	21000.000000000000000000000000000000	21000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-10 10:06:55.831	REGULAR	\N	\N	FURNITURE	\N
+33	33	31	1	28500.000000000000000000000000000000	7100.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	28500.000000000000000000000000000000	28500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-11 09:25:06.489	REGULAR	\N	\N	FURNITURE	\N
+29	29	28	1	14500.000000000000000000000000000000	2300.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	14500.000000000000000000000000000000	14500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-10 10:56:46.144	REGULAR	\N	\N	FURNITURE	\N
+30	30	1	1	14000.000000000000000000000000000000	2800.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	14000.000000000000000000000000000000	14000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-10 11:07:05.486	REGULAR	\N	\N	FURNITURE	\N
+37	37	1	1	11500.000000000000000000000000000000	2300.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	11500.000000000000000000000000000000	11500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-15 10:16:57.758	REGULAR	\N	\N	FURNITURE	\N
+34	34	32	1	18000.000000000000000000000000000000	4500.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	18000.000000000000000000000000000000	18000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-11 12:18:16.334	REGULAR	\N	\N	FURNITURE	\N
+35	35	1	1	47000.000000000000000000000000000000	8200.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	47000.000000000000000000000000000000	47000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-12 06:30:51.247	REGULAR	\N	\N	FURNITURE	\N
+40	40	35	1	34000.000000000000000000000000000000	6300.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	34000.000000000000000000000000000000	34000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-17 11:44:59.104	REGULAR	\N	\N	FURNITURE	\N
+36	36	1	1	8800.000000000000000000000000000000	2200.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	8800.000000000000000000000000000000	8800.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-14 07:30:09.535	REGULAR	\N	\N	FURNITURE	\N
+38	38	33	1	13000.000000000000000000000000000000	1800.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	13000.000000000000000000000000000000	13000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-16 07:25:22.328	REGULAR	\N	\N	FURNITURE	\N
+32	FURN-2026-0032	30	1	43000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	43000.000000000000000000000000000000	43000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	CASH	completed	failed	\N	t	2026-11-10 12:13:59.619	REGULAR	5	2026-11-10 12:13:59.619	FURNITURE	\N
+39	39	34	1	20500.000000000000000000000000000000	4000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	20500.000000000000000000000000000000	20500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-17 10:46:57.879	REGULAR	\N	\N	FURNITURE	\N
+22	FURN-2026-0022	21	1	23000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	23000.000000000000000000000000000000	23000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	CASH	completed	failed	\N	t	2026-11-09 07:50:09.72	REGULAR	3	2026-11-09 07:50:09.72	FURNITURE	\N
+42	FURN-2026-0042	37	1	75000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	75000.000000000000000000000000000000	16000.000000000000000000000000000000	59000.000000000000000000000000000000	PARTIAL	CASH	completed	failed	\N	f	2026-11-19 10:22:26.237	REGULAR	6	2026-11-19 10:22:26.237	FURNITURE	\N
+43	43	1	1	14000.000000000000000000000000000000	2800.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	14000.000000000000000000000000000000	14000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-19 11:25:06.145	REGULAR	\N	\N	FURNITURE	\N
+44	44	1	1	93003.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	93003.000000000000000000000000000000	93003.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	sent	2026-11-20 12:05:09.809	f	2026-11-19 14:44:40.789	REGULAR	\N	\N	FURNITURE	\N
+45	45	38	1	6500.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	6500.000000000000000000000000000000	6500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-20 05:53:45.956	REGULAR	\N	\N	FURNITURE	\N
+46	FURN-2026-0046	39	1	28200.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	28200.000000000000000000000000000000	13200.000000000000000000000000000000	15000.000000000000000000000000000000	PARTIAL	CASH	completed	failed	\N	f	2026-11-20 07:47:26.218	REGULAR	7	2026-11-20 07:47:26.218	FURNITURE	\N
+47	FURN-2026-0047	40	1	52000.000000000000000000000000000000	1000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	51000.000000000000000000000000000000	11000.000000000000000000000000000000	40000.000000000000000000000000000000	PARTIAL	CASH	completed	failed	\N	f	2026-11-20 08:07:07.465	REGULAR	8	2026-11-20 08:07:07.465	FURNITURE	\N
+48	FURN-2026-0048	41	1	63000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	63000.000000000000000000000000000000	53000.000000000000000000000000000000	10000.000000000000000000000000000000	PARTIAL	CASH	completed	failed	\N	f	2026-11-20 08:15:42.365	REGULAR	9	2026-11-20 08:15:42.365	FURNITURE	\N
+49	FURN-2026-0049	42	1	61500.000000000000000000000000000000	500.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	61000.000000000000000000000000000000	10000.000000000000000000000000000000	51000.000000000000000000000000000000	PARTIAL	CASH	completed	failed	\N	f	2026-11-20 08:26:16.074	REGULAR	10	2026-11-20 08:26:16.074	FURNITURE	\N
+50	FURN-2026-0050	43	1	82400.000000000000000000000000000000	1400.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	81000.000000000000000000000000000000	11000.000000000000000000000000000000	70000.000000000000000000000000000000	PARTIAL	CASH	completed	failed	\N	f	2026-11-20 08:38:54.714	REGULAR	11	2026-11-20 08:38:54.714	FURNITURE	\N
+51	FURN-2026-0051	44	1	34000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	34000.000000000000000000000000000000	1000.000000000000000000000000000000	33000.000000000000000000000000000000	PARTIAL	CASH	completed	failed	\N	f	2026-11-20 09:15:38.541	REGULAR	12	2026-11-20 09:15:38.541	FURNITURE	\N
+52	52	45	1	27000.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	0.000000000000000000000000000000	27000.000000000000000000000000000000	27000.000000000000000000000000000000	0.000000000000000000000000000000	PAID	cash	completed	failed	\N	f	2026-11-20 10:08:57.456	REGULAR	\N	\N	FURNITURE	\N
+\.
+
+
+--
+-- Data for Name: booking_items; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.booking_items (id, booking_id, product_id, department, quantity, mrp, unit_price, line_total, customisations, is_billed, bill_id) FROM stdin;
+3	2	7	FURNITURE	1	29000.000000000000000000000000000000	26000.000000000000000000000000000000	26000.000000000000000000000000000000	\N	t	9
+4	2	42	FURNITURE	1	9900.000000000000000000000000000000	8000.000000000000000000000000000000	8000.000000000000000000000000000000	\N	t	9
+5	2	15	FURNITURE	1	14800.000000000000000000000000000000	13000.000000000000000000000000000000	13000.000000000000000000000000000000	\N	t	9
+6	2	21	FURNITURE	2	23800.000000000000000000000000000000	20500.000000000000000000000000000000	41000.000000000000000000000000000000	\N	t	9
+7	3	27	FURNITURE	1	24500.000000000000000000000000000000	23000.000000000000000000000000000000	23000.000000000000000000000000000000	25'' BETAK KARNI HAI	t	22
+8	4	57	FURNITURE	1	40500.000000000000000000000000000000	34000.000000000000000000000000000000	34000.000000000000000000000000000000	\N	t	31
+9	5	61	FURNITURE	1	15000.000000000000000000000000000000	13000.000000000000000000000000000000	13000.000000000000000000000000000000	\N	t	32
+10	5	59	FURNITURE	1	7800.000000000000000000000000000000	5800.000000000000000000000000000000	5800.000000000000000000000000000000	\N	t	32
+11	5	60	FURNITURE	4	600.000000000000000000000000000000	500.000000000000000000000000000000	2000.000000000000000000000000000000	\N	t	32
+12	5	58	FURNITURE	2	8800.000000000000000000000000000000	6500.000000000000000000000000000000	13000.000000000000000000000000000000	\N	t	32
+13	5	55	FURNITURE	1	11800.000000000000000000000000000000	9200.000000000000000000000000000000	9200.000000000000000000000000000000	\N	t	32
+14	6	72	FURNITURE	1	9800.000000000000000000000000000000	7500.000000000000000000000000000000	7500.000000000000000000000000000000	\N	t	42
+15	6	5	FURNITURE	1	21500.000000000000000000000000000000	17500.000000000000000000000000000000	17500.000000000000000000000000000000	\N	t	42
+16	6	13	FURNITURE	1	14500.000000000000000000000000000000	13000.000000000000000000000000000000	13000.000000000000000000000000000000	\N	t	42
+17	6	2	FURNITURE	1	16800.000000000000000000000000000000	13000.000000000000000000000000000000	13000.000000000000000000000000000000	\N	t	42
+18	6	71	FURNITURE	3	10800.000000000000000000000000000000	8000.000000000000000000000000000000	24000.000000000000000000000000000000	\N	t	42
+19	6	73	ELECTRONICS	1	30000.000000000000000000000000000000	21000.000000000000000000000000000000	21000.000000000000000000000000000000	\N	f	\N
+1	1	14	FURNITURE	1	16800.000000000000000000000000000000	14500.000000000000000000000000000000	14500.000000000000000000000000000000	\N	t	3
+2	1	7	FURNITURE	1	29000.000000000000000000000000000000	26000.000000000000000000000000000000	26000.000000000000000000000000000000	\N	t	3
+20	1	42	FURNITURE	1	9900.000000000000000000000000000000	8800.000000000000000000000000000000	8800.000000000000000000000000000000	\N	t	3
+21	7	109	FURNITURE	2	16500.000000000000000000000000000000	13500.000000000000000000000000000000	27000.000000000000000000000000000000	\N	t	46
+22	7	106	FURNITURE	4	250.000000000000000000000000000000	300.000000000000000000000000000000	1200.000000000000000000000000000000	\N	t	46
+23	8	110	FURNITURE	1	30500.000000000000000000000000000000	26000.000000000000000000000000000000	26000.000000000000000000000000000000	GYREY CLOUR	t	47
+24	8	111	FURNITURE	1	16800.000000000000000000000000000000	12500.000000000000000000000000000000	12500.000000000000000000000000000000	\N	t	47
+25	8	16	FURNITURE	1	16800.000000000000000000000000000000	13500.000000000000000000000000000000	13500.000000000000000000000000000000	\N	t	47
+26	9	24	FURNITURE	1	20500.000000000000000000000000000000	19000.000000000000000000000000000000	19000.000000000000000000000000000000	\N	t	48
+27	9	5	FURNITURE	1	21500.000000000000000000000000000000	18500.000000000000000000000000000000	18500.000000000000000000000000000000	\N	t	48
+28	9	44	FURNITURE	1	9900.000000000000000000000000000000	7000.000000000000000000000000000000	7000.000000000000000000000000000000	\N	t	48
+29	9	32	FURNITURE	1	14800.000000000000000000000000000000	14000.000000000000000000000000000000	14000.000000000000000000000000000000	\N	t	48
+30	9	112	FURNITURE	1	5800.000000000000000000000000000000	4000.000000000000000000000000000000	4000.000000000000000000000000000000	\N	t	48
+31	9	70	FURNITURE	1	500.000000000000000000000000000000	500.000000000000000000000000000000	500.000000000000000000000000000000	\N	t	48
+32	10	113	FURNITURE	1	38000.000000000000000000000000000000	30000.000000000000000000000000000000	30000.000000000000000000000000000000	\N	t	49
+33	10	51	FURNITURE	1	13500.000000000000000000000000000000	10000.000000000000000000000000000000	10000.000000000000000000000000000000	\N	t	49
+34	10	21	FURNITURE	1	23800.000000000000000000000000000000	21000.000000000000000000000000000000	21000.000000000000000000000000000000	\N	t	49
+35	10	70	FURNITURE	1	500.000000000000000000000000000000	500.000000000000000000000000000000	500.000000000000000000000000000000	\N	t	49
+36	11	1	FURNITURE	2	16800.000000000000000000000000000000	13000.000000000000000000000000000000	26000.000000000000000000000000000000	\N	t	50
+37	11	54	FURNITURE	2	9900.000000000000000000000000000000	8000.000000000000000000000000000000	16000.000000000000000000000000000000	\N	t	50
+38	11	18	FURNITURE	2	12800.000000000000000000000000000000	9500.000000000000000000000000000000	19000.000000000000000000000000000000	\N	t	50
+39	11	32	FURNITURE	2	14800.000000000000000000000000000000	10500.000000000000000000000000000000	21000.000000000000000000000000000000	\N	t	50
+40	11	65	FURNITURE	4	100.000000000000000000000000000000	100.000000000000000000000000000000	400.000000000000000000000000000000	\N	t	50
+41	12	1	FURNITURE	1	16800.000000000000000000000000000000	14000.000000000000000000000000000000	14000.000000000000000000000000000000	\N	t	51
+42	12	54	FURNITURE	1	9900.000000000000000000000000000000	8000.000000000000000000000000000000	8000.000000000000000000000000000000	\N	t	51
+43	12	17	FURNITURE	1	13800.000000000000000000000000000000	12000.000000000000000000000000000000	12000.000000000000000000000000000000	\N	t	51
+\.
+
+
+--
+-- Data for Name: bookings; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.bookings (id, booking_number, customer_id, event_date, expected_delivery_date, total_estimated_amount, advance_paid, remaining_balance, status, notes, created_at, updated_at) FROM stdin;
+2	ADB-2026-0002	8	2026-11-09 00:00:00	2026-11-09 00:00:00	88000.000000000000000000000000000000	1000.000000000000000000000000000000	0.000000000000000000000000000000	COMPLETED	\N	2026-11-05 12:49:14.978	2026-11-09 08:33:49.172
+3	ADB-2026-0003	21	2026-11-17 00:00:00	2026-11-17 00:00:00	23000.000000000000000000000000000000	8000.000000000000000000000000000000	0.000000000000000000000000000000	COMPLETED	[DESIGNS]:["https://xxffxljimansvshqovrb.supabase.co/storage/v1/object/public/laxmi-designs/bookings/ADB-2026-0003/1794210615273_WhatsApp_Image_2026-11-08_at_2.27.59_PM.jpeg"]	2026-11-09 07:50:08.803	2026-11-19 07:07:11.501
+5	ADB-2026-0005	30	2026-11-14 00:00:00	2026-11-14 00:00:00	43000.000000000000000000000000000000	21000.000000000000000000000000000000	0.000000000000000000000000000000	COMPLETED	\N	2026-11-10 12:13:58.715	2026-11-19 07:07:53.31
+6	ADB-2026-0006	37	2026-11-23 00:00:00	2026-11-23 00:00:00	96000.000000000000000000000000000000	16000.000000000000000000000000000000	80000.000000000000000000000000000000	CONFIRMED	\N	2026-11-19 10:22:25.289	2026-11-19 10:28:44.023
+1	ADB-2026-0001	3	2026-11-22 00:00:00	2026-11-22 00:00:00	49300.000000000000000000000000000000	10000.000000000000000000000000000000	39300.000000000000000000000000000000	CONFIRMED	\N	2026-11-05 06:39:03.87	2026-11-19 14:55:34.682
+4	ADB-2026-0004	29	2026-11-18 00:00:00	2026-11-18 00:00:00	34000.000000000000000000000000000000	10000.000000000000000000000000000000	0.000000000000000000000000000000	COMPLETED	\N	2026-11-10 11:56:53.569	2026-11-19 14:59:02.51
+7	ADB-2026-0007	39	2026-11-23 00:00:00	2026-11-22 00:00:00	28200.000000000000000000000000000000	13200.000000000000000000000000000000	15000.000000000000000000000000000000	CONFIRMED	\N	2026-11-20 07:47:25.33	2026-11-20 07:47:25.33
+8	ADB-2026-0008	40	2026-11-25 00:00:00	2026-11-25 00:00:00	51000.000000000000000000000000000000	11000.000000000000000000000000000000	40000.000000000000000000000000000000	CONFIRMED	Discount: ₹1000	2026-11-20 08:07:06.58	2026-11-20 08:07:06.58
+9	ADB-2026-0009	41	2026-11-30 00:00:00	2026-11-30 00:00:00	63000.000000000000000000000000000000	53000.000000000000000000000000000000	10000.000000000000000000000000000000	CONFIRMED	\N	2026-11-20 08:15:41.48	2026-11-20 08:15:41.48
+10	ADB-2026-0010	42	2027-01-10 00:00:00	2027-01-01 00:00:00	61000.000000000000000000000000000000	10000.000000000000000000000000000000	51000.000000000000000000000000000000	CONFIRMED	Discount: ₹500	2026-11-20 08:26:15.185	2026-11-20 08:26:15.185
+11	ADB-2026-0011	43	2026-11-21 00:00:00	2026-11-21 00:00:00	81000.000000000000000000000000000000	11000.000000000000000000000000000000	70000.000000000000000000000000000000	CONFIRMED	Discount: ₹1400	2026-11-20 08:38:53.83	2026-11-20 08:38:53.83
+12	ADB-2026-0012	44	2026-11-22 00:00:00	2026-11-22 00:00:00	34000.000000000000000000000000000000	1000.000000000000000000000000000000	33000.000000000000000000000000000000	CONFIRMED	\N	2026-11-20 09:15:37.659	2026-11-20 09:15:37.659
+\.
+
+
+--
+-- Data for Name: categories; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.categories (id, name, parent_category_id, is_active, department) FROM stdin;
+1	BED	\N	t	FURNITURE
+2	BED REGULAR	1	t	FURNITURE
+3	AATA CHAKKI	\N	t	FURNITURE
+4	CHAKKI	3	t	FURNITURE
+5	BED HEAVY	1	t	FURNITURE
+6	DIWAN	\N	t	FURNITURE
+7	DIWAN M	6	t	FURNITURE
+8	ALMARI	\N	t	FURNITURE
+9	REGULAR	8	t	FURNITURE
+10	DEEP	8	t	FURNITURE
+11	POWODER CODED	8	t	FURNITURE
+12	SOFA	\N	t	FURNITURE
+13	SOFA CONER	12	t	FURNITURE
+14	SOFA THREE ONE ONE	12	t	FURNITURE
+15	T TABLE	\N	t	FURNITURE
+16	T TABLE NORMAL	15	t	FURNITURE
+17	SAGWAN	15	t	FURNITURE
+18	MANDIR	\N	t	FURNITURE
+19	MANDIR BIG	18	t	FURNITURE
+20	MATTRES	\N	t	FURNITURE
+21	MATTRES DUBLE	20	t	FURNITURE
+22	GAYGER	\N	t	FURNITURE
+23	GYEGER	22	t	FURNITURE
+24	TV	\N	t	FURNITURE
+25	TV S	24	t	FURNITURE
+26	DAYANIG TABLE	\N	t	FURNITURE
+27	CHAIR TABLE	26	t	FURNITURE
+28	D FREZ	\N	t	FURNITURE
+29	DF	28	t	FURNITURE
+30	GAS CHULA	\N	t	FURNITURE
+31	GAS THRE BUNNER	30	t	FURNITURE
+32	COOLER	\N	t	FURNITURE
+33	COOL	32	t	FURNITURE
+34	CHAIR	\N	t	FURNITURE
+35	PLATIC	34	t	FURNITURE
+36	REF	\N	t	FURNITURE
+37	HEAIR	36	t	FURNITURE
+38	PILLOW	\N	t	FURNITURE
+39	P	38	t	FURNITURE
+40	SUMSUNG WM	\N	t	ELECTRONICS
+41	WM	40	t	ELECTRONICS
+42	SINGLE	20	t	FURNITURE
+43	THO BUUNER	30	t	FURNITURE
+44	FOR BUUNER	30	t	FURNITURE
+45	DRESSING	\N	t	FURNITURE
+46	DRESSING TEBLE	45	t	FURNITURE
+\.
+
+
+--
+-- Data for Name: customers; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.customers (id, name, phone, address) FROM stdin;
+2	Goving Ji Prajapt	7976717004	BHINDER
+4	Bharat Ji Gayri	6375051249	NIMODRA
+5	Kaniya Lal Ji	9784388582	KANOD
+6	Shivam Furniture	8347463236	BHINDER
+7	Pramila Kumari Ji Regar	9509214036	DABOK
+8	PUSHKAR JI	8107663461	KHERODA
+9	Yogesh Ji Suthar	9799828806	NAVANIYA
+10	Vinod Ji Harijan	9664388837	KUTHWAS
+11	Umesh Ji Das	9785928018	BHATEWAR
+12	Sankar Lal Ji Suthar	9751739452	\N
+13	Bhagirth Ji Pushrna	9352668643	KHARODA
+14	Udai Lal Ji	9521883401	KHERODA
+15	Kushal Jat	8890867828	BANSDA
+16	Bheru Lal Ji	9909024370	BHINDER
+17	Vikash Ji Ahir	8955793746	JETPURA
+18	Kamledra Ji	9928152270	barudiya
+19	Sambhu Singh Ji	9829677261	BANSHI
+20	Bagdhi Lal Ji	7014805387	ARNIYA
+21	VIKARAM CHARND JI	8740945077	BHINDER
+22	Manoj Ji Choubisa	9660397141	BATHEDA
+23	Jorawar Singh Ji	8769741661	VIJAYMAGRI
+24	Bheru Singh Ji	9929776519	BARUDIYA
+25	Bhawas Ji Choubisa	9214856067	NIMADI
+26	Bhura Lal Ji	7689969446	KHEDARIYA
+27	Balveer Singh Ji	7976516593	\N
+28	Bhoth Lal Ji Jat	7600133835	SURATPURA
+29	anurag ji	9950871984	bhinder
+30	SURESH JI SUTHAR	8003951602	KHERODA
+31	Shiv Singh Ji	7851028590	SHIHAD
+32	Sowan Kuwar Ji	9116870386	BARUDIYA
+33	Kishan Ji	9351825135	BEHADA
+34	Yashwt Ji Sen	9079964467	CHARGDIYA
+35	Bhawer Lal Ji	9660563630	PANHI KOTADA
+36	Mohan Ji Meghwal	9784421045	KARAKLA
+37	RATAN JI SINGH	9929228336	BAMBORI
+1	Jamana Lal Ji Janwa	9887075739	SALEDA
+3	KISHAN LAL JI MENARIA	7738566584	MAHUDA
+38	Prem Ji Menaria	8003949185	MENAR
+39	MUKESH JI KUMAR LAXKAR	9928131384	KANORE
+40	HUKUM SINGH JI	6376195447	SIH
+41	BHERU SINGH JI	7568625312	GAJPURA
+42	PUSHKAR JI MENARIA	7357782352	UDAIPUR
+43	MITHU LAL JI	8739890376	KIYA KHEDA
+44	MITUN JI GARG	6367671518	HITA GARIVA
+45	Dhul Chand Ji	9784837118	BAMBORA
+\.
+
+
+--
+-- Data for Name: delivery_schedules; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.delivery_schedules (id, booking_id, scheduled_date, actual_delivery, status, driver_notes, created_at) FROM stdin;
+2	2	2026-11-09 00:00:00	2026-11-09 08:33:48.948	DELIVERED	\N	2026-11-05 12:49:18.837
+4	4	2026-11-18 00:00:00	2026-11-17 10:48:31.981	DELIVERED	\N	2026-11-10 11:56:55.403
+3	3	2026-11-17 00:00:00	2026-11-19 07:07:11.283	DELIVERED	\N	2026-11-09 07:50:10.647
+5	5	2026-11-14 00:00:00	2026-11-19 07:07:53.093	DELIVERED	\N	2026-11-10 12:14:03.214
+6	6	2026-11-23 00:00:00	\N	SCHEDULED	\N	2026-11-19 10:22:29.983
+1	1	2026-11-22 00:00:00	\N	SCHEDULED	\N	2026-11-05 06:39:06.45
+7	7	2026-11-22 00:00:00	\N	SCHEDULED	\N	2026-11-20 07:47:27.779
+8	8	2026-11-25 00:00:00	\N	SCHEDULED	\N	2026-11-20 08:07:09.702
+9	9	2026-11-30 00:00:00	\N	SCHEDULED	\N	2026-11-20 08:15:46.573
+10	10	2027-01-01 00:00:00	\N	SCHEDULED	\N	2026-11-20 08:26:18.957
+11	11	2026-11-21 00:00:00	\N	SCHEDULED	\N	2026-11-20 08:38:58.286
+12	12	2026-11-22 00:00:00	\N	SCHEDULED	\N	2026-11-20 09:15:40.75
+\.
+
+
+--
+-- Data for Name: finance_providers; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.finance_providers (id, name, is_active, created_at) FROM stdin;
+1	BAJAJ FANCE	t	2026-11-05 06:05:33.333
+\.
+
+
+--
+-- Data for Name: finance_records; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.finance_records (id, bill_id, finance_provider_id, emi_amount, months, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: password_reset_tokens; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.password_reset_tokens (id, user_id, token, expires_at, created_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: product_units; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.product_units (id, product_id, imei_number, status, cost_price, added_at, sold_at) FROM stdin;
+\.
+
+
+--
+-- Data for Name: products; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.products (id, category_id, name, barcode, brand, product_type, cost_price, selling_price, quantity_in_stock, low_stock_threshold, image_url, is_active, created_at, updated_at, department, warranty_months) FROM stdin;
+25	11	3 DOOR NORMAL POWODER C	\N	R	quantity	15000.000000000000000000000000000000	19000.000000000000000000000000000000	2	2	\N	t	2026-11-05 05:24:00.89	2026-11-05 05:24:01.331	FURNITURE	12
+24	11	3 DOOR HADROLIC HEAVY DICO	\N	R	quantity	15000.000000000000000000000000000000	20500.000000000000000000000000000000	1	2	\N	t	2026-11-05 05:21:54.687	2026-11-20 08:15:42.81	FURNITURE	12
+9	5	BED SINGLE HEAVY M	\N	MODII	quantity	9800.000000000000000000000000000000	13800.000000000000000000000000000000	6	2	\N	t	2026-11-05 04:50:57.047	2026-11-12 06:30:50.601	FURNITURE	12
+50	29	D FREZ 456 LITER CELFORET	\N	CELLRORET	quantity	25000.000000000000000000000000000000	26000.000000000000000000000000000000	0	2	\N	t	2026-11-06 08:10:25.207	2026-11-06 08:15:58.901	FURNITURE	12
+26	13	SOFA SET CONER HEDREST HEAVY	\N	LAXMI	quantity	26500.000000000000000000000000000000	39000.000000000000000000000000000000	3	2	\N	t	2026-11-05 05:26:48.66	2026-11-05 05:26:49.115	FURNITURE	12
+1	2	BED 6/6 REGULAR 	\N	NO	quantity	12000.000000000000000000000000000000	16800.000000000000000000000000000000	8	2	\N	t	2026-11-05 03:42:46.027	2026-11-20 09:15:38.985	FURNITURE	12
+8	2	BED SINGLE 6/4 REGULAR	\N	LAXMI	quantity	7000.000000000000000000000000000000	10500.000000000000000000000000000000	1	2	\N	t	2026-11-05 04:49:09.492	2026-11-05 04:49:09.927	FURNITURE	12
+30	14	SOFA SETH NORMAL 	\N	R	quantity	7000.000000000000000000000000000000	11000.000000000000000000000000000000	4	2	\N	t	2026-11-05 05:33:39.526	2026-11-14 07:30:09.316	FURNITURE	12
+55	25	NVY 32'' SMART FHD	\N	NVY	quantity	8300.000000000000000000000000000000	11800.000000000000000000000000000000	0	2	\N	t	2026-11-10 09:48:00.719	2026-11-10 12:14:01.866	FURNITURE	12
+10	5	BED 6/6 BODER 	\N	LAXMI	quantity	13500.000000000000000000000000000000	18800.000000000000000000000000000000	1	2	\N	t	2026-11-05 04:52:59.832	2026-11-05 04:53:00.3	FURNITURE	12
+11	5	BED SAGWAN 6/6 HEAVY	\N	PANCHA MUCHI	quantity	22000.000000000000000000000000000000	29000.000000000000000000000000000000	2	2	\N	t	2026-11-05 04:53:58.966	2026-11-05 04:53:59.403	FURNITURE	12
+12	7	DIWAN 3/6 	\N	MODII	quantity	5000.000000000000000000000000000000	6500.000000000000000000000000000000	1	2	\N	t	2026-11-05 04:55:28.075	2026-11-05 04:55:28.52	FURNITURE	12
+42	21	MATTRESS REFRESH SHUBH 2.0	\N	REFRESH	quantity	6726.000000000000000000000000000000	9900.000000000000000000000000000000	1	2	\N	t	2026-11-05 06:43:29.945	2026-11-20 05:22:12.171	FURNITURE	12
+52	31	RICHLOOK GAS CHULA 3 BUNNER 	\N		quantity	6000.000000000000000000000000000000	8500.000000000000000000000000000000	1	2	\N	t	2026-11-06 09:54:08.247	2026-11-06 09:54:08.698	FURNITURE	12
+15	10	ALMARI DEEP 22'' J M SINGLE	\N	G	quantity	9800.000000000000000000000000000000	14800.000000000000000000000000000000	8	2	\N	t	2026-11-05 05:04:02.355	2026-11-05 12:49:17.255	FURNITURE	12
+4	5	BED 70/75 HEAVY M	\N	LAXMI	quantity	16500.000000000000000000000000000000	22500.000000000000000000000000000000	8	2	\N	t	2026-11-05 04:45:05.046	2026-11-20 10:08:57.236	FURNITURE	12
+19	11	4 DOOR ALMARI 	\N	R	quantity	28500.000000000000000000000000000000	26000.000000000000000000000000000000	1	1	\N	t	2026-11-05 05:15:43.888	2026-11-05 05:15:44.321	FURNITURE	12
+20	11	3 DOOR DRESSING POWODER HEAVY	\N	R	quantity	16500.000000000000000000000000000000	23000.000000000000000000000000000000	2	2	\N	t	2026-11-05 05:17:39.418	2026-11-05 05:17:39.855	FURNITURE	12
+47	27	DAYANIG TABLE 6 SITER  GLASS	\N	LAXMI	quantity	22500.000000000000000000000000000000	26000.000000000000000000000000000000	3	2	\N	t	2026-11-06 03:37:28.949	2026-11-06 03:37:29.398	FURNITURE	12
+22	11	6 DOOR POWODER CODED	\N	R	quantity	16500.000000000000000000000000000000	22500.000000000000000000000000000000	2	2	\N	t	2026-11-05 05:19:15.07	2026-11-05 05:19:15.502	FURNITURE	12
+23	11	3 DOOR POWODER C	\N	R	quantity	14000.000000000000000000000000000000	19000.000000000000000000000000000000	3	2	\N	t	2026-11-05 05:20:45.843	2026-11-05 05:20:46.314	FURNITURE	12
+21	11	3 DOOR SIDE DRESSING POWODER	\N	R	quantity	16500.000000000000000000000000000000	23800.000000000000000000000000000000	0	2	\N	t	2026-11-05 05:18:25.206	2026-11-20 08:26:17.406	FURNITURE	12
+28	13	SOFA SET CONER LUNCHER	\N	R	quantity	26000.000000000000000000000000000000	39000.000000000000000000000000000000	1	1	\N	t	2026-11-05 05:30:35.232	2026-11-05 05:30:35.68	FURNITURE	12
+29	13	SOFA SET CONER  CLASSIC	\N	LAXMI	quantity	23000.000000000000000000000000000000	29000.000000000000000000000000000000	3	2	\N	t	2026-11-05 05:32:07.164	2026-11-05 05:32:07.606	FURNITURE	12
+5	5	BED 5/6 HAVY M	\N	LAXMI	quantity	15500.000000000000000000000000000000	21500.000000000000000000000000000000	-1	2	\N	t	2026-11-05 04:45:56.469	2026-11-20 08:15:43.252	FURNITURE	12
+31	14	SOFA WODEN 	\N	LAXMI	quantity	9000.000000000000000000000000000000	15000.000000000000000000000000000000	1	2	\N	t	2026-11-05 05:34:31.941	2026-11-05 05:34:32.402	FURNITURE	12
+46	25	ITEL TV FHD 32'' A32AQHX	\N	ITEL	quantity	9200.000000000000000000000000000000	11500.000000000000000000000000000000	1	2	\N	t	2026-11-06 03:32:10.285	2026-11-06 13:25:08.418	FURNITURE	12
+18	9	ALMARI JM SINGLE 	\N	G	quantity	9100.000000000000000000000000000000	12800.000000000000000000000000000000	0	2	\N	t	2026-11-05 05:13:09.143	2026-11-20 08:38:56.046	FURNITURE	12
+35	16	T TABLE 3/2	\N	LAXMI	quantity	1250.000000000000000000000000000000	1800.000000000000000000000000000000	19	2	\N	t	2026-11-05 05:54:20.9	2026-11-05 05:54:21.354	FURNITURE	12
+36	17	T TABLE SAGWAN SAN MAIKA 4/2	\N	LAXMI	quantity	4500.000000000000000000000000000000	6800.000000000000000000000000000000	6	2	\N	t	2026-11-05 05:55:36.52	2026-11-05 05:55:36.965	FURNITURE	12
+37	17	T TABLE SAGWAN 4/2 GLASS	\N	LAXMI	quantity	4800.000000000000000000000000000000	6800.000000000000000000000000000000	10	2	\N	t	2026-11-05 05:56:37.41	2026-11-05 05:56:37.838	FURNITURE	12
+38	17	T TABLE 3/2 SAGWAN GLASS	\N	LAXMI	quantity	3500.000000000000000000000000000000	5500.000000000000000000000000000000	1	2	\N	t	2026-11-05 05:57:26.731	2026-11-05 05:57:27.166	FURNITURE	12
+39	19	MANDIR BROWN BLACK 4F	\N	LAXMI	quantity	7000.000000000000000000000000000000	10000.000000000000000000000000000000	2	2	\N	t	2026-11-05 05:59:13.139	2026-11-05 05:59:13.603	FURNITURE	12
+43	23	MAHARAJA WHITELINE 5L	\N	MAHARAJA 	quantity	3000.000000000000000000000000000000	3700.000000000000000000000000000000	0	2	\N	t	2026-11-05 08:23:29.107	2026-11-05 08:25:52.917	FURNITURE	12
+40	19	MANDIR FREAM WALA HEAVY 	\N	LAXMI	quantity	13000.000000000000000000000000000000	18000.000000000000000000000000000000	0	2	\N	t	2026-11-05 06:01:12.006	2026-11-05 06:05:00.314	FURNITURE	12
+41	19	MANDIR 4.5F 	\N	LAXMI	quantity	8500.000000000000000000000000000000	13000.000000000000000000000000000000	2	2	\N	t	2026-11-05 06:20:02.591	2026-11-05 06:20:03.054	FURNITURE	12
+3	4	AATA CHAKKI 1HP 5KG	\N	SPHERHOTS	quantity	10200.000000000000000000000000000000	14800.000000000000000000000000000000	0	2	\N	t	2026-11-05 04:30:16.983	2026-11-16 07:25:22.109	FURNITURE	12
+48	25	FOXSKY TV 43'' TV FHD	\N	FOXSKY	quantity	13200.000000000000000000000000000000	16800.000000000000000000000000000000	1	2	\N	t	2026-11-06 03:40:43.093	2026-11-06 03:40:43.523	FURNITURE	12
+54	21	SLEEPWALL TARNG 6/6 MATTRESS	\N	SLEEPWALL	quantity	6800.000000000000000000000000000000	9900.000000000000000000000000000000	-2	2	\N	t	2026-11-08 09:33:22.288	2026-11-20 09:15:39.426	FURNITURE	12
+7	5	BED 6/6 FARHA 8.5F 	\N	ANKIT	quantity	22500.000000000000000000000000000000	29000.000000000000000000000000000000	3	2	\N	t	2026-11-05 04:47:53.393	2026-11-07 12:29:44.052	FURNITURE	12
+45	25	NVY 43'' FHD SMART	\N	NVY	quantity	13800.000000000000000000000000000000	16800.000000000000000000000000000000	1	2	\N	t	2026-11-05 11:58:43.76	2026-11-05 12:00:05.072	FURNITURE	12
+44	21	LUXURY LIFE 4'' PLATINUM 70/75	\N	ANKIT	quantity	5300.000000000000000000000000000000	9900.000000000000000000000000000000	2	2	\N	t	2026-11-05 09:42:11.333	2026-11-20 08:15:43.695	FURNITURE	12
+49	25	FOXSKY 32'' TV FHD	\N	FOXSKY	quantity	8200.000000000000000000000000000000	11500.000000000000000000000000000000	1	2	\N	t	2026-11-06 03:41:32.873	2026-11-06 03:41:33.321	FURNITURE	12
+32	14	SOFA SET REGULAR	\N	LAXMI	quantity	10000.000000000000000000000000000000	14800.000000000000000000000000000000	0	2	\N	t	2026-11-05 05:35:45.972	2026-11-20 08:38:56.51	FURNITURE	12
+17	9	ALMARI SM 2 DOOR 	\N	G	quantity	10100.000000000000000000000000000000	13800.000000000000000000000000000000	0	2	\N	t	2026-11-05 05:10:30.43	2026-11-20 09:15:39.867	FURNITURE	12
+6	5	BED 6/6 DICO 	\N	ANKIT	quantity	15500.000000000000000000000000000000	22000.000000000000000000000000000000	1	2	\N	t	2026-11-05 04:47:01.07	2026-11-06 09:39:48.684	FURNITURE	12
+14	9	ALMARI ITALIN 	\N	G	quantity	11900.000000000000000000000000000000	16800.000000000000000000000000000000	0	2	\N	t	2026-11-05 05:01:29.015	2026-11-11 09:25:05.357	FURNITURE	12
+33	14	SOFA SET CLASSIC 	\N	LAXMI	quantity	12000.000000000000000000000000000000	16800.000000000000000000000000000000	3	2	\N	t	2026-11-05 05:42:08.136	2026-11-06 10:00:13.248	FURNITURE	12
+53	31	RICHLOOK GAS CHULA 3 BUNNER 	\N		quantity	6000.000000000000000000000000000000	8500.000000000000000000000000000000	0	2	\N	t	2026-11-06 09:54:38.01	2026-11-06 10:00:13.698	FURNITURE	12
+13	9	ALMARI ODUMBO 	\N	LAXMI	quantity	11400.000000000000000000000000000000	14500.000000000000000000000000000000	5	2	\N	t	2026-11-05 04:58:26.639	2026-11-19 10:22:27.647	FURNITURE	12
+34	16	T TABLE 4/2	\N	LAXMI	quantity	1400.000000000000000000000000000000	2200.000000000000000000000000000000	9	2	\N	t	2026-11-05 05:53:24.812	2026-11-19 10:06:56.637	FURNITURE	12
+27	13	SOFA SET CONER REGULAR	\N	LAXMI	quantity	17000.000000000000000000000000000000	24500.000000000000000000000000000000	0	2	\N	t	2026-11-05 05:29:05.984	2026-11-19 14:44:38.321	FURNITURE	12
+71	33	AROKING COOLER JET DLX	\N	AROKING	quantity	7150.000000000000000000000000000000	10800.000000000000000000000000000000	-1	2	\N	t	2026-11-19 10:15:40.461	2026-11-19 10:22:28.581	FURNITURE	12
+57	13	sofa set coner primum 	\N	sa	quantity	28000.000000000000000000000000000000	40500.000000000000000000000000000000	0	2	\N	t	2026-11-10 11:55:24.956	2026-11-10 11:56:54.944	FURNITURE	12
+74	21	KURLON DUOREST ESSENTIAL 70/75 	\N	KURLON	quantity	15318.000000000000000000000000000000	21883.000000000000000000000000000000	1	2	\N	t	2026-11-19 11:28:31.312	2026-11-19 11:28:31.778	FURNITURE	12
+75	21	KURLON DUOREST ESSETIAL 70/78	\N	KURLON	quantity	15929.000000000000000000000000000000	22756.000000000000000000000000000000	1	2	\N	t	2026-11-19 11:30:31.176	2026-11-19 11:30:31.629	FURNITURE	12
+76	21	KURLON FOMBED ORTHO 70/75 5 	\N	KURLON	quantity	17485.000000000000000000000000000000	24979.000000000000000000000000000000	1	2	\N	t	2026-11-19 11:32:48.621	2026-11-19 11:32:49.047	FURNITURE	12
+60	35	CHAIR SENRISE 8004	\N	SENRISE	quantity	390.000000000000000000000000000000	600.000000000000000000000000000000	0	2	\N	t	2026-11-10 12:09:02.612	2026-11-10 12:14:00.968	FURNITURE	12
+58	21	LUXURY LIFE EURO TOP 6'' 70/75	\N	LUXURY	quantity	5800.000000000000000000000000000000	8800.000000000000000000000000000000	0	2	\N	t	2026-11-10 12:06:03.039	2026-11-10 12:14:01.418	FURNITURE	12
+62	9	ALMARI 18/35	\N	G	quantity	6900.000000000000000000000000000000	9500.000000000000000000000000000000	4	2	\N	t	2026-11-17 10:51:17.711	2026-11-17 10:55:14.225	FURNITURE	12
+77	21	KURLON DIAMOND 70/72 6	\N	KURLON	quantity	14340.000000000000000000000000000000	20487.000000000000000000000000000000	1	2	\N	t	2026-11-19 11:34:34.736	2026-11-19 11:34:35.203	FURNITURE	12
+78	21	KURLON TEENSY ORTHO 75/70 6	\N	KURLON	quantity	10498.000000000000000000000000000000	14998.000000000000000000000000000000	1	2	\N	t	2026-11-19 11:37:37.163	2026-11-19 11:37:37.618	FURNITURE	12
+63	2	BED PELAN 6/4	\N	M	quantity	6000.000000000000000000000000000000	9000.000000000000000000000000000000	0	2	\N	t	2026-11-17 11:36:37.084	2026-11-17 11:44:57.54	FURNITURE	12
+64	21	MATTRESS 6/4 EP	\N	HAPPY	quantity	1300.000000000000000000000000000000	3500.000000000000000000000000000000	0	2	\N	t	2026-11-17 11:37:59.758	2026-11-17 11:44:57.987	FURNITURE	12
+67	21	KURLON FOMBED ORTHO 70/72 5'' MATT	\N	KURLON	quantity	16786.000000000000000000000000000000	23981.000000000000000000000000000000	2	2	\N	t	2026-11-19 08:46:23.583	2026-11-19 08:46:24.051	FURNITURE	12
+66	21	KURLON DUOREST ESSENTIAL 70/72 	\N	KURLON	quantity	16596.000000000000000000000000000000	23709.000000000000000000000000000000	5	2	\N	t	2026-11-19 08:43:35.446	2026-11-19 08:46:32.593	FURNITURE	12
+68	21	KURLON FOMBED ORTHO 70/72 4'' MATT	\N	KURLON	quantity	13410.000000000000000000000000000000	19158.000000000000000000000000000000	2	2	\N	t	2026-11-19 09:54:45.394	2026-11-19 09:54:45.862	FURNITURE	12
+79	21	KURLON TEENSY ESSENTIAL 72/70 4	\N	KURLON	quantity	7638.000000000000000000000000000000	10912.000000000000000000000000000000	1	2	\N	t	2026-11-19 11:39:26.961	2026-11-19 11:39:27.417	FURNITURE	12
+80	21	REFRESH SAHARA EUROTOP 70/72 6	\N	REFRESH	quantity	12800.000000000000000000000000000000	16078.000000000000000000000000000000	2	2	\N	t	2026-11-19 11:40:56.323	2026-11-19 11:40:56.78	FURNITURE	12
+61	37	HAEIR REF 1 STAR 180L	\N	HAEIR	quantity	12500.000000000000000000000000000000	15000.000000000000000000000000000000	0	2	\N	t	2026-11-10 12:10:15.697	2026-11-19 10:06:55.236	FURNITURE	12
+69	35	CHAIR SENRISE 4444	\N	SENRISE	quantity	550.000000000000000000000000000000	600.000000000000000000000000000000	0	2	\N	t	2026-11-19 09:58:33.08	2026-11-19 10:06:56.169	FURNITURE	12
+56	21	HAPPY LIFE MATTRESS REGULAR	\N	HAPPY LIFE	quantity	2820.000000000000000000000000000000	6500.000000000000000000000000000000	2	2	\N	t	2026-11-10 09:54:29.344	2026-11-19 10:06:57.102	FURNITURE	12
+88	21	KURLON TEENSY ESSENTIAL 47/72 4''	\N	KURLON	quantity	5093.000000000000000000000000000000	7277.000000000000000000000000000000	1	2	\N	t	2026-11-19 12:18:22.964	2026-11-19 12:18:23.42	FURNITURE	12
+72	21	LUXURY LIFE 6/5 CLASSIC	\N	LUXURY LIFE	quantity	6700.000000000000000000000000000000	9800.000000000000000000000000000000	1	2	\N	t	2026-11-19 10:17:07.125	2026-11-19 11:42:11.768	FURNITURE	12
+81	21	LUXURY LIFE CLASSIC 70/66	\N	LUXURY	quantity	7000.000000000000000000000000000000	14500.000000000000000000000000000000	1	2	\N	t	2026-11-19 11:43:51.478	2026-11-19 11:43:51.932	FURNITURE	12
+82	21	LUXURY LIFE 70/72 PLATINUM	\N	LUXURY	quantity	5300.000000000000000000000000000000	10000.000000000000000000000000000000	3	2	\N	t	2026-11-19 11:46:19	2026-11-19 11:46:19.45	FURNITURE	12
+83	21	LUXURY LIFE CLASSIC 70/72 6	\N	LUXURY	quantity	7300.000000000000000000000000000000	15000.000000000000000000000000000000	2	2	\N	t	2026-11-19 11:49:17.024	2026-11-19 11:49:17.479	FURNITURE	12
+84	21	LUXURY LIFE OXFORD 70/72 6	\N	LUXURY 	quantity	5600.000000000000000000000000000000	11300.000000000000000000000000000000	1	2	\N	t	2026-11-19 12:00:26.733	2026-11-19 12:00:27.175	FURNITURE	12
+85	21	LUXURY LIFE OXFORD 70/72 6	\N	LUXURY 	quantity	5600.000000000000000000000000000000	11300.000000000000000000000000000000	1	2	\N	t	2026-11-19 12:01:06.688	2026-11-19 12:01:07.143	FURNITURE	12
+86	21	HAPPY LIFE ZIVA 72/70 SOFT 4''	\N	HAPPY	quantity	4500.000000000000000000000000000000	9000.000000000000000000000000000000	2	2	\N	t	2026-11-19 12:06:15.328	2026-11-19 12:06:15.783	FURNITURE	12
+87	21	HAPPY LIFE ZIVA EP 70/72	\N	LUXURY	quantity	1500.000000000000000000000000000000	3500.000000000000000000000000000000	2	2	\N	t	2026-11-19 12:09:01.294	2026-11-19 12:09:01.742	FURNITURE	12
+89	42	KURLON DUOREST ESSENTIAL 47/72 6	\N	KURLON	quantity	8410.000000000000000000000000000000	12015.000000000000000000000000000000	1	2	\N	t	2026-11-19 12:19:47.808	2026-11-19 12:19:48.274	FURNITURE	12
+90	43	RICHLOOK GAS VS2 GOLD EDITION 2 BUNNER	\N	RICH	quantity	2200.000000000000000000000000000000	3550.000000000000000000000000000000	7	2	\N	t	2026-11-19 12:23:27.394	2026-11-19 12:23:27.849	FURNITURE	12
+91	31	RICHLOOK 3 BUNNER GAS SUPERSTEEL 	\N	RICH	quantity	6800.000000000000000000000000000000	12000.000000000000000000000000000000	2	2	\N	t	2026-11-19 12:24:56.559	2026-11-19 12:24:56.988	FURNITURE	12
+92	31	RICHLOOK 3 BUNNER UP DOWN GAS	\N	RICH	quantity	3400.000000000000000000000000000000	5100.000000000000000000000000000000	5	2	\N	t	2026-11-19 12:26:21.722	2026-11-19 12:26:22.169	FURNITURE	12
+93	44	RICHLOOK 4 BUNNER UP DOWN	\N	RICH	quantity	3800.000000000000000000000000000000	6100.000000000000000000000000000000	2	2	\N	t	2026-11-19 12:28:33.039	2026-11-19 12:28:33.487	FURNITURE	12
+94	31	RICHLOOK 3 BUNNER ROSE GOLD 	\N	RICH	quantity	5500.000000000000000000000000000000	7950.000000000000000000000000000000	3	2	\N	t	2026-11-19 12:29:54.913	2026-11-19 12:29:55.381	FURNITURE	12
+59	33	AROKING TRBO 84 	\N	AROKING 	quantity	5446.000000000000000000000000000000	7800.000000000000000000000000000000	4	2	\N	t	2026-11-10 12:07:56.486	2026-11-20 08:57:45.95	FURNITURE	12
+2	4	AATA CHAKKI 1.5HP 7KG	\N	SPHERHOTS	quantity	12200.000000000000000000000000000000	16800.000000000000000000000000000000	2	2	\N	t	2026-11-05 04:25:51.541	2026-11-19 14:44:39.67	FURNITURE	12
+73	41	WA40F08D1CTL	\N	SUMSUNG	quantity	20600.000000000000000000000000000000	30000.000000000000000000000000000000	0	2	\N	t	2026-11-19 10:24:26.136	2026-11-19 14:44:40.117	ELECTRONICS	12
+95	1	BED 8F 70/72 FARH	\N	\N	quantity	18500.000000000000000000000000000000	23125.000000000000000000000000000000	1	5	\N	t	2026-11-19 14:51:58.246	2026-11-19 14:52:00.036	FURNITURE	\N
+96	22	CROMPTON FUN STARDRFT 1200IM46CS BRN 1N	\N	\N	quantity	1400.000000000000000000000000000000	1750.000000000000000000000000000000	8	5	\N	t	2026-11-20 05:17:40.926	2026-11-20 05:17:45.889	FURNITURE	\N
+97	3	CROMPTON FUN STARDRFT OPL WHT	\N	\N	quantity	1410.000000000000000000000000000000	1762.500000000000000000000000000000	4	5	\N	t	2026-11-20 05:17:41.386	2026-11-20 05:17:46.797	FURNITURE	\N
+16	10	ALMARI 2 DOOR S M 22'' DEEP 	\N	G	quantity	10900.000000000000000000000000000000	16800.000000000000000000000000000000	14	2	\N	t	2026-11-05 05:06:09.373	2026-11-20 08:07:08.801	FURNITURE	12
+70	39	PILLOW BIG SIZE	\N		quantity	400.000000000000000000000000000000	500.000000000000000000000000000000	-2	2	\N	t	2026-11-19 09:59:50.993	2026-11-20 08:26:17.849	FURNITURE	12
+65	39	PILLOW BR	\N		quantity	60.000000000000000000000000000000	100.000000000000000000000000000000	0	2	\N	t	2026-11-17 11:39:40.053	2026-11-20 08:38:56.957	FURNITURE	12
+51	21	LUXURY LIFE 6'' CLASSIC 70/75 6	\N	ANKIT	quantity	7500.000000000000000000000000000000	13500.000000000000000000000000000000	0	2	\N	t	2026-11-06 09:37:34.888	2026-11-20 10:08:56.798	FURNITURE	12
+98	3	CROMPTON 1200IM46CYB FUN MONTAN SMK BRN	\N	\N	quantity	1989.990000000000000000000000000000	2487.487500000000000000000000000000	4	5	\N	t	2026-11-20 05:17:41.836	2026-11-20 05:17:47.694	FURNITURE	\N
+99	3	CROMPTON MONTAN GILD BGE  1200MI46CYB	\N	\N	quantity	1989.990000000000000000000000000000	2487.487500000000000000000000000000	4	5	\N	t	2026-11-20 05:17:42.286	2026-11-20 05:17:48.595	FURNITURE	\N
+100	3	CROMPTON FUN EN ELEVATE 48 MT BLK RM	\N	\N	quantity	2449.990000000000000000000000000000	3062.487500000000000000000000000000	4	5	\N	t	2026-11-20 05:17:42.736	2026-11-20 05:17:49.493	FURNITURE	\N
+102	3	CROMPTON 15 LITER AMICAPLUS VER MTG	\N	\N	quantity	6599.990000000000000000000000000000	8249.987499999999000000000000000000	2	5	\N	t	2026-11-20 05:17:43.636	2026-11-20 05:17:51.29	FURNITURE	\N
+103	3	CROMPTON ACENZA PRO ROUND BODY 15LITER	\N	\N	quantity	5700.000000000000000000000000000000	7125.000000000000000000000000000000	2	5	\N	t	2026-11-20 05:17:44.086	2026-11-20 05:17:52.189	FURNITURE	\N
+104	3	ORPAT KITCHEN MASTER MIXER GRINDER 650WATT	\N	\N	quantity	1897.440000000000000000000000000000	2371.800000000000000000000000000000	6	5	\N	t	2026-11-20 05:17:44.536	2026-11-20 05:17:53.088	FURNITURE	\N
+105	3	ORPAT KITCHEN DYNA PLUS 900WATT	\N	\N	quantity	4399.920000000000000000000000000000	5499.900000000000000000000000000000	2	5	\N	t	2026-11-20 05:17:44.985	2026-11-20 05:17:53.986	FURNITURE	\N
+107	3	BEDSHEET	\N	\N	quantity	300.000000000000000000000000000000	375.000000000000000000000000000000	2	5	\N	t	2026-11-20 05:22:11.296	2026-11-20 05:22:13.919	FURNITURE	\N
+101	3	CROMPTON 10LITER AMICAPLUS VER MTG,8	\N	\N	quantity	5900.000000000000000000000000000000	7375.000000000000000000000000000000	1	5	\N	t	2026-11-20 05:17:43.187	2026-11-20 05:53:45.723	FURNITURE	\N
+108	3	6/3 FOLD BED	\N	\N	quantity	2300.000000000000000000000000000000	3250.000000000000000000000000000000	10	5	\N	t	2026-11-20 07:21:40.938	2026-11-20 07:21:42.959	FURNITURE	\N
+109	21	LUXURY LIFE 78/60 8''	\N	LUXURY LIFE	quantity	8600.000000000000000000000000000000	16500.000000000000000000000000000000	0	2	\N	t	2026-11-20 07:41:48.427	2026-11-20 07:47:26.668	FURNITURE	12
+106	3	PILLOW REFRESH	\N	\N	quantity	200.000000000000000000000000000000	250.000000000000000000000000000000	-2	5	\N	t	2026-11-20 05:22:10.86	2026-11-20 07:47:27.111	FURNITURE	\N
+110	5	BED FARHA 8.5 F 70/78	\N	ANKIT	quantity	23500.000000000000000000000000000000	30500.000000000000000000000000000000	0	2	\N	t	2026-11-20 08:02:03.128	2026-11-20 08:07:07.914	FURNITURE	12
+111	21	LUXURY LIFE CLASSIC 70/78 8''	\N	LUXURY LIFE	quantity	8500.000000000000000000000000000000	16800.000000000000000000000000000000	0	2	\N	t	2026-11-20 08:04:23.151	2026-11-20 08:07:08.358	FURNITURE	12
+112	46	DRESSING MOVING PA	\N		quantity	3000.000000000000000000000000000000	5800.000000000000000000000000000000	0	2	\N	t	2026-11-20 08:10:01.74	2026-11-20 08:15:44.58	FURNITURE	12
+113	5	BED FARHA 8.5F 70/75 FORT DROWER 	\N		quantity	26500.000000000000000000000000000000	38000.000000000000000000000000000000	0	2	\N	t	2026-11-20 08:20:36.38	2026-11-20 08:26:16.519	FURNITURE	12
+114	33	SIDHAM COOLER 150 LITER 	\N		quantity	8800.000000000000000000000000000000	12500.000000000000000000000000000000	2	2	\N	t	2026-11-20 08:55:28.306	2026-11-20 08:55:28.769	FURNITURE	12
+115	33	SENRISE COOLER 100LITER 	\N		quantity	7800.000000000000000000000000000000	10500.000000000000000000000000000000	1	2	\N	t	2026-11-20 08:56:22.974	2026-11-20 08:56:23.432	FURNITURE	12
+116	33	AROKING SAMSON 	\N	AROKING	quantity	5600.000000000000000000000000000000	8000.000000000000000000000000000000	4	2	\N	t	2026-11-20 08:58:28.288	2026-11-20 08:58:28.725	FURNITURE	12
+\.
+
+
+--
+-- Data for Name: purchase_items; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.purchase_items (id, purchase_id, product_id, item_name, quantity, unit_cost_price, line_total, serial_numbers, warranty_months, created_at) FROM stdin;
+1	1	4	BED 70/75 HEAVY M	3	16500.000000000000000000000000000000	49500.000000000000000000000000000000	\N	12	2026-11-07 08:07:46.49
+2	1	9	BED SINGLE HEAVY M	2	9800.000000000000000000000000000000	19600.000000000000000000000000000000	\N	12	2026-11-07 08:07:47.355
+3	2	30	SOFA SETH NORMAL	4	7000.000000000000000000000000000000	28000.000000000000000000000000000000	\N	12	2026-11-14 04:42:07.846
+4	2	56	HAPPY LIFE MATTRESS REGULAR	2	2820.000000000000000000000000000000	5640.000000000000000000000000000000	\N	12	2026-11-14 04:42:08.76
+5	3	62	ALMARI 18/35	4	6900.000000000000000000000000000000	27600.000000000000000000000000000000	\N	12	2026-11-17 10:55:13.768
+6	3	18	ALMARI JM SINGLE	2	9100.000000000000000000000000000000	18200.000000000000000000000000000000	\N	12	2026-11-17 10:55:14.683
+7	3	13	ALMARI ODUMBO	6	11400.000000000000000000000000000000	68400.000000000000000000000000000000	\N	12	2026-11-17 10:55:15.592
+8	4	1	BED 6/6 REGULAR	2	12000.000000000000000000000000000000	24000.000000000000000000000000000000	\N	12	2026-11-19 14:51:58.696
+9	4	95	BED 8F 70/72 FARH	1	18500.000000000000000000000000000000	18500.000000000000000000000000000000	\N	\N	2026-11-19 14:51:59.592
+10	5	96	CROMPTON FUN STARDRFT 1200IM46CS BRN 1N	8	1400.000000000000000000000000000000	11200.000000000000000000000000000000	\N	\N	2026-11-20 05:17:45.438
+11	5	97	CROMPTON FUN STARDRFT OPL WHT	4	1410.000000000000000000000000000000	5640.000000000000000000000000000000	\N	\N	2026-11-20 05:17:46.348
+12	5	98	CROMPTON 1200IM46CYB FUN MONTAN SMK BRN	4	1989.990000000000000000000000000000	7959.960000000000000000000000000000	\N	\N	2026-11-20 05:17:47.247
+13	5	99	CROMPTON MONTAN GILD BGE  1200MI46CYB	4	1989.990000000000000000000000000000	7959.960000000000000000000000000000	\N	\N	2026-11-20 05:17:48.146
+14	5	100	CROMPTON FUN EN ELEVATE 48 MT BLK RM	4	2449.990000000000000000000000000000	9799.959999999999000000000000000000	\N	\N	2026-11-20 05:17:49.045
+15	5	101	CROMPTON 10LITER AMICAPLUS VER MTG,8	2	5900.000000000000000000000000000000	11800.000000000000000000000000000000	\N	\N	2026-11-20 05:17:49.943
+16	5	102	CROMPTON 15 LITER AMICAPLUS VER MTG	2	6599.990000000000000000000000000000	13199.980000000000000000000000000000	\N	\N	2026-11-20 05:17:50.842
+17	5	103	CROMPTON ACENZA PRO ROUND BODY 15LITER	2	5700.000000000000000000000000000000	11400.000000000000000000000000000000	\N	\N	2026-11-20 05:17:51.74
+18	5	104	ORPAT KITCHEN MASTER MIXER GRINDER 650WATT	6	1897.440000000000000000000000000000	11384.640000000000000000000000000000	\N	\N	2026-11-20 05:17:52.639
+19	5	105	ORPAT KITCHEN DYNA PLUS 900WATT	2	4399.920000000000000000000000000000	8799.840000000000000000000000000000	\N	\N	2026-11-20 05:17:53.537
+20	6	42	MATTRESS REFRESH SHUBH 2.0	2	6726.000000000000000000000000000000	13452.000000000000000000000000000000	\N	12	2026-11-20 05:22:11.734
+21	6	106	PILLOW REFRESH	2	200.000000000000000000000000000000	400.000000000000000000000000000000	\N	\N	2026-11-20 05:22:12.607
+22	6	107	BEDSHEET	2	300.000000000000000000000000000000	600.000000000000000000000000000000	\N	\N	2026-11-20 05:22:13.483
+23	7	108	6/3 FOLD BED	5	2600.000000000000000000000000000000	13000.000000000000000000000000000000	\N	\N	2026-11-20 07:21:41.615
+24	7	108	6/3 FOLD BED	5	2300.000000000000000000000000000000	11500.000000000000000000000000000000	\N	\N	2026-11-20 07:21:42.514
+\.
+
+
+--
+-- Data for Name: purchase_payments; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.purchase_payments (id, purchase_id, amount_paid, payment_date, payment_mode, transaction_ref, notes, created_at) FROM stdin;
+1	1	69100.000000000000000000000000000000	2026-11-07 08:08:02.268	CASH	\N	Installment settlement	2026-11-07 08:08:02.269
+2	2	33640.000000000000000000000000000000	2026-11-14 00:00:00	CASH	\N	Initial payment upon purchase receipt	2026-11-14 04:42:09.66
+3	3	114200.000000000000000000000000000000	2026-11-17 10:55:26.87	CASH	\N	Installment settlement	2026-11-17 10:55:26.871
+4	4	42500.000000000000000000000000000000	2026-11-19 14:52:58.111	CASH	\N	Installment settlement	2026-11-19 14:52:58.112
+5	6	14452.000000000000000000000000000000	2026-11-20 05:22:27.995	CASH	\N	Installment settlement	2026-11-20 05:22:27.996
+6	7	24500.000000000000000000000000000000	2026-11-20 07:21:59.636	CASH	\N	Installment settlement	2026-11-20 07:21:59.637
+\.
+
+
+--
+-- Data for Name: purchases; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.purchases (id, purchase_number, vendor_invoice_no, vendor_id, department, purchase_date, total_amount, paid_amount, due_amount, payment_status, is_stock_added, notes, created_by_user_id, created_at, updated_at) FROM stdin;
+1	PUR-2026-0001	1	1	FURNITURE	2026-11-07 00:00:00	69100.000000000000000000000000000000	69100.000000000000000000000000000000	0.000000000000000000000000000000	PAID	t	TEJU	1	2026-11-07 08:07:46.275	2026-11-07 08:08:02.489
+2	PUR-2026-0002	\N	2	FURNITURE	2026-11-14 00:00:00	33640.000000000000000000000000000000	33640.000000000000000000000000000000	0.000000000000000000000000000000	PAID	t	KAILASH JI	1	2026-11-14 04:42:07.615	2026-11-14 04:42:07.615
+3	PUR-2026-0003	\N	3	FURNITURE	2026-11-17 00:00:00	114200.000000000000000000000000000000	114200.000000000000000000000000000000	0.000000000000000000000000000000	PAID	t	\N	1	2026-11-17 10:55:13.537	2026-11-17 10:55:27.099
+4	PUR-2026-0004	\N	2	FURNITURE	2026-11-19 00:00:00	42500.000000000000000000000000000000	42500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	t	[TRANSPORT] Vehicle: KAILASH JI | Amount: 3800 | Notes: [TRANSPORT] Vehicle: KAILASH JI | Amount: 3800	1	2026-11-19 14:51:58.47	2026-11-19 14:52:58.342
+5	PUR-2026-0005	2902	4	FURNITURE	2026-11-20 00:00:00	99144.340000000000000000000000000000	0.000000000000000000000000000000	99144.340000000000000000000000000000	UNPAID	t	[TRANSPORT] Vehicle: RAM SINGH JI | Amount: 1600 | Notes: [TRANSPORT] Vehicle: RAM SINGH JI | Amount: 1600	1	2026-11-20 05:17:45.21	2026-11-20 05:17:45.21
+6	PUR-2026-0006	1904	5	FURNITURE	2026-11-20 00:00:00	14452.000000000000000000000000000000	14452.000000000000000000000000000000	0.000000000000000000000000000000	PAID	t	[TRANSPORT] Amount: 300 | Notes: [TRANSPORT] Amount: 300	1	2026-11-20 05:22:11.515	2026-11-20 05:22:28.227
+7	PUR-2026-0007	\N	6	FURNITURE	2026-11-20 00:00:00	24500.000000000000000000000000000000	24500.000000000000000000000000000000	0.000000000000000000000000000000	PAID	t	\N	1	2026-11-20 07:21:41.39	2026-11-20 07:21:59.858
+\.
+
+
+--
+-- Data for Name: stock_in_records; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.stock_in_records (id, product_id, quantity_added, cost_price, added_by_user_id, created_at, purchase_id) FROM stdin;
+1	1	5	12000.000000000000000000000000000000	1	2026-11-05 03:42:46.261	\N
+2	2	4	12200.000000000000000000000000000000	1	2026-11-05 04:25:51.777	\N
+3	3	4	10200.000000000000000000000000000000	1	2026-11-05 04:30:17.214	\N
+4	2	1	12200.000000000000000000000000000000	1	2026-11-05 04:30:32.736	\N
+5	1	11	12000.000000000000000000000000000000	1	2026-11-05 04:41:43.869	\N
+6	4	7	16500.000000000000000000000000000000	1	2026-11-05 04:45:05.263	\N
+7	5	1	15500.000000000000000000000000000000	1	2026-11-05 04:45:56.702	\N
+8	6	2	15500.000000000000000000000000000000	1	2026-11-05 04:47:01.299	\N
+9	7	6	22500.000000000000000000000000000000	1	2026-11-05 04:47:53.619	\N
+10	8	1	7000.000000000000000000000000000000	1	2026-11-05 04:49:09.71	\N
+11	4	1	16500.000000000000000000000000000000	1	2026-11-05 04:49:22.322	\N
+12	4	1	16500.000000000000000000000000000000	1	2026-11-05 04:49:40.333	\N
+13	9	7	9800.000000000000000000000000000000	1	2026-11-05 04:50:57.278	\N
+14	10	1	13500.000000000000000000000000000000	1	2026-11-05 04:53:00.066	\N
+15	11	2	22000.000000000000000000000000000000	1	2026-11-05 04:53:59.186	\N
+16	12	1	5000.000000000000000000000000000000	1	2026-11-05 04:55:28.296	\N
+17	13	1	11400.000000000000000000000000000000	1	2026-11-05 04:58:26.854	\N
+18	14	2	11900.000000000000000000000000000000	1	2026-11-05 05:01:29.244	\N
+19	15	10	9800.000000000000000000000000000000	1	2026-11-05 05:04:02.572	\N
+20	16	19	10900.000000000000000000000000000000	1	2026-11-05 05:06:09.602	\N
+21	17	9	10100.000000000000000000000000000000	1	2026-11-05 05:10:30.659	\N
+22	18	1	9000.000000000000000000000000000000	1	2026-11-05 05:13:09.365	\N
+23	17	1	10100.000000000000000000000000000000	1	2026-11-05 05:13:42.091	\N
+24	19	1	28500.000000000000000000000000000000	1	2026-11-05 05:15:44.104	\N
+25	20	2	16500.000000000000000000000000000000	1	2026-11-05 05:17:39.636	\N
+26	21	3	16500.000000000000000000000000000000	1	2026-11-05 05:18:25.429	\N
+27	22	2	16500.000000000000000000000000000000	1	2026-11-05 05:19:15.287	\N
+28	23	3	14000.000000000000000000000000000000	1	2026-11-05 05:20:46.079	\N
+29	24	2	15000.000000000000000000000000000000	1	2026-11-05 05:21:54.912	\N
+30	25	2	15000.000000000000000000000000000000	1	2026-11-05 05:24:01.111	\N
+31	26	3	26500.000000000000000000000000000000	1	2026-11-05 05:26:48.888	\N
+32	27	3	17000.000000000000000000000000000000	1	2026-11-05 05:29:06.213	\N
+33	28	1	26000.000000000000000000000000000000	1	2026-11-05 05:30:35.456	\N
+34	29	3	23000.000000000000000000000000000000	1	2026-11-05 05:32:07.385	\N
+35	30	2	7800.000000000000000000000000000000	1	2026-11-05 05:33:39.753	\N
+36	31	1	9000.000000000000000000000000000000	1	2026-11-05 05:34:32.172	\N
+37	32	3	10000.000000000000000000000000000000	1	2026-11-05 05:35:46.203	\N
+38	33	4	12000.000000000000000000000000000000	1	2026-11-05 05:42:08.365	\N
+39	34	11	1400.000000000000000000000000000000	1	2026-11-05 05:53:25.03	\N
+40	35	19	1250.000000000000000000000000000000	1	2026-11-05 05:54:21.127	\N
+41	36	6	4500.000000000000000000000000000000	1	2026-11-05 05:55:36.742	\N
+42	37	10	4800.000000000000000000000000000000	1	2026-11-05 05:56:37.624	\N
+43	38	1	3500.000000000000000000000000000000	1	2026-11-05 05:57:26.948	\N
+44	39	2	7000.000000000000000000000000000000	1	2026-11-05 05:59:13.371	\N
+45	40	1	13000.000000000000000000000000000000	1	2026-11-05 06:01:12.226	\N
+46	41	2	8500.000000000000000000000000000000	1	2026-11-05 06:20:02.823	\N
+47	42	3	6500.000000000000000000000000000000	1	2026-11-05 06:43:30.168	\N
+48	43	1	3000.000000000000000000000000000000	1	2026-11-05 08:23:29.327	\N
+49	44	2	5300.000000000000000000000000000000	1	2026-11-05 09:42:11.56	\N
+50	45	2	13800.000000000000000000000000000000	1	2026-11-05 11:58:43.993	\N
+51	46	2	9200.000000000000000000000000000000	1	2026-11-06 03:32:10.516	\N
+52	47	3	22500.000000000000000000000000000000	1	2026-11-06 03:37:29.174	\N
+53	48	1	13200.000000000000000000000000000000	1	2026-11-06 03:40:43.308	\N
+54	49	1	8200.000000000000000000000000000000	1	2026-11-06 03:41:33.097	\N
+55	50	1	26000.000000000000000000000000000000	1	2026-11-06 08:10:25.437	\N
+56	51	3	7500.000000000000000000000000000000	1	2026-11-06 09:37:35.112	\N
+57	52	1	6000.000000000000000000000000000000	1	2026-11-06 09:54:08.474	\N
+58	53	1	6000.000000000000000000000000000000	1	2026-11-06 09:54:38.237	\N
+59	2	2	12200.000000000000000000000000000000	1	2026-11-07 07:57:19.421	\N
+60	4	3	16500.000000000000000000000000000000	1	2026-11-07 08:07:47.141	1
+61	9	2	9800.000000000000000000000000000000	1	2026-11-07 08:07:48.003	1
+62	44	1	5300.000000000000000000000000000000	1	2026-11-07 12:27:43.742	\N
+63	54	1	6800.000000000000000000000000000000	1	2026-11-08 09:33:22.517	\N
+64	51	1	7500.000000000000000000000000000000	1	2026-11-09 11:01:12.741	\N
+65	55	2	8300.000000000000000000000000000000	1	2026-11-10 09:48:00.981	\N
+66	56	2	3100.000000000000000000000000000000	1	2026-11-10 09:54:29.565	\N
+67	57	1	28000.000000000000000000000000000000	1	2026-11-10 11:55:25.199	\N
+68	58	2	5800.000000000000000000000000000000	1	2026-11-10 12:06:03.268	\N
+69	59	2	5446.000000000000000000000000000000	1	2026-11-10 12:07:56.709	\N
+70	60	4	390.000000000000000000000000000000	1	2026-11-10 12:09:02.837	\N
+71	61	1	12500.000000000000000000000000000000	1	2026-11-10 12:10:15.93	\N
+72	30	4	7000.000000000000000000000000000000	1	2026-11-14 04:42:08.527	2
+73	56	2	2820.000000000000000000000000000000	1	2026-11-14 04:42:09.435	2
+74	62	4	6900.000000000000000000000000000000	1	2026-11-17 10:55:14.452	3
+75	18	2	9100.000000000000000000000000000000	1	2026-11-17 10:55:15.365	3
+76	13	6	11400.000000000000000000000000000000	1	2026-11-17 10:55:16.274	3
+77	63	1	6000.000000000000000000000000000000	1	2026-11-17 11:36:37.322	\N
+78	64	1	1300.000000000000000000000000000000	1	2026-11-17 11:37:59.99	\N
+79	65	6	60.000000000000000000000000000000	1	2026-11-17 11:39:40.282	\N
+80	66	5	16596.000000000000000000000000000000	1	2026-11-19 08:43:35.686	\N
+81	67	2	16786.000000000000000000000000000000	1	2026-11-19 08:46:23.817	\N
+82	68	2	13410.000000000000000000000000000000	1	2026-11-19 09:54:45.629	\N
+83	61	1	12500.000000000000000000000000000000	1	2026-11-19 09:56:18.928	\N
+84	69	4	550.000000000000000000000000000000	1	2026-11-19 09:58:33.306	\N
+85	70	2	400.000000000000000000000000000000	1	2026-11-19 09:59:51.229	\N
+86	71	2	7150.000000000000000000000000000000	1	2026-11-19 10:15:40.705	\N
+87	72	1	6700.000000000000000000000000000000	1	2026-11-19 10:17:07.353	\N
+88	73	1	20600.000000000000000000000000000000	1	2026-11-19 10:24:26.363	\N
+89	74	1	15318.000000000000000000000000000000	1	2026-11-19 11:28:31.545	\N
+90	75	1	15929.000000000000000000000000000000	1	2026-11-19 11:30:31.402	\N
+91	76	1	17485.000000000000000000000000000000	1	2026-11-19 11:32:48.834	\N
+92	77	1	14340.000000000000000000000000000000	1	2026-11-19 11:34:34.97	\N
+93	78	1	10498.000000000000000000000000000000	1	2026-11-19 11:37:37.392	\N
+94	79	1	7638.000000000000000000000000000000	1	2026-11-19 11:39:27.188	\N
+95	80	2	12800.000000000000000000000000000000	1	2026-11-19 11:40:56.551	\N
+96	72	1	6700.000000000000000000000000000000	1	2026-11-19 11:42:11.541	\N
+97	81	1	7000.000000000000000000000000000000	1	2026-11-19 11:43:51.706	\N
+98	44	2	5300.000000000000000000000000000000	1	2026-11-19 11:45:01.408	\N
+99	44	1	5300.000000000000000000000000000000	1	2026-11-19 11:45:18.813	\N
+100	82	3	5300.000000000000000000000000000000	1	2026-11-19 11:46:19.225	\N
+101	83	2	7300.000000000000000000000000000000	1	2026-11-19 11:49:17.252	\N
+102	84	1	5600.000000000000000000000000000000	1	2026-11-19 12:00:26.954	\N
+103	85	1	5600.000000000000000000000000000000	1	2026-11-19 12:01:06.916	\N
+104	54	1	6800.000000000000000000000000000000	1	2026-11-19 12:02:46.443	\N
+105	86	2	4500.000000000000000000000000000000	1	2026-11-19 12:06:15.556	\N
+106	87	2	1500.000000000000000000000000000000	1	2026-11-19 12:09:01.518	\N
+107	88	1	5093.000000000000000000000000000000	1	2026-11-19 12:18:23.192	\N
+108	89	1	8410.000000000000000000000000000000	1	2026-11-19 12:19:48.041	\N
+109	90	7	2200.000000000000000000000000000000	1	2026-11-19 12:23:27.622	\N
+110	91	2	6800.000000000000000000000000000000	1	2026-11-19 12:24:56.774	\N
+111	92	5	3400.000000000000000000000000000000	1	2026-11-19 12:26:21.945	\N
+112	93	2	3800.000000000000000000000000000000	1	2026-11-19 12:28:33.263	\N
+113	94	3	5500.000000000000000000000000000000	1	2026-11-19 12:29:55.147	\N
+114	1	2	12000.000000000000000000000000000000	1	2026-11-19 14:51:59.367	4
+115	95	1	18500.000000000000000000000000000000	1	2026-11-19 14:52:00.259	4
+116	96	8	1400.000000000000000000000000000000	1	2026-11-20 05:17:46.117	5
+117	97	4	1410.000000000000000000000000000000	1	2026-11-20 05:17:47.022	5
+118	98	4	1989.990000000000000000000000000000	1	2026-11-20 05:17:47.921	5
+119	99	4	1989.990000000000000000000000000000	1	2026-11-20 05:17:48.821	5
+120	100	4	2449.990000000000000000000000000000	1	2026-11-20 05:17:49.719	5
+121	101	2	5900.000000000000000000000000000000	1	2026-11-20 05:17:50.618	5
+122	102	2	6599.990000000000000000000000000000	1	2026-11-20 05:17:51.515	5
+123	103	2	5700.000000000000000000000000000000	1	2026-11-20 05:17:52.414	5
+124	104	6	1897.440000000000000000000000000000	1	2026-11-20 05:17:53.312	5
+125	105	2	4399.920000000000000000000000000000	1	2026-11-20 05:17:54.211	5
+126	42	2	6726.000000000000000000000000000000	1	2026-11-20 05:22:12.389	6
+127	106	2	200.000000000000000000000000000000	1	2026-11-20 05:22:13.263	6
+128	107	2	300.000000000000000000000000000000	1	2026-11-20 05:22:14.137	6
+129	108	5	2600.000000000000000000000000000000	1	2026-11-20 07:21:42.287	7
+130	108	5	2300.000000000000000000000000000000	1	2026-11-20 07:21:43.183	7
+131	109	2	8600.000000000000000000000000000000	1	2026-11-20 07:41:48.651	\N
+132	110	1	23500.000000000000000000000000000000	1	2026-11-20 08:02:03.35	\N
+133	111	1	8500.000000000000000000000000000000	1	2026-11-20 08:04:23.37	\N
+134	112	1	3000.000000000000000000000000000000	1	2026-11-20 08:10:01.958	\N
+135	113	1	26500.000000000000000000000000000000	1	2026-11-20 08:20:36.603	\N
+136	114	2	8800.000000000000000000000000000000	1	2026-11-20 08:55:28.538	\N
+137	115	1	7800.000000000000000000000000000000	1	2026-11-20 08:56:23.203	\N
+138	59	4	5446.000000000000000000000000000000	1	2026-11-20 08:57:45.721	\N
+139	116	4	5600.000000000000000000000000000000	1	2026-11-20 08:58:28.507	\N
+140	51	1	7500.000000000000000000000000000000	1	2026-11-20 10:05:22.321	\N
+141	51	1	7500.000000000000000000000000000000	1	2026-11-20 10:06:00.614	\N
+\.
+
+
+--
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.users (id, name, username, email, password_hash, role, is_active, created_at) FROM stdin;
+1	Owner	admin	\N	$2b$10$8NMMWxyfoJf/9FCsS9Ak3erJ6D4KbgRZGjAC.gu1ja2ipYhZv9sz2	owner	t	2026-11-04 11:37:24.864
+2	Staff Member	staff	\N	$2b$10$wvmdmUdY24hvwzJcWeJc/euhlM3cYltNmY.I/gi.TpBFIaHvaB72m	staff	t	2026-11-04 11:37:25.129
+\.
+
+
+--
+-- Data for Name: vendors; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.vendors (id, name, phone, address, gstin, is_active, created_at, updated_at) FROM stdin;
+1	GANPAT JI MODI BED	8094228254	MODI	\N	t	2026-11-07 08:07:45.194	2026-11-07 08:07:45.194
+2	HAPPY LIFE FURNITURE	9887075739	\N	\N	t	2026-11-14 04:42:06.48	2026-11-14 04:42:06.48
+3	GUJARAT FURNITURE	9737118538	\N	\N	t	2026-11-17 10:55:12.394	2026-11-17 10:55:12.394
+4	UDAIPUR SALES AGENCY	9413665664	UDAIPUR	\N	t	2026-11-20 05:17:39.567	2026-11-20 05:17:39.567
+5	KESHAV SALES REFRESH	9414164061	UDAIPUR	\N	t	2026-11-20 05:22:09.549	2026-11-20 05:22:09.549
+6	CHOHAN FURNIUTE FOLD BED	8118837438	\N	\N	t	2026-11-20 07:21:39.597	2026-11-20 07:21:39.597
+\.
+
+
+--
+-- Data for Name: whatsapp_audit_logs; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.whatsapp_audit_logs (id, bill_id, bill_number, event, details, created_at) FROM stdin;
+1	1	1	WhatsApp Queued	Invoice PDF delivery queued for RAMESH JI AHIR (9887075739)	2026-11-05 04:28:06.564
+2	1	1	WhatsApp Attempted	Attempting to send PDF to RAMESH JI AHIR (9887075739)	2026-11-05 04:28:07.479
+3	1	1	WhatsApp Failed	Delivery failed to 9887075739. Reason: WhatsApp service not configured or disconnected	2026-11-05 04:28:08.164
+4	2	2	WhatsApp Queued	Invoice PDF delivery queued for GOVING JI PRAJAPT (7976717004)	2026-11-05 06:05:04.475
+5	2	2	WhatsApp Attempted	Attempting to send PDF to GOVING JI PRAJAPT (7976717004)	2026-11-05 06:05:05.37
+6	2	2	WhatsApp Failed	Delivery failed to 7976717004. Reason: WhatsApp service not configured or disconnected	2026-11-05 06:05:06.044
+7	3	ADB-2026-0001	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-05 06:39:14.374
+8	3	FURN-2026-0003	WhatsApp Queued	Invoice PDF delivery queued for KISHAN LAL JI MENARIA (7738566584)	2026-11-05 06:39:16.917
+9	3	FURN-2026-0003	WhatsApp Attempted	Attempting to send PDF to KISHAN LAL JI MENARIA (7738566584)	2026-11-05 06:39:17.822
+10	3	FURN-2026-0003	WhatsApp Failed	Delivery failed to 7738566584. Reason: WhatsApp service not configured or disconnected	2026-11-05 06:39:18.502
+11	4	4	WhatsApp Queued	Invoice PDF delivery queued for BHARAT JI GAYRI (6375051249)	2026-11-05 08:12:12.758
+12	4	4	WhatsApp Attempted	Attempting to send PDF to BHARAT JI GAYRI (6375051249)	2026-11-05 08:12:13.663
+13	4	4	WhatsApp Failed	Delivery failed to 6375051249. Reason: WhatsApp service not configured or disconnected	2026-11-05 08:12:14.34
+14	4	4	WhatsApp Queued	Invoice PDF delivery queued for Bharat Ji Gayri (6375051249)	2026-11-05 08:13:48.186
+15	4	4	WhatsApp Attempted	Attempting to send PDF to Bharat Ji Gayri (6375051249)	2026-11-05 08:13:49.099
+16	4	4	WhatsApp Failed	Delivery failed to 6375051249. Reason: WhatsApp service not configured or disconnected	2026-11-05 08:13:49.785
+17	4	4	WhatsApp Queued	Invoice PDF delivery queued for Bharat Ji Gayri (6375051249)	2026-11-05 08:14:59.538
+18	4	4	WhatsApp Attempted	Attempting to send PDF to Bharat Ji Gayri (6375051249)	2026-11-05 08:15:00.427
+19	4	4	WhatsApp Failed	Delivery failed to 6375051249. Reason: WhatsApp service not configured or disconnected	2026-11-05 08:15:01.094
+20	5	5	WhatsApp Queued	Invoice PDF delivery queued for SHIV PAL JI (9887075739)	2026-11-05 08:25:57.258
+21	5	5	WhatsApp Attempted	Attempting to send PDF to SHIV PAL JI (9887075739)	2026-11-05 08:25:58.152
+22	5	5	WhatsApp Failed	Delivery failed to 9887075739. Reason: WhatsApp service not configured or disconnected	2026-11-05 08:25:58.824
+23	6	6	WhatsApp Queued	Invoice PDF delivery queued for KANIYA LAL JI (9784388582)	2026-11-05 10:41:43.688
+24	6	6	WhatsApp Attempted	Attempting to send PDF to KANIYA LAL JI (9784388582)	2026-11-05 10:41:44.552
+25	6	6	WhatsApp Failed	Delivery failed to 9784388582. Reason: WhatsApp service not configured or disconnected	2026-11-05 10:41:45.199
+26	7	7	WhatsApp Queued	Invoice PDF delivery queued for SHIVAM FURNITURE (8347463236)	2026-11-05 10:58:33.272
+27	7	7	WhatsApp Attempted	Attempting to send PDF to SHIVAM FURNITURE (8347463236)	2026-11-05 10:58:34.144
+28	7	7	WhatsApp Failed	Delivery failed to 8347463236. Reason: WhatsApp service not configured or disconnected	2026-11-05 10:58:34.8
+29	8	8	WhatsApp Queued	Invoice PDF delivery queued for PRAMILA KUMARI JI REGAR (9509214036)	2026-11-05 12:00:08.955
+30	8	8	WhatsApp Attempted	Attempting to send PDF to PRAMILA KUMARI JI REGAR (9509214036)	2026-11-05 12:00:09.837
+31	8	8	WhatsApp Failed	Delivery failed to 9509214036. Reason: WhatsApp service not configured or disconnected	2026-11-05 12:00:10.499
+32	9	ADB-2026-0002	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-05 12:49:25.464
+33	9	FURN-2026-0009	WhatsApp Queued	Invoice PDF delivery queued for PUSHKAR JI  (8107663461)	2026-11-05 12:49:27.482
+34	9	FURN-2026-0009	WhatsApp Attempted	Attempting to send PDF to PUSHKAR JI  (8107663461)	2026-11-05 12:49:28.389
+35	9	FURN-2026-0009	WhatsApp Failed	Delivery failed to 8107663461. Reason: WhatsApp service not configured or disconnected	2026-11-05 12:49:29.069
+36	10	10	WhatsApp Queued	Invoice PDF delivery queued for YOGESH JI SUTHAR (9799828806)	2026-11-06 06:17:41.987
+37	10	10	WhatsApp Attempted	Attempting to send PDF to YOGESH JI SUTHAR (9799828806)	2026-11-06 06:17:42.92
+38	10	10	WhatsApp Failed	Delivery failed to 9799828806. Reason: WhatsApp service not configured or disconnected	2026-11-06 06:17:43.613
+39	11	11	WhatsApp Queued	Invoice PDF delivery queued for VINOD JI HARIJAN (9664388837)	2026-11-06 08:16:23.92
+40	11	11	WhatsApp Attempted	Attempting to send PDF to VINOD JI HARIJAN (9664388837)	2026-11-06 08:16:24.819
+41	11	11	WhatsApp Failed	Delivery failed to 9664388837. Reason: WhatsApp service not configured or disconnected	2026-11-06 08:16:25.487
+42	12	12	WhatsApp Queued	Invoice PDF delivery queued for UMESH JI DAS (9785928018)	2026-11-06 08:43:11.671
+43	12	12	WhatsApp Attempted	Attempting to send PDF to UMESH JI DAS (9785928018)	2026-11-06 08:43:12.549
+44	12	12	WhatsApp Failed	Delivery failed to 9785928018. Reason: WhatsApp service not configured or disconnected	2026-11-06 08:43:13.206
+45	13	13	WhatsApp Queued	Invoice PDF delivery queued for SANKAR LAL JI SUTHAR (9751739452)	2026-11-06 09:40:12.787
+46	13	13	WhatsApp Attempted	Attempting to send PDF to SANKAR LAL JI SUTHAR (9751739452)	2026-11-06 09:40:13.719
+47	13	13	WhatsApp Failed	Delivery failed to 9751739452. Reason: WhatsApp service not configured or disconnected	2026-11-06 09:40:14.407
+48	14	14	WhatsApp Queued	Invoice PDF delivery queued for BHAGIRTH JI PUSHRNA (9352668643)	2026-11-06 10:00:17.913
+49	14	14	WhatsApp Attempted	Attempting to send PDF to BHAGIRTH JI PUSHRNA (9352668643)	2026-11-06 10:00:18.812
+50	14	14	WhatsApp Failed	Delivery failed to 9352668643. Reason: WhatsApp service not configured or disconnected	2026-11-06 10:00:19.621
+51	15	15	WhatsApp Queued	Invoice PDF delivery queued for UDAI LAL JI (9521883401)	2026-11-06 13:25:12.099
+52	15	15	WhatsApp Attempted	Attempting to send PDF to UDAI LAL JI (9521883401)	2026-11-06 13:25:12.953
+53	15	15	WhatsApp Failed	Delivery failed to 9521883401. Reason: WhatsApp service not configured or disconnected	2026-11-06 13:25:13.591
+54	0	PUR-2026-0001	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-07 08:08:03.586
+55	16	16	WhatsApp Queued	Invoice PDF delivery queued for KUSHAL JAT (8890867828)	2026-11-07 08:41:50.176
+56	16	16	WhatsApp Attempted	Attempting to send PDF to KUSHAL JAT (8890867828)	2026-11-07 08:41:51.056
+57	16	16	WhatsApp Failed	Delivery failed to 8890867828. Reason: WhatsApp service not configured or disconnected	2026-11-07 08:41:51.714
+58	17	17	WhatsApp Queued	Invoice PDF delivery queued for BHERU LAL JI (9909024370)	2026-11-07 11:43:12.645
+59	17	17	WhatsApp Attempted	Attempting to send PDF to BHERU LAL JI (9909024370)	2026-11-07 11:43:13.57
+60	17	17	WhatsApp Failed	Delivery failed to 9909024370. Reason: WhatsApp service not configured or disconnected	2026-11-07 11:43:14.262
+61	18	18	WhatsApp Queued	Invoice PDF delivery queued for VIKASH JI AHIR (8955793746)	2026-11-07 12:29:48.649
+62	18	18	WhatsApp Attempted	Attempting to send PDF to VIKASH JI AHIR (8955793746)	2026-11-07 12:29:49.529
+63	18	18	WhatsApp Failed	Delivery failed to 8955793746. Reason: WhatsApp service not configured or disconnected	2026-11-07 12:29:50.187
+64	19	19	WhatsApp Queued	Invoice PDF delivery queued for kamledra ji (9928152270)	2026-11-08 08:13:33.896
+65	19	19	WhatsApp Attempted	Attempting to send PDF to kamledra ji (9928152270)	2026-11-08 08:13:34.813
+66	19	19	WhatsApp Failed	Delivery failed to 9928152270. Reason: WhatsApp service not configured or disconnected	2026-11-08 08:13:35.54
+67	9	FURN-2026-0009	WhatsApp Queued	Invoice PDF delivery queued for PUSHKAR JI (8107663461)	2026-11-08 08:21:07.7
+68	9	FURN-2026-0009	WhatsApp Attempted	Attempting to send PDF to PUSHKAR JI (8107663461)	2026-11-08 08:21:08.587
+69	9	FURN-2026-0009	WhatsApp Failed	Delivery failed to 8107663461. Reason: WhatsApp service not configured or disconnected	2026-11-08 08:21:09.253
+70	20	20	WhatsApp Queued	Invoice PDF delivery queued for SAMBHU SINGH JI (9829677261)	2026-11-08 09:40:02.444
+71	20	20	WhatsApp Attempted	Attempting to send PDF to SAMBHU SINGH JI (9829677261)	2026-11-08 09:40:03.315
+72	20	20	WhatsApp Failed	Delivery failed to 9829677261. Reason: WhatsApp service not configured or disconnected	2026-11-08 09:40:03.963
+73	21	21	WhatsApp Queued	Invoice PDF delivery queued for BAGDHI LAL JI (7014805387)	2026-11-08 10:12:07.2
+74	21	21	WhatsApp Attempted	Attempting to send PDF to BAGDHI LAL JI (7014805387)	2026-11-08 10:12:08.092
+75	21	21	WhatsApp Failed	Delivery failed to 7014805387. Reason: WhatsApp service not configured or disconnected	2026-11-08 10:12:08.759
+76	22	ADB-2026-0003	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-09 07:50:21.636
+77	22	FURN-2026-0022	WhatsApp Queued	Invoice PDF delivery queued for VIKARAM CHARND JI  (8740945077)	2026-11-09 07:50:23.823
+78	22	FURN-2026-0022	WhatsApp Attempted	Attempting to send PDF to VIKARAM CHARND JI  (8740945077)	2026-11-09 07:50:24.736
+79	22	FURN-2026-0022	WhatsApp Failed	Delivery failed to 8740945077. Reason: WhatsApp service not configured or disconnected	2026-11-09 07:50:25.423
+80	0	ADB-2026-0002	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-09 08:33:49.877
+81	23	23	WhatsApp Queued	Invoice PDF delivery queued for MANOJ JI CHOUBISA (9660397141)	2026-11-09 09:24:52.158
+82	23	23	WhatsApp Attempted	Attempting to send PDF to MANOJ JI CHOUBISA (9660397141)	2026-11-09 09:24:53.066
+83	23	23	WhatsApp Failed	Delivery failed to 9660397141. Reason: WhatsApp service not configured or disconnected	2026-11-09 09:24:53.741
+84	24	24	WhatsApp Queued	Invoice PDF delivery queued for JORAWAR SINGH JI (8769741661)	2026-11-09 10:11:18.753
+85	24	24	WhatsApp Attempted	Attempting to send PDF to JORAWAR SINGH JI (8769741661)	2026-11-09 10:11:19.631
+86	24	24	WhatsApp Failed	Delivery failed to 8769741661. Reason: WhatsApp service not configured or disconnected	2026-11-09 10:11:20.286
+87	25	25	WhatsApp Queued	Invoice PDF delivery queued for BHERU SINGH JI (9929776519)	2026-11-09 11:03:41.194
+88	25	25	WhatsApp Attempted	Attempting to send PDF to BHERU SINGH JI (9929776519)	2026-11-09 11:03:42.105
+89	25	25	WhatsApp Failed	Delivery failed to 9929776519. Reason: WhatsApp service not configured or disconnected	2026-11-09 11:03:42.783
+90	26	26	WhatsApp Queued	Invoice PDF delivery queued for BHAWAS JI CHOUBISA (9214856067)	2026-11-10 08:56:14.433
+91	26	26	WhatsApp Attempted	Attempting to send PDF to BHAWAS JI CHOUBISA (9214856067)	2026-11-10 08:56:15.345
+92	26	26	WhatsApp Failed	Delivery failed to 9214856067. Reason: WhatsApp service not configured or disconnected	2026-11-10 08:56:16.028
+93	27	27	WhatsApp Queued	Invoice PDF delivery queued for BHURA LAL JI (7689969446)	2026-11-10 09:51:50.002
+94	27	27	WhatsApp Attempted	Attempting to send PDF to BHURA LAL JI (7689969446)	2026-11-10 09:51:50.917
+95	27	27	WhatsApp Failed	Delivery failed to 7689969446. Reason: WhatsApp service not configured or disconnected	2026-11-10 09:51:51.6
+96	28	28	WhatsApp Queued	Invoice PDF delivery queued for BALVEER SINGH JI (7976516593)	2026-11-10 10:07:00.088
+97	28	28	WhatsApp Attempted	Attempting to send PDF to BALVEER SINGH JI (7976516593)	2026-11-10 10:07:00.979
+98	28	28	WhatsApp Failed	Delivery failed to 7976516593. Reason: WhatsApp service not configured or disconnected	2026-11-10 10:07:01.649
+99	29	29	WhatsApp Queued	Invoice PDF delivery queued for BHOTH LAL JI JAT (7600133835)	2026-11-10 10:56:49.906
+100	29	29	WhatsApp Attempted	Attempting to send PDF to BHOTH LAL JI JAT (7600133835)	2026-11-10 10:56:50.803
+101	29	29	WhatsApp Failed	Delivery failed to 7600133835. Reason: WhatsApp service not configured or disconnected	2026-11-10 10:56:51.473
+102	30	30	WhatsApp Queued	Invoice PDF delivery queued for KRISH (9887075739)	2026-11-10 11:07:09.221
+103	30	30	WhatsApp Attempted	Attempting to send PDF to KRISH (9887075739)	2026-11-10 11:07:10.116
+104	30	30	WhatsApp Failed	Delivery failed to 9887075739. Reason: WhatsApp service not configured or disconnected	2026-11-10 11:07:10.789
+105	31	ADB-2026-0004	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-10 11:57:01.596
+106	31	FURN-2026-0031	WhatsApp Queued	Invoice PDF delivery queued for anurag ji (9950871984)	2026-11-10 11:57:04.236
+107	31	FURN-2026-0031	WhatsApp Attempted	Attempting to send PDF to anurag ji (9950871984)	2026-11-10 11:57:05.208
+108	31	FURN-2026-0031	WhatsApp Failed	Delivery failed to 9950871984. Reason: WhatsApp service not configured or disconnected	2026-11-10 11:57:05.892
+109	32	ADB-2026-0005	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-10 12:14:09.832
+110	32	FURN-2026-0032	WhatsApp Queued	Invoice PDF delivery queued for SURESH JI SUTHAR  (8003951602)	2026-11-10 12:14:12.081
+111	32	FURN-2026-0032	WhatsApp Attempted	Attempting to send PDF to SURESH JI SUTHAR  (8003951602)	2026-11-10 12:14:12.978
+112	32	FURN-2026-0032	WhatsApp Failed	Delivery failed to 8003951602. Reason: WhatsApp service not configured or disconnected	2026-11-10 12:14:13.653
+113	33	33	WhatsApp Queued	Invoice PDF delivery queued for SHIV SINGH JI (7851028590)	2026-11-11 09:25:10.176
+114	33	33	WhatsApp Attempted	Attempting to send PDF to SHIV SINGH JI (7851028590)	2026-11-11 09:25:11.084
+115	33	33	WhatsApp Failed	Delivery failed to 7851028590. Reason: WhatsApp service not configured or disconnected	2026-11-11 09:25:11.76
+116	34	34	WhatsApp Queued	Invoice PDF delivery queued for SOWAN KUWAR JI (9116870386)	2026-11-11 12:18:20.441
+117	34	34	WhatsApp Attempted	Attempting to send PDF to SOWAN KUWAR JI (9116870386)	2026-11-11 12:18:21.377
+118	34	34	WhatsApp Failed	Delivery failed to 9116870386. Reason: WhatsApp service not configured or disconnected	2026-11-11 12:18:22.076
+119	35	35	WhatsApp Queued	Invoice PDF delivery queued for SANTHI LAL MEENA (9887075739)	2026-11-12 06:31:15.194
+120	35	35	WhatsApp Attempted	Attempting to send PDF to SANTHI LAL MEENA (9887075739)	2026-11-12 06:31:16.198
+121	35	35	WhatsApp Failed	Delivery failed to 9887075739. Reason: WhatsApp service not configured or disconnected	2026-11-12 06:31:16.851
+122	36	36	WhatsApp Queued	Invoice PDF delivery queued for NANA LAL JI MENARIA (9887075739)	2026-11-14 07:30:13.563
+123	36	36	WhatsApp Attempted	Attempting to send PDF to NANA LAL JI MENARIA (9887075739)	2026-11-14 07:30:14.432
+124	36	36	WhatsApp Failed	Delivery failed to 9887075739. Reason: WhatsApp service not configured or disconnected	2026-11-14 07:30:15.08
+125	37	37	WhatsApp Queued	Invoice PDF delivery queued for KISHAN JI VED (9887075739)	2026-11-15 10:17:01.368
+126	37	37	WhatsApp Attempted	Attempting to send PDF to KISHAN JI VED (9887075739)	2026-11-15 10:17:02.253
+127	37	37	WhatsApp Failed	Delivery failed to 9887075739. Reason: WhatsApp service not configured or disconnected	2026-11-15 10:17:02.914
+128	38	38	WhatsApp Queued	Invoice PDF delivery queued for KISHAN JI (9351825135)	2026-11-16 07:25:26.167
+129	38	38	WhatsApp Attempted	Attempting to send PDF to KISHAN JI (9351825135)	2026-11-16 07:25:27.024
+130	38	38	WhatsApp Failed	Delivery failed to 9351825135. Reason: WhatsApp service not configured or disconnected	2026-11-16 07:25:27.663
+131	39	39	WhatsApp Queued	Invoice PDF delivery queued for YASHWT JI SEN (9079964467)	2026-11-17 10:47:01.707
+132	39	39	WhatsApp Attempted	Attempting to send PDF to YASHWT JI SEN (9079964467)	2026-11-17 10:47:02.616
+133	39	39	WhatsApp Failed	Delivery failed to 9079964467. Reason: WhatsApp service not configured or disconnected	2026-11-17 10:47:03.295
+134	0	ADB-2026-0004	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-17 10:48:32.901
+135	0	PUR-2026-0003	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-17 10:55:28.236
+136	40	40	WhatsApp Queued	Invoice PDF delivery queued for BHAWER LAL JI (9660563630)	2026-11-17 11:45:02.854
+137	40	40	WhatsApp Attempted	Attempting to send PDF to BHAWER LAL JI (9660563630)	2026-11-17 11:45:03.752
+138	40	40	WhatsApp Failed	Delivery failed to 9660563630. Reason: WhatsApp service not configured or disconnected	2026-11-17 11:45:04.423
+139	22	FURN-2026-0022	WhatsApp Queued	Invoice PDF delivery queued for VIKARAM CHARND JI (8740945077)	2026-11-19 07:07:02.703
+140	22	FURN-2026-0022	WhatsApp Attempted	Attempting to send PDF to VIKARAM CHARND JI (8740945077)	2026-11-19 07:07:03.584
+141	22	FURN-2026-0022	WhatsApp Failed	Delivery failed to 8740945077. Reason: WhatsApp service not configured or disconnected	2026-11-19 07:07:04.238
+142	0	ADB-2026-0003	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-19 07:07:12.186
+143	32	FURN-2026-0032	WhatsApp Queued	Invoice PDF delivery queued for SURESH JI SUTHAR (8003951602)	2026-11-19 07:07:41.645
+144	32	FURN-2026-0032	WhatsApp Attempted	Attempting to send PDF to SURESH JI SUTHAR (8003951602)	2026-11-19 07:07:42.532
+145	32	FURN-2026-0032	WhatsApp Failed	Delivery failed to 8003951602. Reason: WhatsApp service not configured or disconnected	2026-11-19 07:07:43.198
+146	0	ADB-2026-0005	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-19 07:07:53.99
+147	41	41	WhatsApp Queued	Invoice PDF delivery queued for MOHAN JI MEGHWAL (9784421045)	2026-11-19 10:07:03.903
+148	41	41	WhatsApp Attempted	Attempting to send PDF to MOHAN JI MEGHWAL (9784421045)	2026-11-19 10:07:04.842
+149	41	41	WhatsApp Failed	Delivery failed to 9784421045. Reason: WhatsApp service not configured or disconnected	2026-11-19 10:07:05.543
+150	42	ADB-2026-0006	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-19 10:22:36.826
+151	42	FURN-2026-0042	WhatsApp Queued	Invoice PDF delivery queued for RATAN JI SINGH  (9929228336)	2026-11-19 10:22:39.118
+152	42	FURN-2026-0042	WhatsApp Attempted	Attempting to send PDF to RATAN JI SINGH  (9929228336)	2026-11-19 10:22:40.048
+153	42	FURN-2026-0042	WhatsApp Failed	Delivery failed to 9929228336. Reason: WhatsApp service not configured or disconnected	2026-11-19 10:22:40.747
+154	43	43	WhatsApp Queued	Invoice PDF delivery queued for bhawer singh ji (9887075739)	2026-11-19 11:25:09.725
+155	43	43	WhatsApp Attempted	Attempting to send PDF to bhawer singh ji (9887075739)	2026-11-19 11:25:10.598
+156	43	43	WhatsApp Failed	Delivery failed to 9887075739. Reason: WhatsApp service not configured or disconnected	2026-11-19 11:25:11.254
+157	44	44	WhatsApp Queued	Invoice PDF delivery queued for JAMANA LAL JI JANWA (9887075739)	2026-11-19 14:44:45.007
+158	44	44	WhatsApp Attempted	Attempting to send PDF to JAMANA LAL JI JANWA (9887075739)	2026-11-19 14:44:45.909
+159	44	44	WhatsApp Failed	Delivery failed to 9887075739. Reason: WhatsApp service not configured or disconnected	2026-11-19 14:44:46.582
+160	0	PUR-2026-0004	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-19 14:52:59.488
+161	31	FURN-2026-0031	WhatsApp Queued	Invoice PDF delivery queued for anurag ji (9950871984)	2026-11-19 14:59:05.204
+162	31	FURN-2026-0031	WhatsApp Attempted	Attempting to send PDF to anurag ji (9950871984)	2026-11-19 14:59:06.139
+163	31	FURN-2026-0031	WhatsApp Failed	Delivery failed to 9950871984. Reason: WhatsApp service not configured or disconnected	2026-11-19 14:59:06.842
+164	24	24	WhatsApp Queued	Invoice PDF delivery queued for Jorawar Singh Ji (8769741661)	2026-11-19 15:00:01.484
+165	24	24	WhatsApp Attempted	Attempting to send PDF to Jorawar Singh Ji (8769741661)	2026-11-19 15:00:02.391
+166	24	24	WhatsApp Failed	Delivery failed to 8769741661. Reason: WhatsApp service not configured or disconnected	2026-11-19 15:00:03.069
+167	0	PUR-2026-0006	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-20 05:22:29.39
+168	45	45	WhatsApp Queued	Invoice PDF delivery queued for PREM JI MENARIA (8003949185)	2026-11-20 05:54:09.836
+169	45	45	WhatsApp Attempted	Attempting to send PDF to PREM JI MENARIA (8003949185)	2026-11-20 05:54:10.775
+170	45	45	WhatsApp Failed	Delivery failed to 8003949185. Reason: WhatsApp service not configured or disconnected	2026-11-20 05:54:11.478
+171	0	PUR-2026-0007	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-20 07:22:00.958
+172	46	ADB-2026-0007	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-20 07:47:34.48
+173	46	FURN-2026-0046	WhatsApp Queued	Invoice PDF delivery queued for MUKESH JI KUMAR LAXKAR  (9928131384)	2026-11-20 07:47:37.033
+174	46	FURN-2026-0046	WhatsApp Attempted	Attempting to send PDF to MUKESH JI KUMAR LAXKAR  (9928131384)	2026-11-20 07:47:37.923
+175	46	FURN-2026-0046	WhatsApp Failed	Delivery failed to 9928131384. Reason: WhatsApp service not configured or disconnected	2026-11-20 07:47:38.59
+176	47	ADB-2026-0008	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-20 08:07:17.181
+177	47	FURN-2026-0047	WhatsApp Queued	Invoice PDF delivery queued for HUKUM SINGH JI  (6376195447)	2026-11-20 08:07:19.366
+178	47	FURN-2026-0047	WhatsApp Attempted	Attempting to send PDF to HUKUM SINGH JI  (6376195447)	2026-11-20 08:07:20.251
+179	47	FURN-2026-0047	WhatsApp Failed	Delivery failed to 6376195447. Reason: WhatsApp service not configured or disconnected	2026-11-20 08:07:20.915
+180	48	ADB-2026-0009	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-20 08:15:52.765
+181	48	FURN-2026-0048	WhatsApp Queued	Invoice PDF delivery queued for BHERU SINGH JI  (7568625312)	2026-11-20 08:15:54.727
+182	48	FURN-2026-0048	WhatsApp Attempted	Attempting to send PDF to BHERU SINGH JI  (7568625312)	2026-11-20 08:15:55.613
+183	48	FURN-2026-0048	WhatsApp Failed	Delivery failed to 7568625312. Reason: WhatsApp service not configured or disconnected	2026-11-20 08:15:56.278
+184	49	ADB-2026-0010	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-20 08:26:24.704
+185	49	ADB-2026-0010	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-20 08:26:51.068
+186	49	FURN-2026-0049	WhatsApp Queued	Invoice PDF delivery queued for PUSHKAR JI MENARIA (7357782352)	2026-11-20 08:26:53.46
+187	49	FURN-2026-0049	WhatsApp Attempted	Attempting to send PDF to PUSHKAR JI MENARIA (7357782352)	2026-11-20 08:26:54.378
+188	49	FURN-2026-0049	WhatsApp Failed	Delivery failed to 7357782352. Reason: WhatsApp service not configured or disconnected	2026-11-20 08:26:55.068
+189	50	ADB-2026-0011	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-20 08:39:05.629
+190	50	FURN-2026-0050	WhatsApp Queued	Invoice PDF delivery queued for MITHU LAL JI  (8739890376)	2026-11-20 08:39:07.951
+191	50	FURN-2026-0050	WhatsApp Attempted	Attempting to send PDF to MITHU LAL JI  (8739890376)	2026-11-20 08:39:08.858
+192	50	FURN-2026-0050	WhatsApp Failed	Delivery failed to 8739890376. Reason: WhatsApp service not configured or disconnected	2026-11-20 08:39:09.538
+193	51	ADB-2026-0012	WhatsApp Disabled	WHATSAPP_BOT_URL or WHATSAPP_API_KEY is not configured	2026-11-20 09:16:06.233
+194	51	FURN-2026-0051	WhatsApp Queued	Invoice PDF delivery queued for MITUN JI GARG  (6367671518)	2026-11-20 09:16:08.675
+195	51	FURN-2026-0051	WhatsApp Attempted	Attempting to send PDF to MITUN JI GARG  (6367671518)	2026-11-20 09:16:09.564
+196	51	FURN-2026-0051	WhatsApp Failed	Delivery failed to 6367671518. Reason: WhatsApp service not configured or disconnected	2026-11-20 09:16:10.233
+197	52	52	WhatsApp Queued	Invoice PDF delivery queued for DHUL CHAND JI (9784837118)	2026-11-20 10:09:01.416
+198	52	52	WhatsApp Attempted	Attempting to send PDF to DHUL CHAND JI (9784837118)	2026-11-20 10:09:02.297
+199	52	52	WhatsApp Failed	Delivery failed to 9784837118. Reason: WhatsApp service not configured or disconnected	2026-11-20 10:09:02.956
+200	44	44	WhatsApp Queued	Invoice PDF delivery queued for Jamana Lal Ji Janwa (9887075739)	2026-11-20 12:05:05.191
+201	44	44	WhatsApp Attempted	Attempting to send PDF to Jamana Lal Ji Janwa (9887075739)	2026-11-20 12:05:06.086
+202	44	44	WhatsApp Sent	PDF delivered successfully to 9887075739	2026-11-20 12:05:10.033
+\.
+
+
+--
+-- Data for Name: whatsapp_deliveries; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.whatsapp_deliveries (id, bill_id, bill_number, customer_name, mobile_number, pdf_path, custom_message, status, failure_reason, sent_at, created_at) FROM stdin;
+1	1	1	RAMESH JI AHIR	9887075739	uploads/invoices/Laxmi_Invoice_1.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-05 04:28:06.105
+2	2	2	GOVING JI PRAJAPT	7976717004	uploads/invoices/Laxmi_Invoice_2.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-05 06:05:04.025
+3	3	FURN-2026-0003	KISHAN LAL JI MENARIA	7738566584	uploads/invoices/Laxmi_Invoice_FURN-2026-0003.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-05 06:39:16.462
+4	4	4	BHARAT JI GAYRI	6375051249	uploads/invoices/Laxmi_Invoice_4.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-05 08:12:12.305
+5	4	4	Bharat Ji Gayri	6375051249	uploads/invoices/Laxmi_Invoice_4.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-05 08:13:46.288
+6	4	4	Bharat Ji Gayri	6375051249	uploads/invoices/Laxmi_Invoice_4.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-05 08:14:59.093
+7	5	5	SHIV PAL JI	9887075739	uploads/invoices/Laxmi_Invoice_5.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-05 08:25:56.81
+8	6	6	KANIYA LAL JI	9784388582	uploads/invoices/Laxmi_Invoice_6.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-05 10:41:43.249
+9	7	7	SHIVAM FURNITURE	8347463236	uploads/invoices/Laxmi_Invoice_7.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-05 10:58:32.834
+10	8	8	PRAMILA KUMARI JI REGAR	9509214036	uploads/invoices/Laxmi_Invoice_8.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-05 12:00:08.51
+11	9	FURN-2026-0009	PUSHKAR JI 	8107663461	uploads/invoices/Laxmi_Invoice_FURN-2026-0009.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-05 12:49:27.025
+12	10	10	YOGESH JI SUTHAR	9799828806	uploads/invoices/Laxmi_Invoice_10.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-06 06:17:41.521
+13	11	11	VINOD JI HARIJAN	9664388837	uploads/invoices/Laxmi_Invoice_11.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-06 08:16:22.118
+14	12	12	UMESH JI DAS	9785928018	uploads/invoices/Laxmi_Invoice_12.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-06 08:43:11.23
+15	13	13	SANKAR LAL JI SUTHAR	9751739452	uploads/invoices/Laxmi_Invoice_13.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-06 09:40:11.631
+16	14	14	BHAGIRTH JI PUSHRNA	9352668643	uploads/invoices/Laxmi_Invoice_14.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-06 10:00:17.462
+17	15	15	UDAI LAL JI	9521883401	uploads/invoices/Laxmi_Invoice_15.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-06 13:25:11.671
+18	16	16	KUSHAL JAT	8890867828	uploads/invoices/Laxmi_Invoice_16.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-07 08:41:49.074
+19	17	17	BHERU LAL JI	9909024370	uploads/invoices/Laxmi_Invoice_17.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-07 11:43:12.18
+20	18	18	VIKASH JI AHIR	8955793746	uploads/invoices/Laxmi_Invoice_18.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-07 12:29:48.207
+21	19	19	kamledra ji	9928152270	uploads/invoices/Laxmi_Invoice_19.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-08 08:13:33.436
+22	9	FURN-2026-0009	PUSHKAR JI	8107663461	uploads/invoices/Laxmi_Invoice_FURN-2026-0009.pdf	🎉 *FULL PAYMENT RECEIVED - ZERO DUES: LAXMI ELECTRONICS & FURNITURES*\r\n\r\nNamaste *PUSHKAR JI* ji 🙏,\r\nThank you! Your payment of *₹87,000* for Invoice *#FURN-2026-0009* has fully settled your account.\r\n\r\n✅ *Account Status:*\r\n• Total Bill Amount: *₹88,000*\r\n• Total Paid: *₹88,000*\r\n• Outstanding Balance: *₹0 (NIL DUES)*\r\n\r\n📄 Attached is your final zero-dues receipt.\r\n\r\n📞 Helpline & Support: +91 820 939 9683\r\n_Laxmi Electronics & Furnitures, Main Market, Bhinder_	failed	WhatsApp service not configured or disconnected	\N	2026-11-08 08:21:07.257
+23	20	20	SAMBHU SINGH JI	9829677261	uploads/invoices/Laxmi_Invoice_20.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-08 09:40:02.007
+24	21	21	BAGDHI LAL JI	7014805387	uploads/invoices/Laxmi_Invoice_21.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-08 10:12:06.751
+25	22	FURN-2026-0022	VIKARAM CHARND JI 	8740945077	uploads/invoices/Laxmi_Invoice_FURN-2026-0022.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-09 07:50:23.363
+26	23	23	MANOJ JI CHOUBISA	9660397141	uploads/invoices/Laxmi_Invoice_23.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-09 09:24:51.704
+27	24	24	JORAWAR SINGH JI	8769741661	uploads/invoices/Laxmi_Invoice_24.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-09 10:11:18.303
+28	25	25	BHERU SINGH JI	9929776519	uploads/invoices/Laxmi_Invoice_25.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-09 11:03:40.739
+29	26	26	BHAWAS JI CHOUBISA	9214856067	uploads/invoices/Laxmi_Invoice_26.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-10 08:56:13.974
+30	27	27	BHURA LAL JI	7689969446	uploads/invoices/Laxmi_Invoice_27.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-10 09:51:49.544
+31	28	28	BALVEER SINGH JI	7976516593	uploads/invoices/Laxmi_Invoice_28.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-10 10:06:59.633
+32	29	29	BHOTH LAL JI JAT	7600133835	uploads/invoices/Laxmi_Invoice_29.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-10 10:56:49.455
+33	30	30	KRISH	9887075739	uploads/invoices/Laxmi_Invoice_30.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-10 11:07:08.771
+34	31	FURN-2026-0031	anurag ji	9950871984	uploads/invoices/Laxmi_Invoice_FURN-2026-0031.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-10 11:57:03.776
+35	32	FURN-2026-0032	SURESH JI SUTHAR 	8003951602	uploads/invoices/Laxmi_Invoice_FURN-2026-0032.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-10 12:14:11.63
+36	33	33	SHIV SINGH JI	7851028590	uploads/invoices/Laxmi_Invoice_33.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-11 09:25:09.721
+37	34	34	SOWAN KUWAR JI	9116870386	uploads/invoices/Laxmi_Invoice_34.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-11 12:18:19.972
+38	35	35	SANTHI LAL MEENA	9887075739	uploads/invoices/Laxmi_Invoice_35.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-12 06:31:14.066
+39	36	36	NANA LAL JI MENARIA	9887075739	uploads/invoices/Laxmi_Invoice_36.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-14 07:30:13.126
+40	37	37	KISHAN JI VED	9887075739	uploads/invoices/Laxmi_Invoice_37.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-15 10:17:00.923
+41	38	38	KISHAN JI	9351825135	uploads/invoices/Laxmi_Invoice_38.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-16 07:25:25.738
+42	39	39	YASHWT JI SEN	9079964467	uploads/invoices/Laxmi_Invoice_39.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-17 10:47:01.245
+43	40	40	BHAWER LAL JI	9660563630	uploads/invoices/Laxmi_Invoice_40.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-17 11:45:02.403
+44	22	FURN-2026-0022	VIKARAM CHARND JI	8740945077	uploads/invoices/Laxmi_Invoice_FURN-2026-0022.pdf	🎉 *FULL PAYMENT RECEIVED - ZERO DUES: LAXMI ELECTRONICS & FURNITURES*\r\n\r\nNamaste *VIKARAM CHARND JI* ji 🙏,\r\nThank you! Your payment of *₹15,000* for Invoice *#FURN-2026-0022* has fully settled your account.\r\n\r\n✅ *Account Status:*\r\n• Total Bill Amount: *₹23,000*\r\n• Total Paid: *₹23,000*\r\n• Outstanding Balance: *₹0 (NIL DUES)*\r\n\r\n📄 Attached is your final zero-dues receipt.\r\n\r\n📞 Helpline & Support: +91 820 939 9683\r\n_Laxmi Electronics & Furnitures, Main Market, Bhinder_	failed	WhatsApp service not configured or disconnected	\N	2026-11-19 07:07:02.256
+45	32	FURN-2026-0032	SURESH JI SUTHAR	8003951602	uploads/invoices/Laxmi_Invoice_FURN-2026-0032.pdf	🎉 *FULL PAYMENT RECEIVED - ZERO DUES: LAXMI ELECTRONICS & FURNITURES*\r\n\r\nNamaste *SURESH JI SUTHAR* ji 🙏,\r\nThank you! Your payment of *₹22,000* for Invoice *#FURN-2026-0032* has fully settled your account.\r\n\r\n✅ *Account Status:*\r\n• Total Bill Amount: *₹43,000*\r\n• Total Paid: *₹43,000*\r\n• Outstanding Balance: *₹0 (NIL DUES)*\r\n\r\n📄 Attached is your final zero-dues receipt.\r\n\r\n📞 Helpline & Support: +91 820 939 9683\r\n_Laxmi Electronics & Furnitures, Main Market, Bhinder_	failed	WhatsApp service not configured or disconnected	\N	2026-11-19 07:07:41.197
+46	41	41	MOHAN JI MEGHWAL	9784421045	uploads/invoices/Laxmi_Invoice_41.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-19 10:07:03.431
+47	42	FURN-2026-0042	RATAN JI SINGH 	9929228336	uploads/invoices/Laxmi_Invoice_FURN-2026-0042.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-19 10:22:38.65
+48	43	43	bhawer singh ji	9887075739	uploads/invoices/Laxmi_Invoice_43.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-19 11:25:09.288
+49	44	44	JAMANA LAL JI JANWA	9887075739	uploads/invoices/Laxmi_Invoice_44.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-19 14:44:44.547
+50	31	FURN-2026-0031	anurag ji	9950871984	uploads/invoices/Laxmi_Invoice_FURN-2026-0031.pdf	🎉 *FULL PAYMENT RECEIVED - ZERO DUES: LAXMI ELECTRONICS & FURNITURES*\r\n\r\nNamaste *anurag ji* ji 🙏,\r\nThank you! Your payment of *₹24,000* for Invoice *#FURN-2026-0031* has fully settled your account.\r\n\r\n✅ *Account Status:*\r\n• Total Bill Amount: *₹34,000*\r\n• Total Paid: *₹34,000*\r\n• Outstanding Balance: *₹0 (NIL DUES)*\r\n\r\n📄 Attached is your final zero-dues receipt.\r\n\r\n📞 Helpline & Support: +91 820 939 9683\r\n_Laxmi Electronics & Furnitures, Main Market, Bhinder_	failed	WhatsApp service not configured or disconnected	\N	2026-11-19 14:59:04.735
+51	24	24	Jorawar Singh Ji	8769741661	uploads/invoices/Laxmi_Invoice_24.pdf	🎉 *FULL PAYMENT RECEIVED - ZERO DUES: LAXMI ELECTRONICS & FURNITURES*\r\n\r\nNamaste *Jorawar Singh Ji* ji 🙏,\r\nThank you! Your payment of *₹4,000* for Invoice *#24* has fully settled your account.\r\n\r\n✅ *Account Status:*\r\n• Total Bill Amount: *₹11,300*\r\n• Total Paid: *₹11,300*\r\n• Outstanding Balance: *₹0 (NIL DUES)*\r\n\r\n📄 Attached is your final zero-dues receipt.\r\n\r\n📞 Helpline & Support: +91 820 939 9683\r\n_Laxmi Electronics & Furnitures, Main Market, Bhinder_	failed	WhatsApp service not configured or disconnected	\N	2026-11-19 15:00:01.025
+52	45	45	PREM JI MENARIA	8003949185	uploads/invoices/Laxmi_Invoice_45.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-20 05:54:08.64
+53	46	FURN-2026-0046	MUKESH JI KUMAR LAXKAR 	9928131384	uploads/invoices/Laxmi_Invoice_FURN-2026-0046.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-20 07:47:36.585
+54	47	FURN-2026-0047	HUKUM SINGH JI 	6376195447	uploads/invoices/Laxmi_Invoice_FURN-2026-0047.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-20 08:07:18.922
+55	48	FURN-2026-0048	BHERU SINGH JI 	7568625312	uploads/invoices/Laxmi_Invoice_FURN-2026-0048.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-20 08:15:54.283
+56	49	FURN-2026-0049	PUSHKAR JI MENARIA	7357782352	uploads/invoices/Laxmi_Invoice_FURN-2026-0049.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-20 08:26:52.999
+57	50	FURN-2026-0050	MITHU LAL JI 	8739890376	uploads/invoices/Laxmi_Invoice_FURN-2026-0050.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-20 08:39:07.498
+58	51	FURN-2026-0051	MITUN JI GARG 	6367671518	uploads/invoices/Laxmi_Invoice_FURN-2026-0051.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-20 09:16:08.23
+59	52	52	DHUL CHAND JI	9784837118	uploads/invoices/Laxmi_Invoice_52.pdf	\N	failed	WhatsApp service not configured or disconnected	\N	2026-11-20 10:09:00.973
+60	44	44	Jamana Lal Ji Janwa	9887075739	uploads/invoices/Laxmi_Invoice_44.pdf	\N	sent	\N	2026-11-20 12:05:09.586	2026-11-20 12:05:04.738
+\.
+
+
+--
+-- Data for Name: whatsapp_settings; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.whatsapp_settings (id, owner_phone, status, qr_code, simulate_failures, simulate_session_error, owner_name) FROM stdin;
+1	6375591682	disconnected	\N	f	f	
+\.
+
+
+--
+-- Name: bill_items_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.bill_items_id_seq', 115, true);
+
+
+--
+-- Name: bills_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.bills_id_seq', 52, true);
+
+
+--
+-- Name: booking_items_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.booking_items_id_seq', 43, true);
+
+
+--
+-- Name: bookings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.bookings_id_seq', 12, true);
+
+
+--
+-- Name: categories_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.categories_id_seq', 46, true);
+
+
+--
+-- Name: customers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.customers_id_seq', 45, true);
+
+
+--
+-- Name: delivery_schedules_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.delivery_schedules_id_seq', 12, true);
+
+
+--
+-- Name: finance_providers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.finance_providers_id_seq', 1, true);
+
+
+--
+-- Name: finance_records_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.finance_records_id_seq', 1, false);
+
+
+--
+-- Name: password_reset_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.password_reset_tokens_id_seq', 1, false);
+
+
+--
+-- Name: product_units_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.product_units_id_seq', 1, false);
+
+
+--
+-- Name: products_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.products_id_seq', 116, true);
+
+
+--
+-- Name: purchase_items_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.purchase_items_id_seq', 24, true);
+
+
+--
+-- Name: purchase_payments_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.purchase_payments_id_seq', 6, true);
+
+
+--
+-- Name: purchases_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.purchases_id_seq', 7, true);
+
+
+--
+-- Name: stock_in_records_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.stock_in_records_id_seq', 141, true);
+
+
+--
+-- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.users_id_seq', 4, true);
+
+
+--
+-- Name: vendors_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.vendors_id_seq', 6, true);
+
+
+--
+-- Name: whatsapp_audit_logs_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.whatsapp_audit_logs_id_seq', 202, true);
+
+
+--
+-- Name: whatsapp_deliveries_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.whatsapp_deliveries_id_seq', 60, true);
+
+
+--
+-- Name: whatsapp_settings_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.whatsapp_settings_id_seq', 1, true);
+
+
+--
+-- Name: _prisma_migrations _prisma_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public._prisma_migrations
+    ADD CONSTRAINT _prisma_migrations_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: bill_items bill_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bill_items
+    ADD CONSTRAINT bill_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: bills bills_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills
+    ADD CONSTRAINT bills_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: booking_items booking_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.booking_items
+    ADD CONSTRAINT booking_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: bookings bookings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bookings
+    ADD CONSTRAINT bookings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: categories categories_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: customers customers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.customers
+    ADD CONSTRAINT customers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: delivery_schedules delivery_schedules_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_schedules
+    ADD CONSTRAINT delivery_schedules_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: finance_providers finance_providers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.finance_providers
+    ADD CONSTRAINT finance_providers_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: finance_records finance_records_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.finance_records
+    ADD CONSTRAINT finance_records_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: password_reset_tokens password_reset_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.password_reset_tokens
+    ADD CONSTRAINT password_reset_tokens_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: product_units product_units_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_units
+    ADD CONSTRAINT product_units_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: products products_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: purchase_items purchase_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_items
+    ADD CONSTRAINT purchase_items_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: purchase_payments purchase_payments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_payments
+    ADD CONSTRAINT purchase_payments_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: purchases purchases_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchases
+    ADD CONSTRAINT purchases_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: stock_in_records stock_in_records_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_in_records
+    ADD CONSTRAINT stock_in_records_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.users
+    ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: vendors vendors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.vendors
+    ADD CONSTRAINT vendors_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: whatsapp_audit_logs whatsapp_audit_logs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.whatsapp_audit_logs
+    ADD CONSTRAINT whatsapp_audit_logs_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: whatsapp_deliveries whatsapp_deliveries_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.whatsapp_deliveries
+    ADD CONSTRAINT whatsapp_deliveries_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: whatsapp_settings whatsapp_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.whatsapp_settings
+    ADD CONSTRAINT whatsapp_settings_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: bill_items_bill_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bill_items_bill_id_idx ON public.bill_items USING btree (bill_id);
+
+
+--
+-- Name: bill_items_product_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bill_items_product_id_idx ON public.bill_items USING btree (product_id);
+
+
+--
+-- Name: bills_bill_number_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX bills_bill_number_key ON public.bills USING btree (bill_number);
+
+
+--
+-- Name: bills_created_at_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bills_created_at_idx ON public.bills USING btree (created_at);
+
+
+--
+-- Name: bills_customer_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bills_customer_id_idx ON public.bills USING btree (customer_id);
+
+
+--
+-- Name: bills_department_status_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bills_department_status_idx ON public.bills USING btree (department, status);
+
+
+--
+-- Name: bills_status_created_at_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bills_status_created_at_idx ON public.bills USING btree (status, created_at);
+
+
+--
+-- Name: booking_items_booking_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX booking_items_booking_id_idx ON public.booking_items USING btree (booking_id);
+
+
+--
+-- Name: booking_items_product_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX booking_items_product_id_idx ON public.booking_items USING btree (product_id);
+
+
+--
+-- Name: bookings_booking_number_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX bookings_booking_number_key ON public.bookings USING btree (booking_number);
+
+
+--
+-- Name: bookings_customer_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bookings_customer_id_idx ON public.bookings USING btree (customer_id);
+
+
+--
+-- Name: bookings_expected_delivery_date_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bookings_expected_delivery_date_idx ON public.bookings USING btree (expected_delivery_date);
+
+
+--
+-- Name: bookings_status_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX bookings_status_idx ON public.bookings USING btree (status);
+
+
+--
+-- Name: categories_department_is_active_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX categories_department_is_active_idx ON public.categories USING btree (department, is_active);
+
+
+--
+-- Name: customers_name_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX customers_name_idx ON public.customers USING btree (name);
+
+
+--
+-- Name: customers_phone_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX customers_phone_idx ON public.customers USING btree (phone);
+
+
+--
+-- Name: delivery_schedules_booking_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX delivery_schedules_booking_id_idx ON public.delivery_schedules USING btree (booking_id);
+
+
+--
+-- Name: delivery_schedules_scheduled_date_status_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX delivery_schedules_scheduled_date_status_idx ON public.delivery_schedules USING btree (scheduled_date, status);
+
+
+--
+-- Name: finance_providers_name_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX finance_providers_name_key ON public.finance_providers USING btree (name);
+
+
+--
+-- Name: finance_records_bill_id_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX finance_records_bill_id_key ON public.finance_records USING btree (bill_id);
+
+
+--
+-- Name: password_reset_tokens_token_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX password_reset_tokens_token_key ON public.password_reset_tokens USING btree (token);
+
+
+--
+-- Name: product_units_imei_number_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX product_units_imei_number_key ON public.product_units USING btree (imei_number);
+
+
+--
+-- Name: product_units_product_id_status_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX product_units_product_id_status_idx ON public.product_units USING btree (product_id, status);
+
+
+--
+-- Name: products_barcode_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX products_barcode_key ON public.products USING btree (barcode);
+
+
+--
+-- Name: products_brand_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX products_brand_idx ON public.products USING btree (brand);
+
+
+--
+-- Name: products_department_is_active_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX products_department_is_active_idx ON public.products USING btree (department, is_active);
+
+
+--
+-- Name: products_is_active_category_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX products_is_active_category_id_idx ON public.products USING btree (is_active, category_id);
+
+
+--
+-- Name: products_name_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX products_name_idx ON public.products USING btree (name);
+
+
+--
+-- Name: purchase_items_product_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX purchase_items_product_id_idx ON public.purchase_items USING btree (product_id);
+
+
+--
+-- Name: purchase_items_purchase_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX purchase_items_purchase_id_idx ON public.purchase_items USING btree (purchase_id);
+
+
+--
+-- Name: purchase_payments_purchase_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX purchase_payments_purchase_id_idx ON public.purchase_payments USING btree (purchase_id);
+
+
+--
+-- Name: purchases_payment_status_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX purchases_payment_status_idx ON public.purchases USING btree (payment_status);
+
+
+--
+-- Name: purchases_purchase_date_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX purchases_purchase_date_idx ON public.purchases USING btree (purchase_date);
+
+
+--
+-- Name: purchases_purchase_number_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX purchases_purchase_number_key ON public.purchases USING btree (purchase_number);
+
+
+--
+-- Name: purchases_vendor_id_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX purchases_vendor_id_idx ON public.purchases USING btree (vendor_id);
+
+
+--
+-- Name: users_email_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX users_email_key ON public.users USING btree (email);
+
+
+--
+-- Name: users_username_key; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX users_username_key ON public.users USING btree (username);
+
+
+--
+-- Name: vendors_name_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX vendors_name_idx ON public.vendors USING btree (name);
+
+
+--
+-- Name: vendors_phone_idx; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX vendors_phone_idx ON public.vendors USING btree (phone);
+
+
+--
+-- Name: bill_items bill_items_bill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bill_items
+    ADD CONSTRAINT bill_items_bill_id_fkey FOREIGN KEY (bill_id) REFERENCES public.bills(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: bill_items bill_items_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bill_items
+    ADD CONSTRAINT bill_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: bill_items bill_items_product_unit_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bill_items
+    ADD CONSTRAINT bill_items_product_unit_id_fkey FOREIGN KEY (product_unit_id) REFERENCES public.product_units(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: bills bills_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills
+    ADD CONSTRAINT bills_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: bills bills_created_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills
+    ADD CONSTRAINT bills_created_by_user_id_fkey FOREIGN KEY (created_by_user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: bills bills_customer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bills
+    ADD CONSTRAINT bills_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: booking_items booking_items_bill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.booking_items
+    ADD CONSTRAINT booking_items_bill_id_fkey FOREIGN KEY (bill_id) REFERENCES public.bills(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: booking_items booking_items_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.booking_items
+    ADD CONSTRAINT booking_items_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: booking_items booking_items_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.booking_items
+    ADD CONSTRAINT booking_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: bookings bookings_customer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.bookings
+    ADD CONSTRAINT bookings_customer_id_fkey FOREIGN KEY (customer_id) REFERENCES public.customers(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: categories categories_parent_category_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.categories
+    ADD CONSTRAINT categories_parent_category_id_fkey FOREIGN KEY (parent_category_id) REFERENCES public.categories(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: delivery_schedules delivery_schedules_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.delivery_schedules
+    ADD CONSTRAINT delivery_schedules_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: finance_records finance_records_bill_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.finance_records
+    ADD CONSTRAINT finance_records_bill_id_fkey FOREIGN KEY (bill_id) REFERENCES public.bills(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: finance_records finance_records_finance_provider_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.finance_records
+    ADD CONSTRAINT finance_records_finance_provider_id_fkey FOREIGN KEY (finance_provider_id) REFERENCES public.finance_providers(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: password_reset_tokens password_reset_tokens_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.password_reset_tokens
+    ADD CONSTRAINT password_reset_tokens_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: product_units product_units_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.product_units
+    ADD CONSTRAINT product_units_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: products products_category_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.products
+    ADD CONSTRAINT products_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: purchase_items purchase_items_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_items
+    ADD CONSTRAINT purchase_items_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- Name: purchase_items purchase_items_purchase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_items
+    ADD CONSTRAINT purchase_items_purchase_id_fkey FOREIGN KEY (purchase_id) REFERENCES public.purchases(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: purchase_payments purchase_payments_purchase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchase_payments
+    ADD CONSTRAINT purchase_payments_purchase_id_fkey FOREIGN KEY (purchase_id) REFERENCES public.purchases(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: purchases purchases_vendor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.purchases
+    ADD CONSTRAINT purchases_vendor_id_fkey FOREIGN KEY (vendor_id) REFERENCES public.vendors(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: stock_in_records stock_in_records_added_by_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_in_records
+    ADD CONSTRAINT stock_in_records_added_by_user_id_fkey FOREIGN KEY (added_by_user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: stock_in_records stock_in_records_product_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_in_records
+    ADD CONSTRAINT stock_in_records_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+
+--
+-- Name: stock_in_records stock_in_records_purchase_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.stock_in_records
+    ADD CONSTRAINT stock_in_records_purchase_id_fkey FOREIGN KEY (purchase_id) REFERENCES public.purchases(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
+\unrestrict xYly7U0yOavQFZ28S0OdCcLpLTkcrFfhHQftpepVto8cL4hhaYpNrwMkOaUrli6
+

@@ -116,7 +116,7 @@ export default function PurchaseTable({
               <th className="py-3 px-4 text-right">Paid (₹)</th>
               <th className="py-3 px-4 text-right">Due (₹)</th>
               <th className="py-3 px-4 text-center">Status</th>
-              <th className="py-3 px-4 text-right">Actions</th>
+              <th className="py-3 px-4 text-right w-[240px] min-w-[240px]">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -251,65 +251,58 @@ export default function PurchaseTable({
                   </td>
 
                   {/* Actions */}
-                  <td className="py-3 px-4 text-right whitespace-nowrap">
-                    <div className="flex items-center justify-end gap-2">
-                      {/* Context Action Slot (Fixed Width so standard icons never shift position) */}
-                      <div className="flex items-center justify-end gap-1.5 min-w-[150px]">
-                        {!p.isStockAdded && onReceiveStock && (
-                          <button
-                            type="button"
-                            onClick={() => onReceiveStock(p)}
-                            className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-[#16507A] bg-gradient-to-b from-[#F2F8FC] to-[#E2F0F9] hover:from-[#F7FBFE] hover:to-[#D5E9F5] border border-[#AED5EE] border-b-2 border-b-[#4E97C7] hover:border-[#3884B5] rounded-full shadow-[0_2px_4px_rgba(22,80,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
-                            title="Receive items and add to showroom inventory"
-                          >
-                            <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[70px] group-hover:opacity-100 group-hover:mr-1.5 transition-all duration-300 ease-out text-[11px] font-bold">
-                              Stock In
-                            </span>
-                            <img src="/icons/stock-in.png" alt="Stock In" className="w-4 h-4 object-contain transition-transform group-hover:scale-110 shrink-0" />
-                          </button>
-                        )}
-                        {isDue && (
-                          <button
-                            type="button"
-                            onClick={() => onPayInstallment(p)}
-                            className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-[#785428] bg-gradient-to-b from-[#FFFDF9] to-[#F5EFEB] hover:from-[#FDFBF7] hover:to-[#EDE3D6] border border-[#E2D4BE] border-b-2 border-b-[#C4A87C] hover:border-[#BFA070] rounded-full shadow-[0_2px_4px_rgba(120,84,40,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
-                            title="Pay installment towards this purchase"
-                          >
-                            <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[65px] group-hover:opacity-100 group-hover:mr-1.5 transition-all duration-300 ease-out text-[11px] font-bold">
-                              Pay Due
-                            </span>
-                            <img src="/icons/pay-due.png" alt="Pay Due" className="w-4 h-4 object-contain transition-transform group-hover:scale-110 shrink-0" />
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Fixed Standard Icons Slot (Eye & Delete) - Position is 100% constant across all rows */}
-                      <div className="flex items-center justify-end gap-1 shrink-0">
+                  <td className="py-3 px-4 whitespace-nowrap text-right text-sm font-medium w-[240px] min-w-[240px]">
+                    <div className="flex items-center justify-end gap-1.5 w-full">
+                      {!p.isStockAdded && onReceiveStock && (
                         <button
                           type="button"
-                          onClick={() => onViewDetails(p)}
-                          className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-[#35347A] bg-gradient-to-b from-[#F5F5FC] to-[#E9E9F8] hover:from-[#FAF9FE] hover:to-[#DFDFFA] border border-[#C6C5ED] border-b-2 border-b-[#7F7ECC] hover:border-[#6C6BBF] rounded-full shadow-[0_2px_4px_rgba(53,52,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
-                          title="View bill breakdown & payment history"
+                          onClick={() => onReceiveStock(p)}
+                          className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#16507A] bg-gradient-to-b from-[#F2F8FC] to-[#E2F0F9] hover:from-[#F7FBFE] hover:to-[#D5E9F5] border border-[#AED5EE] border-b-2 border-b-[#4E97C7] hover:border-[#3884B5] rounded-full shadow-[0_2px_4px_rgba(22,80,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
+                          title="Receive items and add to showroom inventory"
                         >
-                          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
-                            View
+                          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[70px] group-hover:opacity-100 group-hover:mr-1.5 transition-all duration-300 ease-out text-[11px] font-bold">
+                            Stock In
                           </span>
-                          <FaEye className="w-3 h-3 text-[#35347A] transition-transform group-hover:scale-110 shrink-0" />
+                          <img src="/icons/stock-in.png" alt="Stock In" className="w-4 h-4 object-contain transition-transform group-hover:scale-110 shrink-0" />
                         </button>
-                        {isOwner && (
-                          <button
-                            type="button"
-                            onClick={() => onDeletePurchase(p)}
-                            className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-[#882424] bg-gradient-to-b from-[#FDF5F5] to-[#F9E8E8] hover:from-[#FEF8F8] hover:to-[#F3DDDD] border border-[#E9C3C3] border-b-2 border-b-[#C06A6A] hover:border-[#A84A4A] rounded-full shadow-[0_2px_4px_rgba(136,36,36,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
-                            title="Delete purchase"
-                          >
-                            <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[50px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
-                              Delete
-                            </span>
-                            <FaTrash className="w-2.5 h-2.5 text-[#882424] transition-transform group-hover:scale-110 shrink-0" />
-                          </button>
-                        )}
-                      </div>
+                      )}
+                      {isDue && (
+                        <button
+                          type="button"
+                          onClick={() => onPayInstallment(p)}
+                          className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#785428] bg-gradient-to-b from-[#FFFDF9] to-[#F5EFEB] hover:from-[#FDFBF7] hover:to-[#EDE3D6] border border-[#E2D4BE] border-b-2 border-b-[#C4A87C] hover:border-[#BFA070] rounded-full shadow-[0_2px_4px_rgba(120,84,40,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
+                          title="Pay installment towards this purchase"
+                        >
+                          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[65px] group-hover:opacity-100 group-hover:mr-1.5 transition-all duration-300 ease-out text-[11px] font-bold">
+                            Pay Due
+                          </span>
+                          <img src="/icons/pay-due.png" alt="Pay Due" className="w-4 h-4 object-contain transition-transform group-hover:scale-110 shrink-0" />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => onViewDetails(p)}
+                        className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#35347A] bg-gradient-to-b from-[#F5F5FC] to-[#E9E9F8] hover:from-[#FAF9FE] hover:to-[#DFDFFA] border border-[#C6C5ED] border-b-2 border-b-[#7F7ECC] hover:border-[#6C6BBF] rounded-full shadow-[0_2px_4px_rgba(53,52,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
+                        title="View bill breakdown & payment history"
+                      >
+                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                          View
+                        </span>
+                        <FaEye className="w-3 h-3 text-[#35347A] transition-transform group-hover:scale-110 shrink-0" />
+                      </button>
+                      {isOwner && (
+                        <button
+                          type="button"
+                          onClick={() => onDeletePurchase(p)}
+                          className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#882424] bg-gradient-to-b from-[#FDF5F5] to-[#F9E8E8] hover:from-[#FEF8F8] hover:to-[#F3DDDD] border border-[#E9C3C3] border-b-2 border-b-[#C06A6A] hover:border-[#A84A4A] rounded-full shadow-[0_2px_4px_rgba(136,36,36,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
+                          title="Delete purchase"
+                        >
+                          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[50px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                            Delete
+                          </span>
+                          <FaTrash className="w-2.5 h-2.5 text-[#882424] transition-transform group-hover:scale-110 shrink-0" />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

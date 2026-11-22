@@ -406,13 +406,14 @@ export default function DashboardPage() {
               Checking Status...
             </button>
           ) : whatsappSettings.status === "connected" ? (
-            <button
+            <TactileButton
               onClick={handleDisconnectWhatsapp}
               disabled={whatsappDisconnecting}
-              className="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2 px-4 rounded-lg text-sm border border-red-200 transition shadow-sm"
+              variant="whatsapp-disconnect"
+              size="md"
             >
               {whatsappDisconnecting ? "Disconnecting..." : "❌ Disconnect Session"}
-            </button>
+            </TactileButton>
           ) : whatsappSettings.status === "connecting" && !whatsappSettings.qrCode ? (
             <button
               disabled
@@ -422,13 +423,14 @@ export default function DashboardPage() {
               Connecting...
             </button>
           ) : (
-            <button
+            <TactileButton
               onClick={handleConnectWhatsapp}
               disabled={whatsappLoading}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-lg text-sm transition shadow-sm hover:shadow-md disabled:opacity-50"
+              variant="whatsapp-connect"
+              size="md"
             >
               {whatsappLoading ? "Initializing..." : "🔌 Connect Now"}
-            </button>
+            </TactileButton>
           )}
         </div>
       </div>

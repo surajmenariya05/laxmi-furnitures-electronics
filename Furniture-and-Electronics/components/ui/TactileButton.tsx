@@ -9,7 +9,9 @@ export type TactileVariant =
   | "purchase"      // Sapphire Navy -> Electric Azure (Procurement & Dues)
   | "inventory"     // Deep Ocean -> Electric Cyan (Product Catalog)
   | "excel"         // Forest Jade -> Fresh Mint (Spreadsheet Export)
-  | "staff";        // Royal Indigo -> Soft Iris (Team & Credentials)
+  | "staff"         // Royal Indigo -> Soft Iris (Team & Credentials)
+  | "whatsapp-connect"    // Deep Emerald -> Luminous Mint
+  | "whatsapp-disconnect"; // Ruby Crimson -> Rose Coral
 
 export type TactileSize = "sm" | "md" | "lg";
 
@@ -76,6 +78,20 @@ const variantStyles: Record<TactileVariant, { gradient: string; text: string; sh
     shadow:
       "shadow-[0_4px_0_0_rgba(67,56,202,0.78),0_6px_14px_rgba(67,56,202,0.25)] active:shadow-[0_1px_0_0_rgba(67,56,202,0.78),0_3px_8px_rgba(67,56,202,0.2)]",
     ring: "focus-visible:ring-[#4338CA]",
+  },
+  "whatsapp-connect": {
+    gradient: "bg-gradient-to-r from-[#15803D] to-[#22C55E]",
+    text: "text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]",
+    shadow:
+      "shadow-[0_4px_0_0_rgba(21,128,61,0.78),0_6px_14px_rgba(21,128,61,0.25)] active:shadow-[0_1px_0_0_rgba(21,128,61,0.78),0_3px_8px_rgba(21,128,61,0.2)]",
+    ring: "focus-visible:ring-[#15803D]",
+  },
+  "whatsapp-disconnect": {
+    gradient: "bg-gradient-to-r from-[#991B1B] to-[#EF4444]",
+    text: "text-white font-bold drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]",
+    shadow:
+      "shadow-[0_4px_0_0_rgba(153,27,27,0.78),0_6px_14px_rgba(153,27,27,0.25)] active:shadow-[0_1px_0_0_rgba(153,27,27,0.78),0_3px_8px_rgba(153,27,27,0.2)]",
+    ring: "focus-visible:ring-[#991B1B]",
   },
 };
 

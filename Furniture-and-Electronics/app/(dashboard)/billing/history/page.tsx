@@ -243,15 +243,14 @@ export default function BillingHistoryPage() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bill Number</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Dept</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">WhatsApp</th>
-                <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[260px] min-w-[260px]">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Dept</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Bill Number</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Amount</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
+                <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-24">WhatsApp</th>
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[185px] min-w-[185px]">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -259,10 +258,28 @@ export default function BillingHistoryPage() {
                 const isLast = bills.length === index + 1;
                 return (
                 <tr key={bill.id} ref={isLast ? lastElementRef : null}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {new Date(bill.createdAt).toLocaleDateString("en-IN")}
+                  <td className="px-4 py-3.5 whitespace-nowrap">
+                    <div className="mb-1">
+                      <span className={`px-2 py-0.5 inline-flex text-[10.5px] font-bold rounded-full items-center gap-1 ${
+                        bill.department === "ELECTRONICS"
+                          ? "bg-[#093F52] text-white border border-[#105269] border-b-[#052531] shadow-[0_1px_2px_rgba(0,0,0,0.18)]"
+                          : "bg-[#235347] text-white border border-[#2F6859] border-b-[#14352D] shadow-[0_1px_2px_rgba(0,0,0,0.18)]"
+                      }`}>
+                        {bill.department === "ELECTRONICS" ? (
+                          <>⚡ Elec</>
+                        ) : (
+                          <span className="inline-flex items-center gap-1">
+                            <img src="/furniture-logo-icon.png" alt="Furn" className="w-3 h-3 object-contain shrink-0" />
+                            <span>Furn</span>
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-500 font-medium font-mono">
+                      {new Date(bill.createdAt).toLocaleDateString("en-IN")}
+                    </div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                  <td className="px-4 py-3.5 whitespace-nowrap text-sm font-semibold text-gray-900">
                     <div>#{bill.billNumber}</div>
                     {bill.booking && (
                       <Link
@@ -275,32 +292,16 @@ export default function BillingHistoryPage() {
                       </Link>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2.5 py-0.5 inline-flex text-xs font-semibold rounded-full items-center gap-1 ${
-                      bill.department === "ELECTRONICS"
-                        ? "bg-[#093F52] text-white border border-[#105269] border-b-[#052531] shadow-[0_2px_0_#052531,0_3px_5px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.3)]"
-                        : "bg-[#235347] text-white border border-[#2F6859] border-b-[#14352D] shadow-[0_2px_0_#14352D,0_3px_5px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.3)]"
-                    }`}>
-                      {bill.department === "ELECTRONICS" ? (
-                        <>⚡ Electronics</>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5">
-                          <img src="/furniture-logo-icon.png" alt="Furniture" className="w-3.5 h-3.5 object-contain inline-block shrink-0" />
-                          <span>Furniture</span>
-                        </span>
-                      )}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900 truncate max-w-[160px] sm:max-w-[200px]" title={bill.customer?.name || "Guest"}>
+                  <td className="px-4 py-3.5">
+                    <div className="text-sm font-medium text-gray-900 truncate max-w-[150px] sm:max-w-[190px]" title={bill.customer?.name || "Guest"}>
                       {bill.customer?.name || "Guest"}
                     </div>
                     {bill.customer?.phone && <div className="text-xs text-gray-500 font-mono">{bill.customer.phone}</div>}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
+                  <td className="px-4 py-3.5 whitespace-nowrap text-sm font-bold text-gray-900">
                     ₹{bill.totalAmount}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 capitalize">
+                  <td className="px-4 py-3.5 whitespace-nowrap text-sm text-gray-500 capitalize">
                     <div>{bill.paymentMode}</div>
                     {bill.paymentStatus === "PARTIAL" && (
                       <div className="text-[11px] font-bold text-[#780000]">
@@ -313,7 +314,7 @@ export default function BillingHistoryPage() {
                       </div>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3.5 whitespace-nowrap text-center">
                     <span className={`px-2.5 py-0.5 inline-flex text-xs leading-5 font-extrabold uppercase rounded-full ${bill.status === "voided"
                         ? "bg-[#FDF2F2] text-[#780000] border border-[#780000]/30 border-b-[#780000]/60 shadow-[0_2px_4px_rgba(120,0,0,0.12),inset_0_1px_0_rgba(255,255,255,0.9)]"
                         : "bg-[#EBFDE7] text-[#14532D] border border-[#81FF7A]/80 border-b-[#4ADE80] shadow-[0_2px_4px_rgba(20,83,45,0.12),inset_0_1px_0_rgba(255,255,255,0.9)]"
@@ -321,7 +322,7 @@ export default function BillingHistoryPage() {
                       {bill.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-3 py-3.5 whitespace-nowrap text-center">
                     {bill.whatsappStatus ? (
                       <div>
                         <span className={`px-2.5 py-0.5 inline-flex text-xs leading-5 font-bold uppercase rounded-full ${bill.whatsappStatus === "sent"
@@ -342,7 +343,7 @@ export default function BillingHistoryPage() {
                       <span className="text-xs text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="px-5 py-4 whitespace-nowrap text-right text-sm font-medium w-[260px] min-w-[260px]">
+                  <td className="px-4 py-3.5 whitespace-nowrap text-right text-sm font-medium w-[185px] min-w-[185px]">
                     <div className="flex items-center justify-end gap-1.5 w-full">
                       {role === "owner" && bill.status !== "voided" && bill.customer && (
                         <button
@@ -351,7 +352,7 @@ export default function BillingHistoryPage() {
                           title="Edit Customer Details"
                           className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#785428] bg-gradient-to-b from-[#FFFDF9] to-[#F5EFEB] hover:from-[#FDFBF7] hover:to-[#EDE3D6] border border-[#E2D4BE] border-b-2 border-b-[#C4A87C] hover:border-[#BFA070] rounded-full shadow-[0_2px_4px_rgba(120,84,40,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
                         >
-                          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[42px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
                             Edit
                           </span>
                           <FaPen className="w-2.5 h-2.5 text-[#785428] transition-transform group-hover:scale-110 shrink-0" />
@@ -364,7 +365,7 @@ export default function BillingHistoryPage() {
                         className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#136338] bg-gradient-to-b from-[#F2FBF6] to-[#E4F5EB] hover:from-[#F8FEFA] hover:to-[#DBEFE3] border border-[#A8E2BF] border-b-2 border-b-[#4BAE74] hover:border-[#3C9C63] rounded-full shadow-[0_2px_4px_rgba(19,99,56,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Send via WhatsApp"
                       >
-                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[70px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[62px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
                           WhatsApp
                         </span>
                         {sendingWhatsappId === bill.id ? (
@@ -378,7 +379,7 @@ export default function BillingHistoryPage() {
                         className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#35347A] bg-gradient-to-b from-[#F5F5FC] to-[#E9E9F8] hover:from-[#FAF9FE] hover:to-[#DFDFFA] border border-[#C6C5ED] border-b-2 border-b-[#7F7ECC] hover:border-[#6C6BBF] rounded-full shadow-[0_2px_4px_rgba(53,52,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
                         title="View Details"
                       >
-                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[42px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
                           View
                         </span>
                         <FaEye className="w-3 h-3 text-[#35347A] transition-transform group-hover:scale-110 shrink-0" />
@@ -390,7 +391,7 @@ export default function BillingHistoryPage() {
                         className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#16507A] bg-gradient-to-b from-[#F2F8FC] to-[#E2F0F9] hover:from-[#F7FBFE] hover:to-[#D5E9F5] border border-[#AED5EE] border-b-2 border-b-[#4E97C7] hover:border-[#3884B5] rounded-full shadow-[0_2px_4px_rgba(22,80,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Download Bill"
                       >
-                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[65px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[60px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
                           Download
                         </span>
                         <FaDownload className="w-2.5 h-2.5 text-[#16507A] transition-transform group-hover:scale-110 shrink-0" />
@@ -401,7 +402,7 @@ export default function BillingHistoryPage() {
               )})}
               {bills.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
                     No transactions found.
                   </td>
                 </tr>

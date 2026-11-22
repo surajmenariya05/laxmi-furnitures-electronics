@@ -12,6 +12,7 @@ import { FaSpinner } from "react-icons/fa";
 import { useRouter } from "next/navigation";
 import InventoryLoading from "./loading";
 import { Modal } from "@/components/ui/modal";
+import TactileButton from "@/components/ui/TactileButton";
 
 export default function InventoryPage() {
   const router = useRouter();
@@ -300,12 +301,13 @@ export default function InventoryPage() {
         </div>
         {role === "owner" && (
           <div className="flex gap-3">
-            <Link
+            <TactileButton
               href="/inventory/new"
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 font-bold shadow-sm"
+              variant="inventory"
+              size="md"
             >
               + Add Product
-            </Link>
+            </TactileButton>
           </div>
         )}
       </div>

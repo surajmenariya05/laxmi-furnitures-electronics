@@ -10,6 +10,7 @@ import BookingHistoryTable from "@/components/dashboard/bookings/history/Booking
 import BookingSlipModal from "@/components/dashboard/bookings/BookingSlipModal";
 import CollectDuePaymentModal from "@/components/dashboard/due-payments/CollectDuePaymentModal";
 import { useDebounce } from "@/hooks/useDebounce";
+import TactileButton from "@/components/ui/TactileButton";
 
 export default function BookingHistoryPage() {
   const [search, setSearch] = useState("");
@@ -63,12 +64,13 @@ export default function BookingHistoryPage() {
           </p>
         </div>
 
-        <Link
+        <TactileButton
           href="/bookings"
-          className="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold rounded-lg border border-blue-200 transition"
+          variant="delivery"
+          size="sm"
         >
-          <span>🚚 Back to Active Deliveries</span>
-        </Link>
+          🚚 Back to Active Deliveries
+        </TactileButton>
       </div>
 
       {/* Filter Bar */}

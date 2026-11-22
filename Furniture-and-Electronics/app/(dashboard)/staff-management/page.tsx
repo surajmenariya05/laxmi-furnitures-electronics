@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import StaffManagementLoading from "./loading";
 import { useRouter } from "next/navigation";
 import { Modal } from "@/components/ui/modal";
+import TactileButton from "@/components/ui/TactileButton";
 
 interface User {
   id: number;
@@ -188,12 +189,13 @@ export default function StaffManagementPage() {
           <h2 className="text-2xl font-bold text-black">Staff & Account Management</h2>
           <p className="text-sm text-gray-500">Manage user credentials, roles, and status levels</p>
         </div>
-        <button
+        <TactileButton
           onClick={handleOpenAdd}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 px-4 rounded text-sm transition shadow-sm"
+          variant="staff"
+          size="md"
         >
           Add Staff Member
-        </button>
+        </TactileButton>
       </div>
 
       {success && <div className="text-green-600 bg-green-50 p-4 rounded-lg text-sm font-semibold">{success}</div>}

@@ -10,6 +10,7 @@ import useSWR from "swr";
 import { fetcher } from "@/lib/fetcher";
 import DashboardLoading from "./loading";
 import { useDepartment } from "@/components/dashboard/department/DepartmentContext";
+import TactileButton from "@/components/ui/TactileButton";
 import {
   AreaChart,
   Area,
@@ -339,19 +340,21 @@ export default function DashboardPage() {
             Real-time {deptConfig.shortLabel.toLowerCase()} inventory status, billing, and order delivery overview.
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Link
+        <div className="flex gap-2.5 flex-wrap items-center">
+          <TactileButton
             href="/bookings"
-            className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-3.5 rounded-lg text-sm transition shadow-sm flex items-center gap-1.5"
+            variant="booking"
+            size="md"
           >
             💍 Advance Bookings
-          </Link>
-          <Link
+          </TactileButton>
+          <TactileButton
             href="/billing"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg text-sm transition shadow-sm"
+            variant="invoice"
+            size="md"
           >
             ➕ New Invoice
-          </Link>
+          </TactileButton>
         </div>
       </div>
 

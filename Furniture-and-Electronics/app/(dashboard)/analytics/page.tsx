@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import TactileButton from "@/components/ui/TactileButton";
 import {
   AreaChart,
   Area,
@@ -162,12 +163,13 @@ export default function AnalyticsDashboard() {
             )}
           </div>
 
-          <button
+          <TactileButton
             onClick={handleExportExcel}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded text-sm transition"
+            variant="excel"
+            size="md"
           >
             Export Excel
-          </button>
+          </TactileButton>
         </div>
       </div>
 

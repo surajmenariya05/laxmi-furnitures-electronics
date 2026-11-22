@@ -10,6 +10,7 @@ import useSWRInfinite from "swr/infinite";
 import BillingHistoryLoading from "./loading";
 import { Modal } from "@/components/ui/modal";
 import { useDepartment } from "@/components/dashboard/department/DepartmentContext";
+import NewTransactionButton from "@/components/ui/NewTransactionButton";
 
 interface BillItem {
   id: number;
@@ -223,12 +224,9 @@ export default function BillingHistoryPage() {
     <div className="bg-white shadow rounded-lg p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-black">Billing History</h2>
-        <Link
-          href="/billing"
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm font-semibold"
-        >
-          New Transaction
-        </Link>
+        <NewTransactionButton href="/billing">
+          + New Transaction
+        </NewTransactionButton>
       </div>
 
       <div className="mb-6">

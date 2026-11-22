@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { FaPlus, FaCalendarCheck } from "react-icons/fa";
+import TactileButton from "@/components/ui/TactileButton";
 
 export default function BookingsHeader() {
   return (
@@ -22,13 +22,14 @@ export default function BookingsHeader() {
       </div>
 
       <div className="flex items-center gap-2.5">
-        <Link
+        <TactileButton
           href="/bookings/new"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-semibold rounded-lg shadow-sm hover:shadow transition-all duration-150"
+          variant="celebrate"
+          size="md"
+          icon={<FaPlus className="w-3.5 h-3.5" />}
         >
-          <FaPlus className="w-3.5 h-3.5" />
-          <span>New Advance Booking</span>
-        </Link>
+          New Advance Booking
+        </TactileButton>
       </div>
     </div>
   );

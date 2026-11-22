@@ -3,6 +3,7 @@
 import React from "react";
 import { FaSearch, FaTimes, FaUsers, FaPlus } from "react-icons/fa";
 import { Vendor } from "@/types/purchase";
+import TactileButton from "@/components/ui/TactileButton";
 
 interface PurchaseFiltersProps {
   search: string;
@@ -78,13 +79,14 @@ export default function PurchaseFilters({
             <FaUsers className="w-3.5 h-3.5 text-gray-600" />
             <span>Vendors ({vendors.length})</span>
           </button>
-          <button
+          <TactileButton
             onClick={onOpenNewPurchase}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 text-xs font-bold rounded-lg shadow-sm transition"
+            variant="purchase"
+            size="sm"
+            icon={<FaPlus className="w-3 h-3" />}
           >
-            <FaPlus className="w-3 h-3" />
-            <span>+ New Purchase</span>
-          </button>
+            New Purchase
+          </TactileButton>
         </div>
       </div>
 

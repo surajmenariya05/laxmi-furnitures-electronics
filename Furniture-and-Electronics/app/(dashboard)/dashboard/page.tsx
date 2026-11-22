@@ -73,8 +73,16 @@ export default function DashboardPage() {
   const [dailySalesData, setDailySalesData] = useState<any>(null);
   const [dailySalesLoading, setDailySalesLoading] = useState(false);
 
-  // WhatsApp connection states
-  const [whatsappSettings, setWhatsappSettings] = useState<any>(null);
+  // WhatsApp connection states with SWR caching
+  const { data: whatsappSettings, mutate: mutateWhatsappSettings } = useSWR<any>(
+    "/api/v1/whatsapp/settings",
+    fetcher,
+    {
+      dedupingInterval: 5000,
+      revalidateOnFocus: true,
+    }
+  );
+  const setWhatsappSettings = (data: any) => mutateWhatsappSettings(data, false);
   const [whatsappLoading, setWhatsappLoading] = useState(false);
   const [whatsappDisconnecting, setWhatsappDisconnecting] = useState(false);
   const [showQrModal, setShowQrModal] = useState(false);
@@ -112,7 +120,6 @@ export default function DashboardPage() {
 
   useEffect(() => {
     setMounted(true);
-    fetchWhatsappSettings();
   }, []);
 
   useEffect(() => {
@@ -159,17 +166,18 @@ export default function DashboardPage() {
 
   const fetchWhatsappSettings = async () => {
     try {
-      const res = await fetch(`/api/v1/whatsapp/settings?t=${Date.now()}`, { cache: "no-store" });
-      if (res.ok) {
-        const data = await res.json();
-        setWhatsappSettings(data);
-      }
+      await mutateWhatsappSettings();
     } catch (err) {
       console.error("Failed to fetch WhatsApp settings:", err);
     }
   };
 
   const handleConnectWhatsapp = async () => {
+    // Safety guard: if session is already confirmed connected, do not re-initialize
+    if (whatsappSettings?.status === "connected") {
+      alert("WhatsApp is already connected.");
+      return;
+    }
     try {
       setWhatsappLoading(true);
       const res = await fetch("/api/v1/whatsapp/settings", {
@@ -386,29 +394,37 @@ export default function DashboardPage() {
         </div>
 
         <div className="shrink-0 flex flex-col items-center gap-3">
-          {!whatsappSettings || whatsappSettings.status === "disconnected" || (whatsappSettings.status === "connecting" && whatsappSettings.qrCode) ? (
+          {!whatsappSettings ? (
             <button
-              onClick={handleConnectWhatsapp}
-              disabled={whatsappLoading}
-              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-lg text-sm transition shadow-sm hover:shadow-md disabled:opacity-50"
+              disabled
+              className="bg-gray-100 text-gray-500 font-bold py-2.5 px-6 rounded-lg text-sm flex items-center gap-2 cursor-wait border border-gray-200"
             >
-              {whatsappLoading ? "Initializing..." : "🔌 Connect Now"}
+              <div className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+              Checking Status...
             </button>
           ) : whatsappSettings.status === "connected" ? (
             <button
               onClick={handleDisconnectWhatsapp}
               disabled={whatsappDisconnecting}
-              className="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2 px-4 rounded-lg text-sm border border-red-200 transition"
+              className="bg-red-50 hover:bg-red-100 text-red-600 font-bold py-2 px-4 rounded-lg text-sm border border-red-200 transition shadow-sm"
             >
               {whatsappDisconnecting ? "Disconnecting..." : "❌ Disconnect Session"}
             </button>
-          ) : (
+          ) : whatsappSettings.status === "connecting" && !whatsappSettings.qrCode ? (
             <button
               disabled
               className="bg-amber-100 text-amber-700 font-bold py-2.5 px-6 rounded-lg text-sm flex items-center gap-2"
             >
               <div className="w-4 h-4 border-2 border-amber-300 border-t-amber-700 rounded-full animate-spin"></div>
               Connecting...
+            </button>
+          ) : (
+            <button
+              onClick={handleConnectWhatsapp}
+              disabled={whatsappLoading}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-2.5 px-6 rounded-lg text-sm transition shadow-sm hover:shadow-md disabled:opacity-50"
+            >
+              {whatsappLoading ? "Initializing..." : "🔌 Connect Now"}
             </button>
           )}
         </div>

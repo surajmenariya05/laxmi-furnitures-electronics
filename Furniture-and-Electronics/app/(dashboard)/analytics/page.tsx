@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
 import TactileButton from "@/components/ui/TactileButton";
+import KpiCard from "@/components/ui/KpiCard";
+import { FaChartLine, FaCoins, FaFileInvoice, FaExclamationTriangle } from "react-icons/fa";
 import {
   AreaChart,
   Area,
@@ -177,29 +179,43 @@ export default function AnalyticsDashboard() {
 
       {/* Stats Cards */}
       {loading || !stats ? (
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white p-6 rounded-lg shadow-sm h-32 animate-pulse" />
+            <div key={i} className="min-h-36 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.045)] animate-pulse" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-[#F5F2ED]/95 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-[#E5DFD7] border-l-4 border-l-blue-500">
-            <span className="text-sm font-medium text-gray-500 block">Total Revenue</span>
-            <span className="text-3xl font-bold text-gray-900 mt-2 block">₹{stats.totalSales}</span>
-          </div>
-          <div className="bg-[#F5F2ED]/95 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-[#E5DFD7] border-l-4 border-l-emerald-500">
-            <span className="text-sm font-medium text-gray-500 block">Total Profit Margin</span>
-            <span className="text-3xl font-bold text-gray-900 mt-2 block">₹{stats.totalProfit}</span>
-          </div>
-          <div className="bg-[#F5F2ED]/95 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-[#E5DFD7] border-l-4 border-l-purple-500">
-            <span className="text-sm font-medium text-gray-500 block">Bills Generated</span>
-            <span className="text-3xl font-bold text-gray-900 mt-2 block">{stats.totalBills}</span>
-          </div>
-          <div className="bg-[#F5F2ED]/95 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-[#E5DFD7] border-l-4 border-l-rose-500">
-            <span className="text-sm font-medium text-gray-500 block">Low Stock Warnings</span>
-            <span className="text-3xl font-bold text-red-600 mt-2 block">{stats.lowStockCount}</span>
-          </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+          <KpiCard
+            label="Total Revenue"
+            value={`₹${stats.totalSales}`}
+            note="Gross invoiced volume"
+            accent="blue"
+            icon={<FaCoins className="w-5 h-5" />}
+          />
+          <KpiCard
+            label="Total Profit Margin"
+            value={`₹${stats.totalProfit}`}
+            note="Net realized profit"
+            accent="green"
+            valueClassName="text-emerald-700"
+            icon={<FaChartLine className="w-5 h-5" />}
+          />
+          <KpiCard
+            label="Bills Generated"
+            value={stats.totalBills}
+            note="Total customer invoices"
+            accent="violet"
+            icon={<FaFileInvoice className="w-5 h-5" />}
+          />
+          <KpiCard
+            label="Low Stock Warnings"
+            value={stats.lowStockCount}
+            note="Items below threshold"
+            accent="rose"
+            valueClassName="text-rose-700"
+            icon={<FaExclamationTriangle className="w-5 h-5" />}
+          />
         </div>
       )}
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import useSWR from "swr";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -28,6 +28,54 @@ export default function PurchasesPage() {
   const [selectedVendorId, setSelectedVendorId] = useState("ALL");
   const [page, setPage] = useState(1);
 
+  // Date Range Filter State
+  const [dateRange, setDateRange] = useState<"all" | "7" | "30" | "90" | "custom">("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [appliedDates, setAppliedDates] = useState<{ start?: string; end?: string }>({});
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleSelectPreset = (preset: "all" | "7" | "30" | "90") => {
+    setDateRange(preset);
+    setPage(1);
+    setDropdownOpen(false);
+
+    if (preset === "all") {
+      setAppliedDates({});
+      return;
+    }
+
+    const days = parseInt(preset, 10);
+    const end = new Date();
+    const start = new Date();
+    start.setDate(end.getDate() - days);
+
+    setAppliedDates({
+      start: start.toISOString().split("T")[0],
+      end: end.toISOString().split("T")[0],
+    });
+  };
+
+  const handleApplyCustomRange = () => {
+    if (!startDate || !endDate) return;
+    setDateRange("custom");
+    setAppliedDates({ start: startDate, end: endDate });
+    setPage(1);
+    setDropdownOpen(false);
+  };
+
   // Modals State
   const [isNewPurchaseOpen, setIsNewPurchaseOpen] = useState(false);
   const [isVendorManagerOpen, setIsVendorManagerOpen] = useState(false);
@@ -50,6 +98,8 @@ export default function PurchasesPage() {
     activeDept,
     selectedVendorId,
     statusFilter,
+    appliedDates.start || "",
+    appliedDates.end || "",
     page,
   ];
 
@@ -65,6 +115,8 @@ export default function PurchasesPage() {
         department: activeDept === "ALL" ? undefined : activeDept,
         vendorId: selectedVendorId === "ALL" ? undefined : selectedVendorId,
         paymentStatus: statusFilter === "ALL" ? undefined : statusFilter,
+        startDate: appliedDates.start,
+        endDate: appliedDates.end,
         page,
         limit: 20,
       }),
@@ -113,14 +165,118 @@ export default function PurchasesPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in">
-      {/* Page Title & Subtitle */}
-      <div>
-        <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-          Purchases & Vendor Settlements
-        </h1>
-        <p className="text-xs text-gray-500 mt-1">
-          Track wholesale procurements, manage supplier accounts payable, and settle installments.
-        </p>
+      {/* Page Title & Subtitle + Date Filter */}
+      <div className="relative z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+            Purchases & Vendor Settlements
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">
+            Track wholesale procurements, manage supplier accounts payable, and settle installments.
+          </p>
+        </div>
+
+        {/* Date Selector Dropdown matching Analytics style */}
+        <div className="relative" ref={dropdownRef}>
+          <button
+            type="button"
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="border border-[#DDD6CE] rounded-xl px-4 py-2 bg-white text-sm min-w-[150px] text-left flex justify-between items-center text-[#1C1A17] font-bold hover:border-[#D5CDC3] transition shadow-2xs"
+          >
+            {dateRange === "all"
+              ? "All Time"
+              : dateRange === "custom"
+              ? "Custom Range"
+              : `Last ${dateRange} Days`}
+            <span className="ml-2 text-[#6E6862] text-xs">▼</span>
+          </button>
+
+          {dropdownOpen && (
+            <div className="absolute top-full right-0 mt-2 bg-[#F5F2ED] border border-[#DDD6CE] rounded-2xl shadow-2xl z-50 w-80 p-3">
+              <div className="flex flex-col space-y-1">
+                <button
+                  type="button"
+                  onClick={() => handleSelectPreset("all")}
+                  className={`text-left px-3 py-2 text-sm rounded-xl font-bold transition ${
+                    dateRange === "all"
+                      ? "bg-[#1C1A17] text-white shadow-xs"
+                      : "text-[#6E6862] hover:bg-[#EAE4DC] hover:text-[#1C1A17]"
+                  }`}
+                >
+                  All Time
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectPreset("7")}
+                  className={`text-left px-3 py-2 text-sm rounded-xl font-bold transition ${
+                    dateRange === "7"
+                      ? "bg-[#1C1A17] text-white shadow-xs"
+                      : "text-[#6E6862] hover:bg-[#EAE4DC] hover:text-[#1C1A17]"
+                  }`}
+                >
+                  Last 7 Days
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectPreset("30")}
+                  className={`text-left px-3 py-2 text-sm rounded-xl font-bold transition ${
+                    dateRange === "30"
+                      ? "bg-[#1C1A17] text-white shadow-xs"
+                      : "text-[#6E6862] hover:bg-[#EAE4DC] hover:text-[#1C1A17]"
+                  }`}
+                >
+                  Last 30 Days
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectPreset("90")}
+                  className={`text-left px-3 py-2 text-sm rounded-xl font-bold transition ${
+                    dateRange === "90"
+                      ? "bg-[#1C1A17] text-white shadow-xs"
+                      : "text-[#6E6862] hover:bg-[#EAE4DC] hover:text-[#1C1A17]"
+                  }`}
+                >
+                  Last 90 Days
+                </button>
+              </div>
+
+              <div className="mt-3 pt-3 border-t border-[#E5DFD7]">
+                <span className="text-xs font-bold text-[#6E6862] mb-2 block px-2 uppercase tracking-wider">
+                  Custom Range
+                </span>
+                <div className="flex items-center gap-2 px-2">
+                  <div className="flex flex-col w-full">
+                    <span className="text-[10px] font-bold text-[#6E6862] mb-0.5">From</span>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="border border-[#DDD6CE] bg-white rounded-lg px-2 py-1.5 text-xs text-[#1C1A17] font-semibold w-full outline-none focus:border-[#1C1A17]"
+                    />
+                  </div>
+                  <span className="text-[#6E6862] mt-4 font-bold">→</span>
+                  <div className="flex flex-col w-full">
+                    <span className="text-[10px] font-bold text-[#6E6862] mb-0.5">To</span>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="border border-[#DDD6CE] bg-white rounded-lg px-2 py-1.5 text-xs text-[#1C1A17] font-semibold w-full outline-none focus:border-[#1C1A17]"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleApplyCustomRange}
+                  disabled={!startDate || !endDate}
+                  className="mt-3 w-full bg-[#1C1A17] hover:bg-[#2C2926] text-white text-xs font-bold py-2 rounded-xl transition shadow-xs disabled:bg-[#DDD6CE] disabled:text-[#6E6862]"
+                >
+                  Apply Range
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* KPI Cards */}

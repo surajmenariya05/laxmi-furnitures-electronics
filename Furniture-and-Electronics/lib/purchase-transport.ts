@@ -31,8 +31,8 @@ export function parseTransportDetails(rawNotes?: string | null): TransportDetail
     return { vehicleNumber: "", transportAmount: 0 };
   }
 
-  // 1. Tagged structured format
-  if (trimmed.startsWith("[TRANSPORT]")) {
+  // 1. Tagged structured format (case-insensitive)
+  if (/^\[TRANSPORT\]/i.test(trimmed)) {
     const vehicleMatch = trimmed.match(/Vehicle:\s*([^|\n]+)/i);
     const amountMatch = trimmed.match(/Amount:\s*([₹\d,.]+)/i);
     const notesMatch = trimmed.match(/Notes:\s*([\s\S]+)$/i);
@@ -48,7 +48,7 @@ export function parseTransportDetails(rawNotes?: string | null): TransportDetail
     return {
       vehicleNumber,
       transportAmount,
-      generalNotes,
+      generalNotes: generalNotes && generalNotes.length > 0 ? generalNotes : undefined,
     };
   }
 
@@ -83,7 +83,21 @@ export function parseTransportDetails(rawNotes?: string | null): TransportDetail
     };
   }
 
-  // 5. Unstructured note fallback
+  // 5. Embedded [TRANSPORT] tag fallback
+  if (/\[TRANSPORT\]/i.test(trimmed)) {
+    const vehicleMatch = trimmed.match(/Vehicle:\s*([^|\n]+)/i);
+    const amountMatch = trimmed.match(/Amount:\s*([₹\d,.]+)/i);
+    const notesMatch = trimmed.match(/Notes:\s*([\s\S]+)$/i);
+    const stripped = trimmed.replace(/\[TRANSPORT\][^|\n]*(?:\|[^|\n]*)*(\||$)/gi, "").trim();
+
+    return {
+      vehicleNumber: vehicleMatch ? vehicleMatch[1].trim() : "",
+      transportAmount: amountMatch ? parseFloat(amountMatch[1].replace(/[^\d.]/g, "")) || 0 : 0,
+      generalNotes: notesMatch ? notesMatch[1].trim() : (stripped || undefined),
+    };
+  }
+
+  // 6. Unstructured note fallback
   return {
     vehicleNumber: "",
     transportAmount: 0,

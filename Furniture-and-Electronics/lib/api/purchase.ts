@@ -11,6 +11,8 @@ export interface GetPurchasesParams {
   department?: string;
   vendorId?: string | number;
   paymentStatus?: string;
+  startDate?: string;
+  endDate?: string;
   page?: number;
   limit?: number;
 }
@@ -29,6 +31,8 @@ export async function getPurchases(params: GetPurchasesParams = {}): Promise<Get
   if (params.department) query.set("department", params.department);
   if (params.vendorId) query.set("vendorId", String(params.vendorId));
   if (params.paymentStatus) query.set("paymentStatus", params.paymentStatus);
+  if (params.startDate) query.set("startDate", params.startDate);
+  if (params.endDate) query.set("endDate", params.endDate);
   if (params.page) query.set("page", String(params.page));
   if (params.limit) query.set("limit", String(params.limit));
 

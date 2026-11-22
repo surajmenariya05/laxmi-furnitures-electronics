@@ -5,7 +5,7 @@ import { getBills, getBill } from "@/lib/api/billing";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
-import { FaSpinner } from "react-icons/fa";
+import { FaSpinner, FaPen, FaWhatsapp, FaEye, FaDownload } from "react-icons/fa";
 import useSWRInfinite from "swr/infinite";
 import BillingHistoryLoading from "./loading";
 import { Modal } from "@/components/ui/modal";
@@ -355,50 +355,60 @@ export default function BillingHistoryPage() {
                       <span className="text-xs text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                    {role === "owner" && bill.status !== "voided" && bill.customer && (
-                      <button
-                        onClick={() => openEditModal(bill)}
-                        title="Edit Customer Details"
-                        className="inline-flex items-center justify-center p-2 rounded-lg bg-amber-50 text-amber-600 hover:bg-amber-100 hover:text-amber-800 transition-colors"
-                      >
-                        ✏️
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleSendWhatsapp(bill)}
-                      disabled={sendingWhatsappId === bill.id || bill.status === "voided"}
-                      className="inline-flex items-center justify-center p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 hover:text-green-800 transition-colors disabled:opacity-50"
-                      title="Send via WhatsApp"
-                    >
-                      {sendingWhatsappId === bill.id ? (
-                        <div className="w-4.5 h-4.5 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
-                      ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                          <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.004-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z" />
-                        </svg>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="flex items-center justify-end gap-1.5">
+                      {role === "owner" && bill.status !== "voided" && bill.customer && (
+                        <button
+                          type="button"
+                          onClick={() => openEditModal(bill)}
+                          title="Edit Customer Details"
+                          className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-amber-800 bg-[#FFFDF5] hover:bg-amber-50 border border-amber-300/80 border-b-2 border-b-amber-400 rounded-full shadow-[0_2px_4px_rgba(217,119,6,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200"
+                        >
+                          <FaPen className="w-2.5 h-2.5 text-amber-700 transition-transform group-hover:scale-110 shrink-0" />
+                          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                            Edit
+                          </span>
+                        </button>
                       )}
-                    </button>
-                    <Link
-                      href={`/billing/${bill.id}`}
-                      className="inline-flex items-center justify-center p-2 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-100 hover:text-indigo-800 transition-colors"
-                      title="View Details"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4.5 h-4.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-                      </svg>
-                    </Link>
-                    <button
-                      onClick={() => handleDownloadBill(bill.id)}
-                      disabled={bill.status === "voided"}
-                      className="inline-flex items-center justify-center p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Download Bill"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-4.5 h-4.5">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
-                      </svg>
-                    </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSendWhatsapp(bill)}
+                        disabled={sendingWhatsappId === bill.id || bill.status === "voided"}
+                        className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-emerald-800 bg-[#F0FDF4] hover:bg-emerald-50 border border-emerald-300/80 border-b-2 border-b-emerald-400 rounded-full shadow-[0_2px_4px_rgba(22,163,74,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Send via WhatsApp"
+                      >
+                        {sendingWhatsappId === bill.id ? (
+                          <div className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin shrink-0" />
+                        ) : (
+                          <FaWhatsapp className="w-3.5 h-3.5 text-emerald-600 transition-transform group-hover:scale-110 shrink-0" />
+                        )}
+                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[70px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                          WhatsApp
+                        </span>
+                      </button>
+                      <Link
+                        href={`/billing/${bill.id}`}
+                        className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-indigo-800 bg-[#F5F3FF] hover:bg-indigo-50 border border-indigo-300/80 border-b-2 border-b-indigo-400 rounded-full shadow-[0_2px_4px_rgba(99,102,241,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200"
+                        title="View Details"
+                      >
+                        <FaEye className="w-3 h-3 text-indigo-600 transition-transform group-hover:scale-110 shrink-0" />
+                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                          View
+                        </span>
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => handleDownloadBill(bill.id)}
+                        disabled={bill.status === "voided"}
+                        className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-blue-800 bg-[#EFF6FF] hover:bg-blue-50 border border-blue-300/80 border-b-2 border-b-blue-400 rounded-full shadow-[0_2px_4px_rgba(37,99,235,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Download Bill"
+                      >
+                        <FaDownload className="w-2.5 h-2.5 text-blue-600 transition-transform group-hover:scale-110 shrink-0" />
+                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[65px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                          Download
+                        </span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               )})}

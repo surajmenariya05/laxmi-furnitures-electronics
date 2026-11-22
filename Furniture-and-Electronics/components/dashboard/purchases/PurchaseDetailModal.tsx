@@ -36,7 +36,16 @@ export default function PurchaseDetailModal({
   const displayAmount = purchase.transportAmount !== undefined && purchase.transportAmount !== null
     ? Number(purchase.transportAmount)
     : transport.transportAmount;
-  const displayGeneralNotes = transport.generalNotes;
+  
+  // Extract clean remarks, guaranteeing transport metadata never leaks into remarks
+  let cleanNotes = transport.generalNotes || "";
+  if (/\[TRANSPORT\]/i.test(cleanNotes)) {
+    cleanNotes = cleanNotes.replace(/\[TRANSPORT\][^\n]*/gi, "").trim();
+  }
+  if (displayVehicle && cleanNotes.toLowerCase().trim() === displayVehicle.toLowerCase().trim()) {
+    cleanNotes = "";
+  }
+  const displayGeneralNotes = cleanNotes.trim() ? cleanNotes.trim() : undefined;
 
   return (
     <Modal
@@ -70,11 +79,6 @@ export default function PurchaseDetailModal({
                 <span>Dated: {formattedDate}</span>
                 {purchase.vendorInvoiceNo && (
                   <span className="font-mono ml-2">| Supplier Bill: {purchase.vendorInvoiceNo}</span>
-                )}
-                {displayVehicle && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-blue-50 text-blue-800 border border-blue-200 font-mono tracking-wide ml-2">
-                    🚚 {displayVehicle}
-                  </span>
                 )}
               </p>
             </div>
@@ -281,15 +285,10 @@ export default function PurchaseDetailModal({
           {/* Logistics & Transport Section */}
           {(displayVehicle || displayAmount > 0 || displayGeneralNotes) && (
             <div className="p-4 bg-white/90 rounded-xl border border-slate-200 shadow-xs space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <span className="text-xs font-bold text-gray-800 uppercase tracking-wider flex items-center gap-1.5">
-                  <span className="text-sm">🚚</span> Logistics & Transport Details
+              <div className="border-b border-slate-100 pb-2">
+                <span className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+                  Logistics & Transport Details
                 </span>
-                {displayVehicle && (
-                  <span className="text-[11px] font-mono font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
-                    {displayVehicle}
-                  </span>
-                )}
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -297,15 +296,14 @@ export default function PurchaseDetailModal({
                   <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">
                     Vehicle / Tempo Number
                   </span>
-                  <div className="text-sm font-bold font-mono text-gray-900 tracking-wide flex items-center gap-1.5">
-                    <span className="text-gray-400">🚚</span>
+                  <div className="text-sm font-bold font-mono text-gray-900 tracking-wide">
                     {displayVehicle ? displayVehicle : <span className="text-gray-400 font-normal text-xs">Not specified</span>}
                   </div>
                 </div>
 
                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                   <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-1">
-                    Transport Freight Amount
+                    Transport Amount
                   </span>
                   <div className="text-sm font-black font-mono text-emerald-700 flex items-center gap-1">
                     {displayAmount > 0 ? (
@@ -314,7 +312,7 @@ export default function PurchaseDetailModal({
                         <span>{Number(displayAmount).toLocaleString("en-IN")}</span>
                       </>
                     ) : (
-                      <span className="text-gray-500 font-semibold text-xs">₹0 (Self / Vendor Freight)</span>
+                      <span className="text-gray-500 font-semibold text-xs">₹0</span>
                     )}
                   </div>
                 </div>

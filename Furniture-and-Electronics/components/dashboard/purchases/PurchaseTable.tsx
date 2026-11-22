@@ -257,40 +257,56 @@ export default function PurchaseTable({
                       <div className="flex items-center justify-end gap-1.5 min-w-[150px]">
                         {!p.isStockAdded && onReceiveStock && (
                           <button
+                            type="button"
                             onClick={() => onReceiveStock(p)}
-                            className="px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[11px] font-bold transition shadow-2xs whitespace-nowrap"
+                            className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-blue-800 bg-[#F0F7FF] hover:bg-blue-50 border border-blue-300/80 border-b-2 border-b-blue-400 rounded-full shadow-[0_2px_4px_rgba(37,99,235,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200"
                             title="Receive items and add to showroom inventory"
                           >
-                            📦 Stock In
+                            <img src="/icons/stock-in.png" alt="Stock In" className="w-3.5 h-3.5 object-contain transition-transform group-hover:scale-110 shrink-0" />
+                            <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[70px] group-hover:opacity-100 group-hover:ml-1.5 transition-all duration-300 ease-out text-[11px] font-bold">
+                              Stock In
+                            </span>
                           </button>
                         )}
                         {isDue && (
                           <button
+                            type="button"
                             onClick={() => onPayInstallment(p)}
-                            className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded text-[11px] font-bold transition shadow-2xs whitespace-nowrap"
+                            className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-amber-800 bg-[#FFFDF5] hover:bg-amber-50 border border-amber-300/80 border-b-2 border-b-amber-400 rounded-full shadow-[0_2px_4px_rgba(217,119,6,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200"
                             title="Pay installment towards this purchase"
                           >
-                            Pay Due
+                            <img src="/icons/pay-due.png" alt="Pay Due" className="w-3.5 h-3.5 object-contain transition-transform group-hover:scale-110 shrink-0" />
+                            <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[65px] group-hover:opacity-100 group-hover:ml-1.5 transition-all duration-300 ease-out text-[11px] font-bold">
+                              Pay Due
+                            </span>
                           </button>
                         )}
                       </div>
 
                       {/* Fixed Standard Icons Slot (Eye & Delete) - Position is 100% constant across all rows */}
-                      <div className="flex items-center justify-end gap-1 w-14 shrink-0">
+                      <div className="flex items-center justify-end gap-1 shrink-0">
                         <button
+                          type="button"
                           onClick={() => onViewDetails(p)}
-                          className="p-1.5 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded transition"
+                          className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 border-b-2 border-b-slate-300 rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.06),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200"
                           title="View bill breakdown & payment history"
                         >
-                          <FaEye className="w-3.5 h-3.5" />
+                          <FaEye className="w-3 h-3 text-slate-600 transition-transform group-hover:scale-110 shrink-0" />
+                          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                            View
+                          </span>
                         </button>
                         {isOwner && (
                           <button
+                            type="button"
                             onClick={() => onDeletePurchase(p)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition"
+                            className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-rose-700 bg-[#FFF5F5] hover:bg-rose-50 border border-rose-300/80 border-b-2 border-b-rose-400 rounded-full shadow-[0_2px_4px_rgba(225,29,72,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200"
                             title="Delete purchase"
                           >
-                            <FaTrash className="w-3.5 h-3.5" />
+                            <FaTrash className="w-2.5 h-2.5 text-rose-600 transition-transform group-hover:scale-110 shrink-0" />
+                            <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[50px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                              Delete
+                            </span>
                           </button>
                         )}
                       </div>

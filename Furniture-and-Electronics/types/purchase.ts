@@ -133,5 +133,7 @@ export interface PurchaseKPIs {
   totalPaidAmount: number;
   totalDueAmount: number;
   unpaidPurchasesCount: number;
+  totalTransportAmount?: number;
+  transportBillsCount?: number;
 }
 

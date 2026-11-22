@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FaShoppingCart, FaCheckCircle, FaExclamationTriangle } from "react-icons/fa";
+import { FaShoppingCart, FaCheckCircle, FaExclamationTriangle, FaTruck } from "react-icons/fa";
 import { PurchaseKPIs } from "@/types/purchase";
 import { Skeleton } from "@/components/dashboard/Skeleton";
 
@@ -13,8 +13,8 @@ interface PurchaseKPICardsProps {
 export default function PurchaseKPICards({ kpis, loading }: PurchaseKPICardsProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {[1, 2, 3].map((i) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
             className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex items-center justify-between"
@@ -31,8 +31,11 @@ export default function PurchaseKPICards({ kpis, loading }: PurchaseKPICardsProp
     );
   }
 
+  const transportAmount = kpis.totalTransportAmount || 0;
+  const transportCount = kpis.transportBillsCount || 0;
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* 1. Total Purchases */}
       <div className="bg-white p-4 rounded-xl border border-gray-200 shadow-xs flex items-center justify-between">
         <div>
@@ -78,6 +81,22 @@ export default function PurchaseKPICards({ kpis, loading }: PurchaseKPICardsProp
         </div>
         <div className="w-10 h-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
           <FaExclamationTriangle className="w-5 h-5" />
+        </div>
+      </div>
+
+      {/* 4. Total Transport / Freight Amount */}
+      <div className="bg-white p-4 rounded-xl border border-indigo-200 bg-indigo-50/20 shadow-xs flex items-center justify-between">
+        <div>
+          <p className="text-xs font-bold text-indigo-900 uppercase tracking-wider">Total Transport</p>
+          <p className="text-xl font-black text-indigo-950 mt-1">
+            ₹ {transportAmount.toLocaleString("en-IN")}
+          </p>
+          <p className="text-[11px] text-indigo-700 font-medium mt-0.5">
+            {transportCount > 0 ? `${transportCount} bills with freight` : "Freight on procurements"}
+          </p>
+        </div>
+        <div className="w-10 h-10 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold">
+          <FaTruck className="w-5 h-5" />
         </div>
       </div>
     </div>

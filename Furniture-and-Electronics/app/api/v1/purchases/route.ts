@@ -16,6 +16,8 @@ export async function GET(req: Request) {
     const department = searchParams.get("department")?.toUpperCase();
     const vendorId = searchParams.get("vendorId");
     const paymentStatus = searchParams.get("paymentStatus");
+    const startDate = searchParams.get("startDate");
+    const endDate = searchParams.get("endDate");
     const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
     const skip = (page - 1) * limit;
@@ -36,6 +38,17 @@ export async function GET(req: Request) {
       } else {
         where.paymentStatus = paymentStatus;
       }
+    }
+
+    if (startDate || endDate) {
+      const dateFilter: any = {};
+      if (startDate) {
+        dateFilter.gte = new Date(`${startDate}T00:00:00.000Z`);
+      }
+      if (endDate) {
+        dateFilter.lte = new Date(`${endDate}T23:59:59.999Z`);
+      }
+      where.purchaseDate = dateFilter;
     }
 
     if (search) {
@@ -102,6 +115,16 @@ export async function GET(req: Request) {
     if (vendorId && vendorId !== "ALL" && !isNaN(parseInt(vendorId))) {
       kpiWhere.vendorId = parseInt(vendorId);
     }
+    if (startDate || endDate) {
+      const dateFilter: any = {};
+      if (startDate) {
+        dateFilter.gte = new Date(`${startDate}T00:00:00.000Z`);
+      }
+      if (endDate) {
+        dateFilter.lte = new Date(`${endDate}T23:59:59.999Z`);
+      }
+      kpiWhere.purchaseDate = dateFilter;
+    }
 
     const allPurchases = await prisma.purchase.findMany({
       where: kpiWhere,
@@ -110,6 +133,7 @@ export async function GET(req: Request) {
         paidAmount: true,
         dueAmount: true,
         paymentStatus: true,
+        notes: true,
       },
     });
 
@@ -122,6 +146,14 @@ export async function GET(req: Request) {
         .reduce((s, p) => s + Number(p.paidAmount), 0),
       totalDueAmount: allPurchases.reduce((s, p) => s + Number(p.dueAmount), 0),
       unpaidPurchasesCount: allPurchases.filter((p) => p.paymentStatus !== "PAID").length,
+      totalTransportAmount: allPurchases.reduce((s, p) => {
+        const t = parseTransportDetails(p.notes);
+        return s + (Number(t.transportAmount) || 0);
+      }, 0),
+      transportBillsCount: allPurchases.filter((p) => {
+        const t = parseTransportDetails(p.notes);
+        return Boolean(t.transportAmount && Number(t.transportAmount) > 0);
+      }).length,
     };
 
     const enrichedPurchases = purchases.map((p) => {

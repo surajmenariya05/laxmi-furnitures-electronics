@@ -2,13 +2,30 @@
 
 import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
-import { FaTimes, FaPlus, FaTrash, FaCheck, FaBuilding } from "react-icons/fa";
+import { FaTimes, FaPlus, FaTrash, FaBuilding } from "react-icons/fa";
 import { Vendor, Department, PurchasePaymentMode, PurchaseItemInput } from "@/types/purchase";
 import { createPurchase } from "@/lib/api/purchase";
 import { getProducts, getCategories } from "@/lib/api/inventory";
 import { serializeTransportNotes } from "@/lib/purchase-transport";
 import ConfirmStockModal from "./ConfirmStockModal";
 import CatalogProductPicker from "./CatalogProductPicker";
+
+interface CatalogProduct {
+  id: number;
+  name: string;
+  brand?: string | null;
+  costPrice?: number | string | null;
+  sellingPrice?: number | string | null;
+  quantityInStock?: number;
+  categoryId?: number | null;
+  warrantyMonths?: number | null;
+}
+
+interface CatalogCategory {
+  id: number;
+  name: string;
+  department?: string;
+}
 
 interface NewPurchaseModalProps {
   isOpen: boolean;
@@ -28,6 +45,7 @@ export default function NewPurchaseModal({
   const [department, setDepartment] = useState<Department>(initialDepartment);
   const [isNewVendor, setIsNewVendor] = useState(false);
   const [vendorId, setVendorId] = useState<string>("");
+  const effectiveVendorId = vendorId || (vendors[0]?.id ? String(vendors[0].id) : "");
   const [newVendorName, setNewVendorName] = useState("");
   const [newVendorPhone, setNewVendorPhone] = useState("");
   const [newVendorAddress, setNewVendorAddress] = useState("");
@@ -46,7 +64,7 @@ export default function NewPurchaseModal({
       quantity: 1,
       unitCostPrice: "",
       lineTotal: 0,
-      warrantyMonths: initialDepartment === "ELECTRONICS" ? 12 : undefined,
+      warrantyMonths: undefined,
     },
   ]);
 
@@ -59,38 +77,40 @@ export default function NewPurchaseModal({
   const [transactionRef, setTransactionRef] = useState("");
 
   // Catalog products for quick picker / preview
-  const [catalogProducts, setCatalogProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [catalogProducts, setCatalogProducts] = useState<CatalogProduct[]>([]);
+  const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [showConfirmStockModal, setShowConfirmStockModal] = useState(false);
 
   useEffect(() => {
+    let ignore = false;
     if (isOpen) {
-      loadCatalog();
-      if (vendors.length > 0 && !vendorId) {
-        setVendorId(String(vendors[0].id));
-      }
+      const fetchCatalog = async () => {
+        try {
+          const [prodsRes, catsRes] = await Promise.all([
+            getProducts(undefined, undefined, undefined, 1, 50, undefined, undefined, department),
+            getCategories(department),
+          ]);
+          if (!ignore) {
+            setCatalogProducts(prodsRes.items || []);
+            setCategories(catsRes || []);
+            if (catsRes && catsRes.length > 0) {
+              setItems((prev) =>
+                prev.map((it) => (!it.categoryId ? { ...it, categoryId: catsRes[0].id } : it))
+              );
+            }
+          }
+        } catch (err) {
+          console.error("Failed to load catalog helper data:", err);
+        }
+      };
+      fetchCatalog();
     }
+    return () => {
+      ignore = true;
+    };
   }, [isOpen, department]);
-
-  const loadCatalog = async () => {
-    try {
-      const [prodsRes, catsRes] = await Promise.all([
-        getProducts(undefined, undefined, undefined, 1, 50, undefined, undefined, department),
-        getCategories(department),
-      ]);
-      setCatalogProducts(prodsRes.items || []);
-      setCategories(catsRes || []);
-      if (catsRes && catsRes.length > 0) {
-        setItems((prev) =>
-          prev.map((it) => (!it.categoryId ? { ...it, categoryId: catsRes[0].id } : it))
-        );
-      }
-    } catch (err) {
-      console.error("Failed to load catalog helper data:", err);
-    }
-  };
 
   if (!isOpen) return null;
 
@@ -103,7 +123,7 @@ export default function NewPurchaseModal({
         unitCostPrice: "",
         lineTotal: 0,
         categoryId: categories.length > 0 ? categories[0].id : undefined,
-        warrantyMonths: department === "ELECTRONICS" ? 12 : undefined,
+        warrantyMonths: undefined,
       },
     ]);
   };
@@ -113,7 +133,11 @@ export default function NewPurchaseModal({
     setItems((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const handleItemChange = (index: number, field: keyof PurchaseItemInput, value: any) => {
+  const handleItemChange = (
+    index: number,
+    field: keyof PurchaseItemInput,
+    value: string | number | boolean | undefined
+  ) => {
     setItems((prev) => {
       const updated = [...prev];
       const item = { ...updated[index], [field]: value };
@@ -128,7 +152,7 @@ export default function NewPurchaseModal({
     });
   };
 
-  const handleSelectProduct = (index: number, product: any | null) => {
+  const handleSelectProduct = (index: number, product: CatalogProduct | null) => {
     setItems((prev) => {
       const updated = [...prev];
       if (!product) {
@@ -141,11 +165,11 @@ export default function NewPurchaseModal({
           quantity: 1,
           lineTotal: 0,
           categoryId: categories.length > 0 ? categories[0].id : undefined,
-          warrantyMonths: department === "ELECTRONICS" ? 12 : undefined,
+          warrantyMonths: undefined,
         };
       } else {
         const qty = parseInt(String(updated[index].quantity)) || 1;
-        const cost = product.costPrice !== undefined ? Number(product.costPrice) : 0;
+        const cost = product.costPrice !== undefined && product.costPrice !== null ? Number(product.costPrice) : 0;
         updated[index] = {
           ...updated[index],
           productId: product.id,
@@ -154,7 +178,7 @@ export default function NewPurchaseModal({
           quantity: qty,
           lineTotal: qty * cost,
           categoryId: product.categoryId || (categories.length > 0 ? categories[0].id : undefined),
-          warrantyMonths: product.warrantyMonths || (department === "ELECTRONICS" ? 12 : undefined),
+          warrantyMonths: product.warrantyMonths || undefined,
         };
       }
       return updated;
@@ -168,7 +192,7 @@ export default function NewPurchaseModal({
   const validateForm = () => {
     setError("");
 
-    if (!isNewVendor && !vendorId) {
+    if (!isNewVendor && !effectiveVendorId) {
       setError("Please select a vendor.");
       return false;
     }
@@ -209,7 +233,7 @@ export default function NewPurchaseModal({
       );
 
       await createPurchase({
-        vendorId: !isNewVendor ? parseInt(vendorId) : undefined,
+        vendorId: !isNewVendor ? parseInt(effectiveVendorId) : undefined,
         newVendor: isNewVendor
           ? {
               name: newVendorName.trim(),
@@ -234,9 +258,10 @@ export default function NewPurchaseModal({
       setShowConfirmStockModal(false);
       onSuccess();
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error(err);
-      setError(err.message || "Failed to save purchase.");
+      const msg = err instanceof Error ? err.message : "Failed to save purchase.";
+      setError(msg);
       setShowConfirmStockModal(false);
     } finally {
       setSubmitting(false);
@@ -319,7 +344,7 @@ export default function NewPurchaseModal({
 
               {!isNewVendor ? (
                 <select
-                  value={vendorId}
+                  value={effectiveVendorId}
                   onChange={(e) => setVendorId(e.target.value)}
                   required
                   className="w-full py-2 px-3 border border-gray-300 rounded-lg text-xs font-semibold bg-white text-gray-900 focus:ring-2 focus:ring-blue-500"
@@ -392,9 +417,8 @@ export default function NewPurchaseModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1 flex items-center justify-between">
-                <span>Vehicle Number</span>
-                <span className="text-[10px] text-gray-400 font-normal">🚚 Transport</span>
+              <label className="block text-xs font-bold text-gray-600 mb-1">
+                Vehicle Number
               </label>
               <input
                 type="text"
@@ -405,9 +429,8 @@ export default function NewPurchaseModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-gray-600 mb-1 flex items-center justify-between">
-                <span>Transport Amount</span>
-                <span className="text-[10px] text-gray-400 font-normal">Freight</span>
+              <label className="block text-xs font-bold text-gray-600 mb-1">
+                Transport Amount
               </label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 font-bold text-xs">
@@ -535,7 +558,7 @@ export default function NewPurchaseModal({
                           <input
                             type="number"
                             min="0"
-                            placeholder="12"
+                            placeholder="Months (e.g. 12)"
                             title="Supplier warranty in months"
                             value={item.warrantyMonths !== undefined ? item.warrantyMonths : ""}
                             onWheel={(e) => e.currentTarget.blur()}
@@ -605,6 +628,19 @@ export default function NewPurchaseModal({
                   onWheel={(e) => e.currentTarget.blur()}
                   onChange={(e) => setPaidAmount(e.target.value)}
                   className="w-full py-2 px-3 border border-gray-300 rounded-lg text-sm font-black text-emerald-700 font-mono [appearance:textfield]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-gray-600 mb-1">
+                  Remarks / Delivery Notes (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Received in good condition"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  className="w-full py-1.5 px-3 border border-gray-300 rounded-lg text-xs"
                 />
               </div>
 

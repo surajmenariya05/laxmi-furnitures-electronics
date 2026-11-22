@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { getBills, getBill } from "@/lib/api/billing";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,50 +11,35 @@ import BillingHistoryLoading from "./loading";
 import { Modal } from "@/components/ui/modal";
 import { useDepartment } from "@/components/dashboard/department/DepartmentContext";
 
-
-function numberToWords(num: number): string {
-  const a = [
-    "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten",
-    "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen", "Seventeen", "Eighteen", "Nineteen"
-  ];
-  const b = ["", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"];
-
-  const g = ["", "Thousand", "Lakh", "Crore"];
-
-  const count = (n: number) => {
-    let word = "";
-    if (n < 20) {
-      word = a[n];
-    } else if (n < 100) {
-      word = b[Math.floor(n / 10)] + " " + a[n % 10];
-    } else {
-      word = a[Math.floor(n / 100)] + " Hundred " + count(n % 100);
-    }
-    return word.trim();
+interface BillItem {
+  id: number;
+  billNumber: string;
+  createdAt: string;
+  department: string;
+  totalAmount: number | string;
+  paymentMode: string;
+  paymentStatus: string;
+  dueAmount?: number | string;
+  status: string;
+  whatsappStatus?: string;
+  whatsappSentAt?: string;
+  customerName?: string;
+  customerPhone?: string;
+  customer?: {
+    id: number;
+    name: string;
+    phone?: string;
+    address?: string;
   };
+  booking?: {
+    id: number;
+    bookingNumber: string;
+  };
+}
 
-  if (num === 0) return "Zero Rupees Only";
-
-  let words = "";
-  let temp = Math.floor(num);
-
-  let chunks = [];
-  chunks.push(temp % 1000);
-  temp = Math.floor(temp / 1000);
-  chunks.push(temp % 100);
-  temp = Math.floor(temp / 100);
-  chunks.push(temp % 100);
-  temp = Math.floor(temp / 100);
-  chunks.push(temp % 100);
-
-  for (let i = 0; i < chunks.length; i++) {
-    const chunk = chunks[i];
-    if (chunk > 0) {
-      words = count(chunk) + " " + g[i] + " " + words;
-    }
-  }
-
-  return (words.trim() + " Rupees Only").replace(/\s+/g, " ");
+interface BillsPageResponse {
+  hasMore?: boolean;
+  items?: BillItem[];
 }
 
 export default function BillingHistoryPage() {
@@ -62,19 +47,21 @@ export default function BillingHistoryPage() {
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
   
-  const getKey = (pageIndex: number, previousPageData: any) => {
+  const getKey = (pageIndex: number, previousPageData: BillsPageResponse | null) => {
     if (previousPageData && !previousPageData.hasMore) return null;
     return ['bills', debouncedSearch, pageIndex + 1, department];
   };
 
   const { data, size, setSize, isValidating, error, mutate } = useSWRInfinite(
     getKey,
-    ([_, s, p, dept]: [string, string, number, string]) => getBills(s, p, 50, dept),
+    ([, s, p, dept]: [string, string, number, string]) => getBills(s, p, 50, dept),
     { dedupingInterval: 5000, persistSize: true }
   );
 
-  const bills: any[] = data ? [].concat(...data.map((d: any) => Array.isArray(d) ? d : d.items || [])) : [];
-  const hasMore = data ? data[data.length - 1]?.hasMore : true;
+  const bills: BillItem[] = useMemo(() => {
+    return data ? ([] as BillItem[]).concat(...data.map((d: BillsPageResponse | BillItem[]) => Array.isArray(d) ? d : d.items || [])) : [];
+  }, [data]);
+  const hasMore = data ? (data[data.length - 1] as BillsPageResponse)?.hasMore : true;
   const loading = !data && !error;
 
   const [sendingWhatsappId, setSendingWhatsappId] = useState<number | null>(null);
@@ -82,7 +69,7 @@ export default function BillingHistoryPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editData, setEditData] = useState({ name: "", phone: "", address: "" });
   const [savingCustomer, setSavingCustomer] = useState(false);
-  const [selectedBill, setSelectedBill] = useState<any>(null);
+  const [selectedBill, setSelectedBill] = useState<BillItem | null>(null);
 
   // Observer for infinite scroll
   const observer = useRef<IntersectionObserver | null>(null);
@@ -113,7 +100,7 @@ export default function BillingHistoryPage() {
     return () => clearInterval(interval);
   }, [bills, mutate]);
 
-  const openEditModal = (bill: any) => {
+  const openEditModal = (bill: BillItem) => {
     setSelectedBill(bill);
     setEditData({
       name: bill.customer?.name || bill.customerName || "",
@@ -135,7 +122,7 @@ export default function BillingHistoryPage() {
     const oldPhone = selectedBill.customer.phone || selectedBill.customerPhone || "";
     const oldAddress = selectedBill.customer.address || "";
     
-    let changes = [];
+    const changes: string[] = [];
     if (oldName !== editData.name) changes.push(`Name: ${oldName || "(Empty)"} ➔ ${editData.name || "(Empty)"}`);
     if (oldPhone !== editData.phone) changes.push(`Phone: ${oldPhone || "(Empty)"} ➔ ${editData.phone || "(Empty)"}`);
     if (oldAddress !== editData.address) changes.push(`Address: ${oldAddress || "(Empty)"} ➔ ${editData.address || "(Empty)"}`);
@@ -160,19 +147,19 @@ export default function BillingHistoryPage() {
         throw new Error(err.error || "Failed to update");
       }
       
-      const { customer } = await res.json();
+      await res.json();
       
       // Update local state for bills
       mutate();
       setShowEditModal(false);
-    } catch (err: any) {
-      alert(err.message);
+    } catch (err: unknown) {
+      alert((err as Error).message);
     } finally {
       setSavingCustomer(false);
     }
   };
 
-  const handleSendWhatsapp = async (bill: any) => {
+  const handleSendWhatsapp = async (bill: BillItem) => {
     const customerPhone = bill.customer?.phone || bill.customerPhone || "";
     if (!customerPhone) {
       alert("No customer phone number attached to this bill.");
@@ -200,9 +187,9 @@ export default function BillingHistoryPage() {
       }
 
       await mutate(); // Refresh list to get updated status
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("WhatsApp send error:", err);
-      alert(err.message || "Failed to send WhatsApp message");
+      alert((err as Error).message || "Failed to send WhatsApp message");
     } finally {
       setSendingWhatsappId(null);
     }
@@ -266,7 +253,7 @@ export default function BillingHistoryPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">WhatsApp</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-5 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-[260px] min-w-[260px]">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -306,9 +293,11 @@ export default function BillingHistoryPage() {
                       )}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-gray-900">{bill.customer?.name || "Guest"}</div>
-                    {bill.customer?.phone && <div className="text-xs text-gray-500">{bill.customer.phone}</div>}
+                  <td className="px-6 py-4">
+                    <div className="text-sm font-medium text-gray-900 truncate max-w-[160px] sm:max-w-[200px]" title={bill.customer?.name || "Guest"}>
+                      {bill.customer?.name || "Guest"}
+                    </div>
+                    {bill.customer?.phone && <div className="text-xs text-gray-500 font-mono">{bill.customer.phone}</div>}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
                     ₹{bill.totalAmount}
@@ -355,58 +344,58 @@ export default function BillingHistoryPage() {
                       <span className="text-xs text-gray-400">-</span>
                     )}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <div className="flex items-center justify-end gap-1.5">
+                  <td className="px-5 py-4 whitespace-nowrap text-right text-sm font-medium w-[260px] min-w-[260px]">
+                    <div className="flex items-center justify-end gap-1.5 w-full">
                       {role === "owner" && bill.status !== "voided" && bill.customer && (
                         <button
                           type="button"
                           onClick={() => openEditModal(bill)}
                           title="Edit Customer Details"
-                          className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-amber-800 bg-[#FFFDF5] hover:bg-amber-50 border border-amber-300/80 border-b-2 border-b-amber-400 rounded-full shadow-[0_2px_4px_rgba(217,119,6,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200"
+                          className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#785428] bg-gradient-to-b from-[#FFFDF9] to-[#F5EFEB] hover:from-[#FDFBF7] hover:to-[#EDE3D6] border border-[#E2D4BE] border-b-2 border-b-[#C4A87C] hover:border-[#BFA070] rounded-full shadow-[0_2px_4px_rgba(120,84,40,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
                         >
-                          <FaPen className="w-2.5 h-2.5 text-amber-700 transition-transform group-hover:scale-110 shrink-0" />
-                          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
                             Edit
                           </span>
+                          <FaPen className="w-2.5 h-2.5 text-[#785428] transition-transform group-hover:scale-110 shrink-0" />
                         </button>
                       )}
                       <button
                         type="button"
                         onClick={() => handleSendWhatsapp(bill)}
                         disabled={sendingWhatsappId === bill.id || bill.status === "voided"}
-                        className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-emerald-800 bg-[#F0FDF4] hover:bg-emerald-50 border border-emerald-300/80 border-b-2 border-b-emerald-400 rounded-full shadow-[0_2px_4px_rgba(22,163,74,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#136338] bg-gradient-to-b from-[#F2FBF6] to-[#E4F5EB] hover:from-[#F8FEFA] hover:to-[#DBEFE3] border border-[#A8E2BF] border-b-2 border-b-[#4BAE74] hover:border-[#3C9C63] rounded-full shadow-[0_2px_4px_rgba(19,99,56,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Send via WhatsApp"
                       >
-                        {sendingWhatsappId === bill.id ? (
-                          <div className="w-3 h-3 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin shrink-0" />
-                        ) : (
-                          <FaWhatsapp className="w-3.5 h-3.5 text-emerald-600 transition-transform group-hover:scale-110 shrink-0" />
-                        )}
-                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[70px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[70px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
                           WhatsApp
                         </span>
+                        {sendingWhatsappId === bill.id ? (
+                          <div className="w-3 h-3 border-2 border-[#136338] border-t-transparent rounded-full animate-spin shrink-0" />
+                        ) : (
+                          <FaWhatsapp className="w-3.5 h-3.5 text-[#136338] transition-transform group-hover:scale-110 shrink-0" />
+                        )}
                       </button>
                       <Link
                         href={`/billing/${bill.id}`}
-                        className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-indigo-800 bg-[#F5F3FF] hover:bg-indigo-50 border border-indigo-300/80 border-b-2 border-b-indigo-400 rounded-full shadow-[0_2px_4px_rgba(99,102,241,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200"
+                        className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#35347A] bg-gradient-to-b from-[#F5F5FC] to-[#E9E9F8] hover:from-[#FAF9FE] hover:to-[#DFDFFA] border border-[#C6C5ED] border-b-2 border-b-[#7F7ECC] hover:border-[#6C6BBF] rounded-full shadow-[0_2px_4px_rgba(53,52,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
                         title="View Details"
                       >
-                        <FaEye className="w-3 h-3 text-indigo-600 transition-transform group-hover:scale-110 shrink-0" />
-                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
                           View
                         </span>
+                        <FaEye className="w-3 h-3 text-[#35347A] transition-transform group-hover:scale-110 shrink-0" />
                       </Link>
                       <button
                         type="button"
                         onClick={() => handleDownloadBill(bill.id)}
                         disabled={bill.status === "voided"}
-                        className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-blue-800 bg-[#EFF6FF] hover:bg-blue-50 border border-blue-300/80 border-b-2 border-b-blue-400 rounded-full shadow-[0_2px_4px_rgba(37,99,235,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#16507A] bg-gradient-to-b from-[#F2F8FC] to-[#E2F0F9] hover:from-[#F7FBFE] hover:to-[#D5E9F5] border border-[#AED5EE] border-b-2 border-b-[#4E97C7] hover:border-[#3884B5] rounded-full shadow-[0_2px_4px_rgba(22,80,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Download Bill"
                       >
-                        <FaDownload className="w-2.5 h-2.5 text-blue-600 transition-transform group-hover:scale-110 shrink-0" />
-                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[65px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[65px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
                           Download
                         </span>
+                        <FaDownload className="w-2.5 h-2.5 text-[#16507A] transition-transform group-hover:scale-110 shrink-0" />
                       </button>
                     </div>
                   </td>
@@ -414,7 +403,7 @@ export default function BillingHistoryPage() {
               )})}
               {bills.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
+                  <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
                     No transactions found.
                   </td>
                 </tr>

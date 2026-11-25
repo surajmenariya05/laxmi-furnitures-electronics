@@ -510,14 +510,14 @@ export default function InventoryPage() {
       <Modal
         isOpen={Boolean(editingProduct)}
         onClose={() => setEditingProduct(null)}
-        className="bg-[#F7F5F0] rounded-2xl max-w-4xl w-full h-[85vh] min-h-[600px] p-8 shadow-2xl flex flex-col overflow-hidden border border-[#E5DFD7]"
+        className="bg-[#F7F5F0] rounded-2xl max-w-2xl w-full max-h-[90vh] p-4 sm:p-8 shadow-2xl flex flex-col overflow-hidden border border-[#E5DFD7]"
       >
-            <div className="flex justify-between items-center mb-6 border-b pb-3 flex-shrink-0">
-              <h3 className="text-xl font-bold text-gray-800">Edit Product Details</h3>
+            <div className="flex justify-between items-center mb-4 sm:mb-6 border-b border-[#E5DFD7] pb-3 flex-shrink-0">
+              <h3 className="text-lg sm:text-xl font-bold text-gray-800">Edit Product Details</h3>
               <button
                 type="button"
                 onClick={() => setEditingProduct(null)}
-                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold leading-none"
               >
                 &times;
               </button>
@@ -529,15 +529,15 @@ export default function InventoryPage() {
               </div>
             )}
 
-            <form onSubmit={handleEditSubmit} className="flex-1 overflow-y-auto pr-2 space-y-6 flex flex-col justify-between">
-              <div className="space-y-6 flex-1">
-                <div className="grid grid-cols-2 gap-6">
+            <form onSubmit={handleEditSubmit} className="flex-1 overflow-y-auto pr-1 space-y-5 flex flex-col justify-between">
+              <div className="space-y-4 flex-1">
+                <div className="grid grid-cols-1 gap-4">
                   <div>
                     <label className="block text-sm font-bold text-gray-700">Product Name</label>
                     <input
                       type="text"
                       required
-                      className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="mt-1 block w-full border border-gray-300 bg-white rounded-lg py-2 px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={editFormData.name}
                       onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                     />
@@ -546,7 +546,7 @@ export default function InventoryPage() {
                     <label className="block text-sm font-bold text-gray-700">Brand</label>
                     <input
                       type="text"
-                      className="mt-1 block w-full border border-gray-300 rounded-md py-2 px-3 text-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                      className="mt-1 block w-full border border-gray-300 bg-white rounded-lg py-2 px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                       value={editFormData.brand}
                       onChange={(e) => setEditFormData({ ...editFormData, brand: e.target.value })}
                     />
@@ -610,18 +610,18 @@ export default function InventoryPage() {
                 </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-4 border-t flex-shrink-0 mt-6">
+              <div className="grid grid-cols-2 sm:flex sm:justify-between items-center gap-3 pt-4 border-t border-[#E5DFD7] flex-shrink-0 mt-6">
                 <button
                   type="button"
                   onClick={() => setEditingProduct(null)}
-                  className="bg-white border border-gray-300 rounded-md py-2 px-5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  className="w-full sm:w-auto bg-white border border-gray-300 rounded-lg py-2 px-5 text-sm font-bold text-gray-700 hover:bg-gray-50 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingEdit}
-                  className="bg-blue-600 border border-transparent rounded-md py-2 px-5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 font-bold"
+                  className="w-full sm:w-auto bg-blue-600 border border-transparent rounded-lg py-2 px-5 text-sm text-white hover:bg-blue-700 disabled:opacity-50 font-bold shadow-xs transition"
                 >
                   {savingEdit ? "Saving..." : "Save Changes"}
                 </button>

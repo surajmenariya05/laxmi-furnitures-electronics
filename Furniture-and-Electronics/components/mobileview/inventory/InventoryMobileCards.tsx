@@ -70,7 +70,7 @@ export default function InventoryMobileCards({
             {/* 1. Top Row: Product Name & Brand (left) + Stock Pill (right) */}
             <div className="flex items-start justify-between gap-2.5">
               <div className="min-w-0 flex-1">
-                <p className="text-base font-extrabold text-gray-900 leading-snug break-words">
+                <p className="text-sm font-extrabold text-gray-900 leading-snug break-words">
                   {product.name}
                 </p>
                 {product.brand && (

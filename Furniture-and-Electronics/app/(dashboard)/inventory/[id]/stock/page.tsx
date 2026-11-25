@@ -140,111 +140,160 @@ export default function AddStockPage({ params }: { params: Promise<{ id: string 
     }
   };
 
-  if (loading || authLoading) return <div className="text-center py-10">Loading...</div>;
-  if (!product) return <div className="text-center py-10 text-red-500">Product not found</div>;
+  if (loading || authLoading) return <div className="text-center py-10 text-sm text-gray-500">Loading...</div>;
+  if (!product) return <div className="text-center py-10 text-red-500 font-semibold">Product not found</div>;
+
+  const detectedSerialCount = imeiInput
+    .split(/[\n,]/)
+    .map((i) => i.trim())
+    .filter((i) => i.length > 0).length;
 
   return (
-    <div className="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-2 text-black">Add Stock: {product.name}</h2>
-      <div className="text-gray-500 mb-6 text-sm">
-        Current Stock: {product.quantityInStock} | Type: {product.productType}
+    <div className="max-w-2xl mx-auto space-y-4 pb-8">
+      {/* Top Back Bar */}
+      <div>
+        <button
+          type="button"
+          onClick={() => router.push("/inventory")}
+          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-gray-600 hover:text-gray-900 transition"
+        >
+          <span>←</span>
+          <span>Back to Inventory</span>
+        </button>
       </div>
 
-      {error && <div className="mb-4 text-red-600 bg-red-50 p-3 rounded">{error}</div>}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        
-        {product.productType !== "quantity" ? (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Serial Numbers (Comma separated or one per line)
-            </label>
-            <textarea
-              required
-              rows={5}
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              placeholder="e.g. SN123456, SN123457"
-              value={imeiInput}
-              onChange={(e) => setImeiInput(e.target.value)}
-            />
-            <p className="mt-1 text-sm text-gray-500">
-              Stock quantity will be calculated based on the number of Serial Numbers provided.
-            </p>
+      <div className="bg-white rounded-2xl border border-[#DED6CA] shadow-sm overflow-hidden">
+        {/* Product Summary Banner */}
+        <div className="bg-[#FAF8F5] border-b border-[#E5DFD7] p-4 sm:p-6 space-y-2.5">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
+              + Stock In
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
+              Current Stock: {product.quantityInStock}
+            </span>
+            <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+              {product.productType === "quantity" ? "Quantity" : "Serial Tracked"}
+            </span>
           </div>
-        ) : (
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Quantity to Add</label>
-            <input
-              type="number"
-              required
-              min="1"
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-              value={quantity}
-              onChange={(e) => setQuantity(e.target.value)}
-              onKeyDown={(e) => handleNumberKeyDown(e, false)}
-              onWheel={(e) => (e.target as HTMLInputElement).blur()}
-            />
-          </div>
-        )}
 
-        {product.productType !== "quantity" && product.units && product.units.length > 0 && (
-          <div className="pt-4 border-t border-gray-100">
+          <h2 className="text-lg sm:text-2xl font-black text-gray-900 leading-snug">
+            {product.name}
+          </h2>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5">
+          {error && (
+            <div className="text-red-700 bg-red-50 border border-red-200 p-3 rounded-xl text-xs font-semibold">
+              {error}
+            </div>
+          )}
+
+          {product.productType !== "quantity" ? (
+            <div className="bg-[#F8FAFC] border border-slate-200/90 rounded-xl p-3.5 sm:p-4 space-y-2">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <label className="block text-xs font-extrabold uppercase tracking-wider text-gray-700">
+                  Serial Numbers
+                </label>
+                <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 tabular-nums">
+                  {detectedSerialCount} {detectedSerialCount === 1 ? "serial" : "serials"} ready
+                </span>
+              </div>
+              <textarea
+                required
+                rows={5}
+                className="block w-full border border-gray-300 bg-white rounded-xl shadow-2xs py-2.5 px-3 font-mono text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter comma-separated or one per line&#10;e.g. SN123456, SN123457"
+                value={imeiInput}
+                onChange={(e) => setImeiInput(e.target.value)}
+              />
+              <p className="text-[11px] text-gray-500 leading-snug">
+                Separate serials with commas or new lines. Stock increases automatically by the count above.
+              </p>
+            </div>
+          ) : (
+            <div className="bg-[#F8FAFC] border border-slate-200/90 rounded-xl p-3.5 sm:p-4 space-y-2">
+              <label className="block text-xs font-extrabold uppercase tracking-wider text-gray-700">
+                Quantity to Add
+              </label>
+              <input
+                type="number"
+                required
+                min="1"
+                className="block w-full border border-gray-300 bg-white rounded-xl shadow-2xs py-2.5 px-3 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                onKeyDown={(e) => handleNumberKeyDown(e, false)}
+                onWheel={(e) => (e.target as HTMLInputElement).blur()}
+              />
+            </div>
+          )}
+
+          {product.productType !== "quantity" && product.units && product.units.length > 0 && (
+            <div className="bg-[#F8F6F2] border border-[#E5DFD7] rounded-xl p-3.5">
+              <button
+                type="button"
+                onClick={() => setShowEditImei(!showEditImei)}
+                className="text-xs sm:text-sm font-bold text-blue-700 hover:text-blue-900 flex items-center gap-2 transition"
+              >
+                <span>✏️</span>
+                <span>{showEditImei ? "Hide Existing Serial Numbers" : `Edit Existing Serial Numbers (${product.units.length})`}</span>
+              </button>
+
+              {showEditImei && (
+                <div className="mt-3 space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-1">
+                  {product.units.map((unit: any) => (
+                    <div
+                      key={unit.id}
+                      className="flex items-center gap-2 bg-white p-2 rounded-lg border border-gray-200"
+                    >
+                      <input
+                        type="text"
+                        className="flex-1 min-w-0 border border-gray-300 rounded-md px-2.5 py-1.5 text-xs sm:text-sm font-mono focus:ring-blue-500 focus:border-blue-500"
+                        value={editingImeis[unit.id] || ""}
+                        onChange={(e) =>
+                          setEditingImeis((prev) => ({ ...prev, [unit.id]: e.target.value }))
+                        }
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleSaveImei(unit.id, unit.imeiNumber);
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleSaveImei(unit.id, unit.imeiNumber)}
+                        disabled={savingImeiId === unit.id || editingImeis[unit.id] === unit.imeiNumber}
+                        className="shrink-0 bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-md text-xs font-bold disabled:opacity-40 transition"
+                      >
+                        {savingImeiId === unit.id ? "..." : "Save"}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 sm:flex sm:justify-between items-center gap-3 pt-4 border-t border-gray-200">
             <button
               type="button"
-              onClick={() => setShowEditImei(!showEditImei)}
-              className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-2 transition"
+              onClick={() => router.push("/inventory")}
+              className="w-full sm:w-auto bg-white border border-gray-300 rounded-full shadow-2xs py-2.5 px-5 inline-flex justify-center items-center text-xs sm:text-sm font-bold text-gray-700 hover:bg-gray-50 transition"
             >
-              ✏️ {showEditImei ? "Hide Existing Serial Numbers" : "Edit Existing Serial Numbers"}
+              Cancel
             </button>
-            
-            {showEditImei && (
-              <div className="mt-4 space-y-2 max-h-60 overflow-y-auto custom-scrollbar p-1">
-                {product.units.map((unit: any) => (
-                  <div key={unit.id} className="flex items-center gap-2 bg-gray-50 p-2 rounded border border-gray-200">
-                    <input 
-                      type="text"
-                      className="flex-1 border border-gray-300 rounded px-2 py-1 text-sm font-mono focus:ring-blue-500 focus:border-blue-500"
-                      value={editingImeis[unit.id] || ""}
-                      onChange={(e) => setEditingImeis(prev => ({ ...prev, [unit.id]: e.target.value }))}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleSaveImei(unit.id, unit.imeiNumber);
-                        }
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleSaveImei(unit.id, unit.imeiNumber)}
-                      disabled={savingImeiId === unit.id || editingImeis[unit.id] === unit.imeiNumber}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-bold disabled:opacity-50 transition"
-                    >
-                      {savingImeiId === unit.id ? "..." : "Save"}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full sm:w-auto inline-flex justify-center items-center rounded-full py-2.5 px-5 text-xs sm:text-sm font-extrabold text-white bg-gradient-to-b from-[#16A34A] to-[#15803D] hover:from-[#22C55E] hover:to-[#16A34A] border border-[#15803D] border-b-2 border-b-[#14532D] shadow-[0_2px_6px_rgba(21,128,61,0.28),inset_0_1px_0_rgba(255,255,255,0.28)] active:translate-y-px transition disabled:opacity-50"
+            >
+              {submitting ? "Adding..." : "Confirm Stock In"}
+            </button>
           </div>
-        )}
-
-        <div className="flex justify-end gap-3 pt-4 border-t">
-          <button
-            type="button"
-            onClick={() => router.push("/inventory")}
-            className="bg-white border border-gray-300 rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="bg-green-600 border border-transparent rounded-md shadow-sm py-2 px-4 inline-flex justify-center text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
-          >
-            {submitting ? "Adding..." : "Confirm Stock In"}
-          </button>
-        </div>
-      </form>
+        </form>
+      </div>
     </div>
   );
 }

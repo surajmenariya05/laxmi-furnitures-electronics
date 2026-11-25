@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import InventoryLoading from "./loading";
 import { Modal } from "@/components/ui/modal";
 import TactileButton from "@/components/ui/TactileButton";
+import InventoryMobileCards from "@/components/mobileview/inventory/InventoryMobileCards";
 
 export default function InventoryPage() {
   const router = useRouter();
@@ -86,7 +87,7 @@ export default function InventoryPage() {
 
   // Observer for infinite scroll
   const observer = useRef<IntersectionObserver | null>(null);
-  const lastElementRef = useCallback((node: HTMLTableRowElement | null) => {
+  const lastElementRef = useCallback((node: HTMLElement | null) => {
     if (isValidating) return;
     if (observer.current) observer.current.disconnect();
     
@@ -286,11 +287,11 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
-        <div className="flex items-center gap-3">
-          <h2 className="text-2xl font-bold text-black">Inventory</h2>
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${deptConfig.badgeBg} ${deptConfig.badgeText}`}>
+    <div className="bg-white shadow rounded-xl p-4 sm:p-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-4 sm:mb-6 gap-3 sm:gap-4">
+        <div className="flex items-center justify-between gap-2 w-full md:w-auto md:justify-start md:gap-3">
+          <h2 className="text-2xl sm:text-3xl font-black text-black tracking-tight">Inventory</h2>
+          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border shrink-0 ${deptConfig.badgeBg} ${deptConfig.badgeText}`}>
             {department === "FURNITURE" ? (
               <img src="/furniture-logo-icon.png" alt="Furniture" className="w-3.5 h-3.5 object-contain inline-block shrink-0" />
             ) : (
@@ -300,11 +301,12 @@ export default function InventoryPage() {
           </span>
         </div>
         {role === "owner" && (
-          <div className="flex gap-3">
+          <div className="w-full md:w-auto">
             <TactileButton
               href="/inventory/new"
               variant="inventory"
               size="md"
+              className="w-full md:w-auto justify-center"
             >
               + Add Product
             </TactileButton>
@@ -312,15 +314,15 @@ export default function InventoryPage() {
         )}
       </div>
 
-      <div className="flex gap-4 mb-6">
+      <div className="flex flex-col md:flex-row gap-2.5 sm:gap-4 mb-4 sm:mb-6">
         <input
           type="text"
           placeholder="Search products..."
-          className="flex-1 border border-gray-300 rounded px-4 py-2"
+          className="w-full md:flex-1 border border-gray-300 rounded-lg px-3.5 sm:px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <div className="w-72">
+        <div className="w-full md:w-72">
           <CategorySelector
             categories={categories}
             selectedCategoryId={selectedCategory?.toString() || ""}
@@ -330,7 +332,29 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* Mobile Cards */}
+      <InventoryMobileCards
+        products={products}
+        loading={loading}
+        role={role}
+        lastElementRef={lastElementRef}
+        expandedImeiId={expandedImeiId}
+        expandedImeis={expandedImeis}
+        isLoadingImeis={isLoadingImeis}
+        onExpandImeis={handleExpandImeis}
+        isAccessoriesSelected={isAccessoriesSelected}
+        quickSellData={quickSellData}
+        quickSellingId={quickSellingId}
+        onQuickSellQtyChange={(id, val) =>
+          setQuickSellData((prev) => ({ ...prev, [id]: val }))
+        }
+        onQuickSell={handleQuickSell}
+        onEditClick={handleEditClick}
+        onDeleteClick={handleDeleteClick}
+      />
+
+      {/* Desktop Table */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
               <tr>
@@ -445,19 +469,19 @@ export default function InventoryPage() {
                       )}
                       <Link
                         href={`/inventory/${product.id}/stock`}
-                        className="inline-block text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-2 py-1 rounded transition-colors text-xs font-bold"
+                        className="inline-flex items-center gap-1 h-7 px-2.5 text-xs font-bold text-[#16507A] bg-gradient-to-b from-[#F2F8FC] to-[#E2F0F9] border border-[#AED5EE] border-b-2 border-b-[#4E97C7] rounded-full shadow-2xs active:translate-y-px transition-all"
                       >
                         + Stock
                       </Link>
                       <button
                         onClick={() => handleEditClick(product)}
-                        className="text-amber-600 hover:text-amber-900 bg-amber-50 hover:bg-amber-100 px-2 py-1 rounded transition-colors text-xs font-bold"
+                        className="inline-flex items-center gap-1 h-7 px-3 text-xs font-bold text-[#7A5416] bg-gradient-to-b from-[#FCF7EB] to-[#F7ECD6] border border-[#E5CE9A] border-b-2 border-b-[#C69C4D] rounded-full shadow-2xs active:translate-y-px transition-all"
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDeleteClick(product.id)}
-                        className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-2 py-1 rounded transition-colors text-xs font-bold"
+                        className="inline-flex items-center gap-1 h-7 px-3 text-xs font-bold text-[#882424] bg-gradient-to-b from-[#FDF5F5] to-[#F9E8E8] border border-[#E9C3C3] border-b-2 border-b-[#C06A6A] rounded-full shadow-2xs active:translate-y-px transition-all"
                       >
                         Delete
                       </button>

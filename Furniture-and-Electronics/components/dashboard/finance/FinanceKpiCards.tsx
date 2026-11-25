@@ -13,23 +13,23 @@ interface FinanceKpiCardsProps {
 export default function FinanceKpiCards({ kpis, isOwner }: FinanceKpiCardsProps) {
   return (
     <div
-      className={`grid grid-cols-1 ${
-        isOwner ? "md:grid-cols-2" : "md:grid-cols-1 max-w-md"
-      } gap-4 mb-6`}
+      className={`grid ${
+        isOwner ? "grid-cols-2" : "grid-cols-1 max-w-md"
+      } gap-3 sm:gap-4 mb-5 sm:mb-6`}
     >
       <KpiCard
         label="Total Finances"
         value={kpis.totalCount}
-        note="Financed deals in selected period"
+        note="Financed deals in period"
         accent="blue"
         icon={<FaFileInvoiceDollar className="w-4 h-4" />}
       />
 
       {isOwner && (
         <KpiCard
-          label="Total Amount Received in Bank"
+          label="Bank Received"
           value={`₹${Number(kpis.totalBankReceived || 0).toLocaleString("en-IN")}`}
-          note="Net bank settlement across selected period"
+          note="Net settlement in bank"
           accent="green"
           icon={<FaUniversity className="w-4 h-4" />}
         />

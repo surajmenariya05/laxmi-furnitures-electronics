@@ -4,6 +4,7 @@ import React from "react";
 import { BookingResponse } from "@/types/booking";
 import BookingHistoryRow from "./BookingHistoryRow";
 import BookingHistoryEmptyState from "./BookingHistoryEmptyState";
+import BookingHistoryMobileCards from "@/components/mobileview/bookings/BookingHistoryMobileCards";
 import { FaChevronLeft, FaChevronRight, FaSpinner } from "react-icons/fa";
 
 interface BookingHistoryTableProps {
@@ -40,7 +41,15 @@ export default function BookingHistoryTable({
 
   return (
     <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden flex flex-col">
-      <div className="overflow-x-auto">
+      {/* Mobile Cards */}
+      <BookingHistoryMobileCards
+        bookings={bookings}
+        onViewSlip={onViewSlip}
+        onCollectDue={onCollectDue}
+      />
+
+      {/* Desktop Table */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>

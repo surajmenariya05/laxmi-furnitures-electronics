@@ -33,23 +33,23 @@ export default function BookingHistoryFilters({
       </div>
 
       {/* Direct Status Buttons (Beside Search) */}
-      <div className="flex flex-wrap items-center gap-2 w-full md:w-auto justify-start md:justify-end">
+      <div className="grid grid-cols-3 gap-1.5 w-full md:w-auto md:flex md:items-center md:gap-2">
         <button
           type="button"
           onClick={() => onStatusChange("COMPLETED")}
-          className={`px-3.5 py-2 text-xs font-bold rounded-lg border transition-all ${
+          className={`px-2 sm:px-3.5 py-2 text-[11px] sm:text-xs font-bold rounded-lg border transition-all whitespace-nowrap text-center ${
             status === "COMPLETED"
               ? "bg-emerald-600 text-white border-emerald-600 shadow-xs"
               : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
           }`}
         >
-          Completed (Fully Delivered)
+          Completed
         </button>
 
         <button
           type="button"
           onClick={() => onStatusChange("CANCELLED")}
-          className={`px-3.5 py-2 text-xs font-bold rounded-lg border transition-all ${
+          className={`px-2 sm:px-3.5 py-2 text-[11px] sm:text-xs font-bold rounded-lg border transition-all whitespace-nowrap text-center ${
             status === "CANCELLED"
               ? "bg-rose-600 text-white border-rose-600 shadow-xs"
               : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
@@ -61,13 +61,13 @@ export default function BookingHistoryFilters({
         <button
           type="button"
           onClick={() => onStatusChange("ALL")}
-          className={`px-3.5 py-2 text-xs font-bold rounded-lg border transition-all ${
+          className={`px-2 sm:px-3.5 py-2 text-[11px] sm:text-xs font-bold rounded-lg border transition-all whitespace-nowrap text-center ${
             status === "ALL"
               ? "bg-blue-600 text-white border-blue-600 shadow-xs"
               : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
           }`}
         >
-          All Historical
+          All
         </button>
       </div>
     </div>

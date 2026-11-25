@@ -184,17 +184,18 @@ export default function StaffManagementPage() {
   return (
     <div className="space-y-6">
       {/* Header card */}
-      <div className="bg-white p-6 rounded-lg shadow-sm flex justify-between items-center">
+      <div className="bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3.5 sm:gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-black">Staff & Account Management</h2>
-          <p className="text-sm text-gray-500">Manage user credentials, roles, and status levels</p>
+          <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight">Staff &amp; Account Management</h2>
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">Manage user credentials, roles, and status levels</p>
         </div>
         <TactileButton
           onClick={handleOpenAdd}
           variant="staff"
           size="md"
+          className="w-full sm:w-auto justify-center whitespace-nowrap"
         >
-          Add Staff Member
+          + Add Staff Member
         </TactileButton>
       </div>
 

@@ -81,54 +81,71 @@ export default function DuePaymentsMobileCards({
                 </div>
               </div>
 
-              <div>
-                <div className="text-sm font-bold text-gray-900">
+              <div className="flex items-baseline justify-between gap-2 border-t border-gray-100 pt-2.5">
+                <div className="text-base font-extrabold text-gray-900 truncate">
                   {bill.customer?.name || "Guest"}
                 </div>
-                <div className="text-xs text-gray-500 font-mono">
+                <div className="text-xs text-gray-700 font-mono font-semibold shrink-0">
+                  <span className="font-sans text-[11px] font-bold text-gray-400 mr-1">
+                    Mob:
+                  </span>
                   {bill.customer?.phone || "N/A"}
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2 bg-gray-50 rounded-xl p-2.5 border border-gray-100 text-center">
-                <div>
-                  <div className="text-[10px] font-bold text-gray-400 uppercase">Total</div>
-                  <div className="text-xs font-extrabold text-gray-900">
+              <div className="grid grid-cols-3 divide-x divide-gray-200 bg-[#FAF8F5] rounded-xl py-2.5 border border-[#E5DFD7] text-center">
+                <div className="px-2">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Total
+                  </div>
+                  <div className="text-xs font-extrabold text-gray-900 tabular-nums mt-0.5">
                     ₹{parseFloat(bill.totalAmount).toLocaleString("en-IN")}
                   </div>
                 </div>
-                <div>
-                  <div className="text-[10px] font-bold text-gray-400 uppercase">Paid</div>
-                  <div className="text-xs font-extrabold text-[#15803D]">
+                <div className="px-2">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                    Paid
+                  </div>
+                  <div className="text-xs font-extrabold text-[#15803D] tabular-nums mt-0.5">
                     ₹{parseFloat(bill.paidAmount).toLocaleString("en-IN")}
                   </div>
                 </div>
-                <div>
-                  <div className="text-[10px] font-bold text-[#780000] uppercase">Due</div>
-                  <div className="text-xs font-black text-[#780000]">
+                <div className="px-2">
+                  <div className="text-[10px] font-bold text-[#780000] uppercase tracking-wider">
+                    Due
+                  </div>
+                  <div className="text-xs font-black text-[#780000] tabular-nums mt-0.5">
                     ₹{parseFloat(bill.dueAmount).toLocaleString("en-IN")}
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-1">
+              <div
+                className={`pt-1 ${
+                  bill.customer?.phone
+                    ? "grid grid-cols-2 gap-2.5"
+                    : "flex justify-end"
+                }`}
+              >
                 {bill.customer?.phone && (
                   <button
                     type="button"
                     onClick={() => onSendWhatsapp(bill)}
                     disabled={sendingWhatsappId === bill.id}
-                    className="inline-flex items-center gap-1.5 h-8 px-3 text-xs font-bold text-[#136338] bg-gradient-to-b from-[#F2FBF6] to-[#E4F5EB] border border-[#A8E2BF] border-b-2 border-b-[#4BAE74] rounded-full shadow-2xs disabled:opacity-50"
+                    className="w-full inline-flex items-center justify-center gap-1.5 h-9 px-3 text-xs font-bold text-[#136338] bg-gradient-to-b from-[#F2FBF6] to-[#E4F5EB] border border-[#A8E2BF] border-b-2 border-b-[#4BAE74] rounded-full shadow-2xs disabled:opacity-50"
                   >
-                    <FaWhatsapp className="w-3.5 h-3.5" />
+                    <FaWhatsapp className="w-3.5 h-3.5 shrink-0" />
                     <span>Remind</span>
                   </button>
                 )}
                 <button
                   type="button"
                   onClick={() => onOpenPaymentModal(bill)}
-                  className="inline-flex items-center gap-1.5 h-8 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-bold shadow-xs"
+                  className={`${
+                    bill.customer?.phone ? "w-full" : "px-5"
+                  } inline-flex items-center justify-center gap-1.5 h-9 px-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full text-xs font-bold shadow-xs`}
                 >
-                  <FaMoneyBillWave className="w-3.5 h-3.5" />
+                  <FaMoneyBillWave className="w-3.5 h-3.5 shrink-0" />
                   <span>Collect Due</span>
                 </button>
               </div>

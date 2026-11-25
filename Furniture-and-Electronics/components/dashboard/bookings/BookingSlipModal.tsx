@@ -6,6 +6,7 @@ import { BookingResponse } from "@/types/booking";
 import { FaPrint, FaTimes, FaCamera, FaSearchPlus } from "react-icons/fa";
 import { extractDesignPhotos } from "@/lib/booking-photos";
 import { useReactToPrint } from "react-to-print";
+import BookingSlipMobileItems from "@/components/mobileview/bookings/BookingSlipMobileItems";
 
 interface BookingSlipModalProps {
   booking: BookingResponse | null;
@@ -131,36 +132,38 @@ export default function BookingSlipModal({
       className="bg-[#FAF6F0] rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden border border-[#EADFCF] print:max-h-none print:shadow-none print:rounded-none"
     >
         {/* Fixed Header Controls (Always visible, docked at top, hidden in print) */}
-        <div className="sticky top-0 z-10 flex-shrink-0 flex justify-between items-center px-6 py-3.5 bg-gray-50 border-b border-gray-200 print:hidden">
-          <div className="flex items-center gap-2">
+        <div className="sticky top-0 z-10 flex-shrink-0 flex justify-between items-center gap-2 px-3.5 sm:px-6 py-3 bg-gray-50 border-b border-gray-200 print:hidden">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
             <img
               src="/design-logos/slip-logo.png"
               alt="Slip"
-              className="w-5 h-5 object-contain"
+              className="w-5 h-5 object-contain shrink-0"
             />
-            <span className="font-mono text-xs font-black text-blue-900 bg-blue-100 px-2 py-0.5 rounded">
+            <span className="font-mono text-[11px] sm:text-xs font-black text-blue-900 bg-blue-100 px-2 py-0.5 rounded whitespace-nowrap shrink-0">
               {booking.bookingNumber}
             </span>
-            <span className="text-xs text-gray-500 font-medium">Package Order Slip</span>
+            <span className="hidden sm:inline text-xs text-gray-500 font-medium whitespace-nowrap">
+              Package Order Slip
+            </span>
             {isDelivered && (
-              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300">
+              <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 whitespace-nowrap shrink-0">
                 ✓ Delivered
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition shadow-sm"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold transition shadow-sm whitespace-nowrap"
             >
-              <FaPrint className="w-3.5 h-3.5" />
+              <FaPrint className="w-3.5 h-3.5 shrink-0" />
               <span>Print Slip</span>
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition"
+              className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition shrink-0"
               title="Close (Esc)"
             >
               <FaTimes className="w-4 h-4" />
@@ -171,7 +174,7 @@ export default function BookingSlipModal({
         {/* Scrollable Printable Slip Body */}
         <div
           ref={printRef}
-          className="flex-1 overflow-y-auto print:overflow-visible booking-slip-print-container p-6 sm:p-7 space-y-4 text-gray-900 bg-white"
+          className="flex-1 overflow-y-auto print:overflow-visible booking-slip-print-container p-4 sm:p-7 space-y-4 text-gray-900 bg-white"
         >
           {/* Header */}
           <div className="text-center border-b border-gray-300 pb-3">
@@ -195,61 +198,77 @@ export default function BookingSlipModal({
           </div>
 
           {/* Booking Meta Grid */}
-          <div className="grid grid-cols-2 gap-3 text-xs bg-gray-50 p-3.5 rounded-xl border border-gray-200">
-            <div>
-              <p className="text-gray-500 text-[11px]">Booking Reference:</p>
-              <p className="font-black text-gray-900 text-sm font-mono">{booking.bookingNumber}</p>
-              <p className="text-gray-500 text-[11px] mt-1.5">Booking Date:</p>
-              <p className="font-bold text-gray-800">{formattedBookingDate}</p>
+          <div className="text-xs bg-gray-50 p-3.5 rounded-xl border border-gray-200 space-y-2.5">
+            {/* Row 1: Booking Reference (left) & Booking Date (right) */}
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-gray-500 text-[11px]">Booking Reference:</p>
+                <p className="font-black text-gray-900 text-sm font-mono">{booking.bookingNumber}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-gray-500 text-[11px]">Booking Date:</p>
+                <p className="font-bold text-gray-800">{formattedBookingDate}</p>
+              </div>
             </div>
-            <div>
-              {isDelivered ? (
-                <>
-                  <p className="text-gray-500 text-[11px]">Delivery Status:</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-[11px] font-black bg-[#EBFDE7] text-[#14532D] border border-[#81FF7A]/80 border-b-[#4ADE80] shadow-[0_2px_4px_rgba(20,83,45,0.12),inset_0_1px_0_rgba(255,255,255,0.9)]">
-                      ✓ DELIVERED
-                    </span>
-                    <span className="text-gray-700 font-bold text-xs">
-                      {formattedDeliveredDate}
-                    </span>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <p className="text-gray-500 text-[11px]">Target Delivery Date:</p>
-                  <p className="font-extrabold text-blue-900 text-sm flex items-center gap-1.5 mt-0.5">
-                    <img
-                      src="/design-logos/truck-logo.png"
-                      alt="Delivery"
-                      className="w-4 h-4 object-contain inline-block"
-                    />
-                    <span>{formattedDeliveryDate}</span>
-                  </p>
-                </>
-              )}
+
+            {/* Row 2: Delivery Status (left) & Event Date (right) */}
+            <div className="flex items-start justify-between gap-3 border-t border-gray-200/80 pt-2.5">
+              <div>
+                {isDelivered ? (
+                  <>
+                    <p className="text-gray-500 text-[11px]">Delivery Status:</p>
+                    <div className="flex items-center flex-wrap gap-1.5 mt-0.5">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-black bg-[#EBFDE7] text-[#14532D] border border-[#81FF7A]/80 border-b-[#4ADE80] shadow-[0_2px_4px_rgba(20,83,45,0.12),inset_0_1px_0_rgba(255,255,255,0.9)] whitespace-nowrap">
+                        ✓ DELIVERED
+                      </span>
+                      <span className="text-gray-700 font-bold text-xs whitespace-nowrap">
+                        {formattedDeliveredDate}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-gray-500 text-[11px]">Target Delivery Date:</p>
+                    <p className="font-extrabold text-blue-900 text-sm flex items-center gap-1.5 mt-0.5">
+                      <img
+                        src="/design-logos/truck-logo.png"
+                        alt="Delivery"
+                        className="w-4 h-4 object-contain inline-block"
+                      />
+                      <span>{formattedDeliveryDate}</span>
+                    </p>
+                  </>
+                )}
+              </div>
+
               {formattedEventDate && (
-                <>
-                  <p className="text-gray-500 text-[11px] mt-1.5">Event Date:</p>
-                  <p className="font-bold text-gray-800">{formattedEventDate}</p>
-                </>
+                <div className="text-right shrink-0">
+                  <p className="text-gray-500 text-[11px]">Event Date:</p>
+                  <p className="font-bold text-gray-800 mt-0.5">{formattedEventDate}</p>
+                </div>
               )}
             </div>
           </div>
 
           {/* Customer Information */}
-          <div className="text-xs border-b border-gray-200 pb-2.5">
+          <div className="text-xs border-b border-gray-200 pb-3 space-y-1">
             <h3 className="font-bold text-gray-500 uppercase tracking-wider text-[10px] mb-1">
               Customer Details
             </h3>
-            <div className="flex justify-between items-baseline">
+            <div className="flex justify-between items-baseline gap-2 flex-wrap">
               <span className="font-extrabold text-sm text-gray-900">
                 {booking.customer?.name || "Customer"}
               </span>
-              <span className="font-mono text-gray-700 font-semibold">{booking.customer?.phone || "—"}</span>
+              <span className="font-mono text-gray-800 font-semibold">
+                <span className="font-sans text-[11px] font-bold text-gray-500 mr-1">Mob:</span>
+                {booking.customer?.phone || "—"}
+              </span>
             </div>
             {booking.customer?.address && (
-              <p className="text-gray-600 mt-0.5">{booking.customer.address}</p>
+              <p className="text-gray-700">
+                <span className="text-[11px] font-bold text-gray-500 mr-1">Add:</span>
+                {booking.customer.address}
+              </p>
             )}
           </div>
 
@@ -258,7 +277,9 @@ export default function BookingSlipModal({
             <h3 className="font-bold text-gray-500 uppercase tracking-wider text-[10px] mb-1.5">
               Reserved Package Items ({booking.bookingItems.length})
             </h3>
-            <table className="w-full text-xs border border-gray-200 rounded-lg overflow-hidden">
+            <BookingSlipMobileItems items={booking.bookingItems} />
+
+            <table className="hidden sm:table print:table w-full text-xs border border-gray-200 rounded-lg overflow-hidden">
               <thead className="bg-gray-100 text-gray-700">
                 <tr>
                   <th className="py-1.5 px-3 text-left">Item Description</th>
@@ -298,7 +319,7 @@ export default function BookingSlipModal({
           </div>
 
           {/* Financials & Invoices Grid */}
-          <div className="grid grid-cols-2 gap-3 text-xs pt-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
             {/* Linked Invoices */}
             <div className="bg-gray-50 p-3 rounded-xl border border-gray-200 space-y-1.5">
               <h4 className="font-bold text-gray-500 uppercase text-[10px] tracking-wider">

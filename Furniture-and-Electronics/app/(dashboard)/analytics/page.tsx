@@ -100,26 +100,31 @@ export default function AnalyticsDashboard() {
   if (authLoading || role !== "owner") return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 pb-8">
       {/* Top Bar - Elevated z-30 stacking context so dropdown floats above lower cards */}
-      <div className="relative z-30 flex justify-between items-center bg-[#F5F2ED]/95 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-[#E5DFD7]">
-        <div>
-          <h2 className="text-2xl font-black text-[#1C1A17] tracking-tight">Business Analytics</h2>
-          <p className="text-sm text-[#6E6862]">Sales and profit metrics dashboard</p>
+      <div className="relative z-30 flex flex-col md:flex-row md:justify-between md:items-center gap-3.5 sm:gap-4 bg-[#F5F2ED]/95 backdrop-blur-md p-4 sm:p-6 rounded-2xl shadow-sm border border-[#E5DFD7]">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+          <h2 className="text-xl sm:text-2xl font-black text-[#1C1A17] tracking-tight leading-none shrink-0 flex flex-col">
+            <span>Business</span>
+            <span>Analytics</span>
+          </h2>
+          <p className="text-sm sm:text-base text-[#6E6862] font-medium leading-snug border-l border-[#DED6CE] pl-3 sm:pl-4">
+            Sales and profit metrics dashboard
+          </p>
         </div>
         
-        <div className="flex items-center gap-3">
-          <div className="relative" ref={dropdownRef}>
+        <div className="grid grid-cols-2 md:flex items-center gap-2.5 sm:gap-3 w-full md:w-auto">
+          <div className="relative w-full md:w-auto" ref={dropdownRef}>
             <button 
               onClick={() => setDropdownOpen(!dropdownOpen)}
-              className="border border-[#DDD6CE] rounded-xl px-4 py-2 bg-white text-sm min-w-[150px] text-left flex justify-between items-center text-[#1C1A17] font-bold hover:border-[#D5CDC3] transition shadow-2xs"
+              className="w-full md:min-w-[150px] border border-[#DDD6CE] rounded-xl px-3 sm:px-4 py-2 bg-white text-xs sm:text-sm text-left flex justify-between items-center text-[#1C1A17] font-bold hover:border-[#D5CDC3] transition shadow-2xs whitespace-nowrap"
             >
-              {days === "custom" ? "Custom Range" : `Last ${days} Days`}
-              <span className="ml-2 text-[#6E6862] text-xs">▼</span>
+              <span className="truncate">{days === "custom" ? "Custom Range" : `Last ${days} Days`}</span>
+              <span className="ml-2 text-[#6E6862] text-[10px] sm:text-xs shrink-0">▼</span>
             </button>
             
             {dropdownOpen && (
-              <div className="absolute top-full right-0 mt-2 bg-[#F5F2ED] border border-[#DDD6CE] rounded-2xl shadow-2xl z-50 w-80 p-3">
+              <div className="absolute top-full left-0 md:left-auto md:right-0 mt-2 bg-[#F5F2ED] border border-[#DDD6CE] rounded-2xl shadow-2xl z-50 w-[calc(100vw-3rem)] max-w-[320px] sm:w-80 p-3">
                 <div className="flex flex-col space-y-1">
                   <button onClick={() => { setDays("7"); setDropdownOpen(false); }} className={`text-left px-3 py-2 text-sm rounded-xl font-bold transition ${days === "7" ? "bg-[#1C1A17] text-white shadow-xs" : "text-[#6E6862] hover:bg-[#EAE4DC] hover:text-[#1C1A17]"}`}>Last 7 Days</button>
                   <button onClick={() => { setDays("30"); setDropdownOpen(false); }} className={`text-left px-3 py-2 text-sm rounded-xl font-bold transition ${days === "30" ? "bg-[#1C1A17] text-white shadow-xs" : "text-[#6E6862] hover:bg-[#EAE4DC] hover:text-[#1C1A17]"}`}>Last 30 Days</button>
@@ -169,6 +174,7 @@ export default function AnalyticsDashboard() {
             onClick={handleExportExcel}
             variant="excel"
             size="md"
+            className="w-full md:w-auto justify-center whitespace-nowrap text-xs sm:text-sm"
           >
             Export Excel
           </TactileButton>
@@ -179,34 +185,34 @@ export default function AnalyticsDashboard() {
 
       {/* Stats Cards */}
       {loading || !stats ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4 xl:gap-5">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="min-h-36 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.045)] animate-pulse" />
+            <div key={i} className="min-h-28 sm:min-h-36 rounded-2xl border border-slate-200/80 bg-white p-4 sm:p-5 shadow-[0_2px_8px_rgba(15,23,42,0.045)] animate-pulse" />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4 xl:gap-5">
           <KpiCard
             label="Total Revenue"
-            value={`₹${stats.totalSales}`}
+            value={`₹${Number(stats.totalSales || 0).toLocaleString("en-IN")}`}
             note="Gross invoiced volume"
             accent="blue"
-            icon={<FaCoins className="w-5 h-5" />}
+            icon={<FaCoins className="w-4 h-4 sm:w-5 sm:h-5" />}
           />
           <KpiCard
             label="Total Profit Margin"
-            value={`₹${stats.totalProfit}`}
+            value={`₹${Number(stats.totalProfit || 0).toLocaleString("en-IN")}`}
             note="Net realized profit"
             accent="green"
             valueClassName="text-emerald-700"
-            icon={<FaChartLine className="w-5 h-5" />}
+            icon={<FaChartLine className="w-4 h-4 sm:w-5 sm:h-5" />}
           />
           <KpiCard
             label="Bills Generated"
             value={stats.totalBills}
             note="Total customer invoices"
             accent="violet"
-            icon={<FaFileInvoice className="w-5 h-5" />}
+            icon={<FaFileInvoice className="w-4 h-4 sm:w-5 sm:h-5" />}
           />
           <KpiCard
             label="Low Stock Warnings"
@@ -214,7 +220,7 @@ export default function AnalyticsDashboard() {
             note="Items below threshold"
             accent="rose"
             valueClassName="text-rose-700"
-            icon={<FaExclamationTriangle className="w-5 h-5" />}
+            icon={<FaExclamationTriangle className="w-4 h-4 sm:w-5 sm:h-5" />}
           />
         </div>
       )}

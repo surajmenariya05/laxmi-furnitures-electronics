@@ -4,6 +4,7 @@ import React from "react";
 import { FaMoneyBillWave, FaEye, FaTrash, FaCheckCircle, FaExclamationCircle } from "react-icons/fa";
 import { Purchase } from "@/types/purchase";
 import { Skeleton } from "@/components/dashboard/Skeleton";
+import PurchaseMobileCards from "@/components/mobileview/purchases/PurchaseMobileCards";
 
 interface PurchaseTableProps {
   purchases: Purchase[];
@@ -104,7 +105,20 @@ export default function PurchaseTable({
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-xs">
-      <div className="overflow-x-auto">
+      {/* Mobile Cards View (Option A) */}
+      <div className="md:hidden">
+        <PurchaseMobileCards
+          purchases={purchases}
+          onPayInstallment={onPayInstallment}
+          onViewDetails={onViewDetails}
+          onDeletePurchase={onDeletePurchase}
+          onReceiveStock={onReceiveStock}
+          isOwner={isOwner}
+        />
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase tracking-wider text-[10.5px] font-extrabold">

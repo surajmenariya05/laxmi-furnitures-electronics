@@ -62,7 +62,7 @@ export default function FinanceDateFilter({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-[340px] bg-[#FAF6F0] border border-[#E5DFD7] rounded-2xl shadow-xl p-3.5 z-50">
+        <div className="absolute left-0 sm:left-auto sm:right-0 mt-2 w-[calc(100vw-2rem)] max-w-[340px] bg-[#FAF6F0] border border-[#E5DFD7] rounded-2xl shadow-xl p-3.5 z-50">
           <div className="flex flex-col gap-1">
             {(
               [

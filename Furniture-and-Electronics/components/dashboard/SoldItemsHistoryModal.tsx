@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { X, Search, Loader2 } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
+import SoldItemsMobileCards from "@/components/mobileview/dashboard/SoldItemsMobileCards";
 
 interface Category {
   id: number;
@@ -30,7 +31,7 @@ export default function SoldItemsHistoryModal({
 
   // Observer for infinite scroll
   const observer = useRef<IntersectionObserver | null>(null);
-  const lastElementRef = useCallback((node: HTMLTableRowElement | null) => {
+  const lastElementRef = useCallback((node: HTMLElement | null) => {
     if (loading) return;
     if (observer.current) observer.current.disconnect();
     
@@ -114,48 +115,48 @@ export default function SoldItemsHistoryModal({
     >
         
         {/* Header */}
-        <div className="px-6 py-4 border-b flex justify-between items-center bg-gray-50/50">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b flex justify-between items-start gap-2 bg-gray-50/50">
           <div>
-            <h2 className="text-xl font-bold text-gray-800">Sold Items History</h2>
-            <p className="text-sm text-gray-500">View and filter all historical sales</p>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-800">Sold Items History</h2>
+            <p className="text-xs sm:text-sm text-gray-500">View and filter all historical sales</p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
+            className="p-2 shrink-0 hover:bg-gray-100 rounded-full transition-colors text-gray-500"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Filters */}
-        <div className="px-6 py-4 border-b bg-white grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b bg-white grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">From Date</label>
+            <label className="block text-[11px] sm:text-xs font-medium text-gray-500 mb-1">From Date</label>
             <input
               type="date"
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">To Date</label>
+            <label className="block text-[11px] sm:text-xs font-medium text-gray-500 mb-1">To Date</label>
             <input
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Parent Category</label>
+            <label className="block text-[11px] sm:text-xs font-medium text-gray-500 mb-1">Parent Category</label>
             <select
               value={parentCategory}
               onChange={(e) => {
                 setParentCategory(e.target.value);
                 setSubCategory("");
               }}
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full border rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
             >
               <option value="">All Categories</option>
               {parents.map(c => (
@@ -164,12 +165,12 @@ export default function SoldItemsHistoryModal({
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Subcategory</label>
+            <label className="block text-[11px] sm:text-xs font-medium text-gray-500 mb-1">Subcategory</label>
             <select
               value={subCategory}
               onChange={(e) => setSubCategory(e.target.value)}
               disabled={!parentCategory}
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:opacity-50"
+              className="w-full border rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:opacity-50"
             >
               <option value="">All Subcategories</option>
               {subs.map(c => (
@@ -179,9 +180,17 @@ export default function SoldItemsHistoryModal({
           </div>
         </div>
 
-        {/* Table Content */}
-        <div className="flex-1 overflow-auto p-6 bg-gray-50/30">
-          <div className="border rounded-xl bg-white shadow-sm overflow-hidden">
+        {/* Table / Mobile Cards Content */}
+        <div className="flex-1 overflow-auto p-3.5 sm:p-6 bg-gray-50/30">
+          {items.length === 0 && !loading && (
+            <div className="md:hidden border rounded-xl bg-white p-8 text-center text-gray-500 text-sm">
+              No sold items found.
+            </div>
+          )}
+
+          <SoldItemsMobileCards items={items} lastElementRef={lastElementRef} />
+
+          <div className="hidden md:block border rounded-xl bg-white shadow-sm overflow-hidden">
             <table className="w-full text-sm text-left">
               <thead className="bg-gray-50 text-gray-600 font-medium border-b text-xs uppercase tracking-wider">
                 <tr>
@@ -222,7 +231,7 @@ export default function SoldItemsHistoryModal({
                         <td className="px-4 py-3 whitespace-nowrap">
                           <div className="font-medium text-gray-900">{billNo}</div>
                           {customerName && (
-                            <div className="text-s text-blue-800 mt-0.5 opacity-90">{customerName}</div>
+                            <div className="text-xs text-blue-800 mt-0.5 opacity-90">{customerName}</div>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -258,13 +267,13 @@ export default function SoldItemsHistoryModal({
                 )}
               </tbody>
             </table>
-            
-            {loading && (
-              <div className="p-6 flex justify-center items-center">
-                <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
-              </div>
-            )}
           </div>
+
+          {loading && (
+            <div className="p-6 flex justify-center items-center">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-500" />
+            </div>
+          )}
         </div>
       </Modal>
     );

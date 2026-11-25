@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { getProducts, getCategories } from "@/lib/api/inventory";
-import { FaCouch, FaTv, FaSearch, FaPlus, FaCheck } from "react-icons/fa";
+import { FaCouch, FaTv, FaSearch, FaPlus, FaCheck, FaChevronDown } from "react-icons/fa";
 
 interface ProductPickerProps {
   onAddItem: (item: {
@@ -30,6 +30,18 @@ export default function ProductPicker({ onAddItem }: ProductPickerProps) {
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [addedNotice, setAddedNotice] = useState(false);
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const categoryRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutside = (e: MouseEvent) => {
+      if (categoryRef.current && !categoryRef.current.contains(e.target as Node)) {
+        setCategoryOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, []);
 
   // Fetch categories when department changes
   useEffect(() => {
@@ -195,22 +207,63 @@ export default function ProductPicker({ onAddItem }: ProductPickerProps) {
 
       {/* Filter Row: Category & Search */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
+        <div className="relative" ref={categoryRef}>
           <label className="block text-xs font-semibold text-gray-600 mb-1">
             Category
           </label>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          <button
+            type="button"
+            onClick={() => setCategoryOpen((prev) => !prev)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white flex items-center justify-between gap-2 text-left focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">All {selectedDept === "FURNITURE" ? "Furniture" : "Electronics"} Categories</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            <span className="truncate font-medium text-gray-800">
+              {selectedCategory
+                ? categories.find((c) => String(c.id) === selectedCategory)?.name ||
+                  `All ${selectedDept === "FURNITURE" ? "Furniture" : "Electronics"} Categories`
+                : `All ${selectedDept === "FURNITURE" ? "Furniture" : "Electronics"} Categories`}
+            </span>
+            <FaChevronDown
+              className={`w-3 h-3 text-gray-500 shrink-0 transition-transform ${
+                categoryOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {categoryOpen && (
+            <div className="absolute left-0 right-0 mt-1.5 bg-white border border-gray-200 rounded-xl shadow-xl z-40 max-h-60 overflow-y-auto divide-y divide-gray-100">
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCategory("");
+                  setCategoryOpen(false);
+                }}
+                className={`w-full text-left px-3.5 py-2.5 text-sm truncate transition ${
+                  selectedCategory === ""
+                    ? "bg-blue-600 text-white font-bold"
+                    : "text-gray-700 hover:bg-blue-50 font-medium"
+                }`}
+              >
+                All {selectedDept === "FURNITURE" ? "Furniture" : "Electronics"} Categories
+              </button>
+              {categories.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory(String(c.id));
+                    setCategoryOpen(false);
+                  }}
+                  className={`w-full text-left px-3.5 py-2.5 text-sm truncate transition ${
+                    selectedCategory === String(c.id)
+                      ? "bg-blue-600 text-white font-bold"
+                      : "text-gray-700 hover:bg-blue-50 font-medium"
+                  }`}
+                >
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div>
@@ -304,13 +357,16 @@ export default function ProductPicker({ onAddItem }: ProductPickerProps) {
 
       {/* Selected Item Action Bar */}
       {selectedProduct && (
-        <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <span className="text-xs font-semibold text-blue-700 uppercase tracking-wide">
-              Selected:
+        <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+          <div className="w-full sm:flex-1 text-left">
+            <span className="inline-block text-[10px] font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded uppercase tracking-wider">
+              Selected
             </span>
-            <p className="text-sm font-bold text-blue-950 mt-0.5">
-              {selectedProduct.name} — ₹{Number(selectedProduct.sellingPrice).toLocaleString("en-IN")}
+            <p className="text-sm font-bold text-blue-950 mt-1 leading-snug">
+              {selectedProduct.name} —{" "}
+              <span className="text-blue-800">
+                ₹{Number(selectedProduct.sellingPrice).toLocaleString("en-IN")}
+              </span>
             </p>
             {Number(selectedProduct.stock ?? selectedProduct.quantityInStock ?? 0) <= 0 ? (
               <p className="text-[11px] font-semibold text-amber-800 mt-1 flex items-center gap-1.5">
@@ -323,7 +379,7 @@ export default function ProductPicker({ onAddItem }: ProductPickerProps) {
             ) : null}
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2.5 border-t border-blue-200/70 sm:border-t-0 sm:pt-0 shrink-0">
             <div className="flex items-center border border-gray-300 rounded-lg bg-white overflow-hidden">
               <button
                 type="button"

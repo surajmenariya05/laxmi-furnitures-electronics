@@ -57,13 +57,13 @@ export function Modal({
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className={`fixed inset-y-0 right-0 ${offsetSidebar ? "left-0 md:left-[286px]" : "left-0"} z-50 grid place-items-center p-3 sm:p-4 overflow-y-auto`}>
+        <div className={`fixed inset-y-0 right-0 ${offsetSidebar ? "left-0 lg:left-[286px]" : "left-0"} z-50 grid place-items-center p-3 sm:p-4 overflow-y-auto`}>
           {/* Animated Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className={`fixed inset-y-0 right-0 ${offsetSidebar ? "left-0 md:left-[286px]" : "left-0"} h-full w-full ${backdropClassName}`}
+            className={`fixed inset-y-0 right-0 ${offsetSidebar ? "left-0 lg:left-[286px]" : "left-0"} h-full w-full ${backdropClassName}`}
             onClick={closeOnOutsideClick ? onClose : undefined}
           />
 
@@ -74,7 +74,7 @@ export function Modal({
             exit={{ opacity: 0, scale: 0.95, y: 16, transition: { duration: 0.12 } }}
             transition={{ type: "spring", damping: 26, stiffness: 360 }}
             onClick={(e) => e.stopPropagation()}
-            className={`relative z-10 w-full flex flex-col shadow-2xl overflow-hidden rounded-2xl ${containerClassName} ${className}`}
+            className={`relative z-10 w-full max-h-[92dvh] flex flex-col shadow-2xl overflow-hidden rounded-2xl ${containerClassName} ${className}`}
           >
             {showCloseButton && (
               <button

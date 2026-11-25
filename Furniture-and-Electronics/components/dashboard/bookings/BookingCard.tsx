@@ -139,10 +139,10 @@ export default function BookingCard({
   }
 
   return (
-    <div className="bg-[#F5F2ED]/95 backdrop-blur-md rounded-2xl border border-[#E5DFD7] shadow-sm hover:shadow-md hover:border-[#D5CDC3] transition-all duration-200 p-5 flex flex-col justify-between">
+    <div className="bg-[#F5F2ED]/95 backdrop-blur-md rounded-2xl border border-[#E5DFD7] shadow-sm hover:shadow-md hover:border-[#D5CDC3] transition-all duration-200 p-4 sm:p-5 flex flex-col justify-between">
       <div>
         {/* Header: Symmetrical Top Bar */}
-        <div className="flex items-center justify-between gap-2 mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
           <span className="whitespace-nowrap font-mono text-xs font-black text-blue-900 bg-blue-50 px-2.5 py-1 rounded-md border border-blue-200/80 tracking-tight">
             {booking.bookingNumber}
           </span>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import PackageItemsMobileCards from "@/components/mobileview/bookings/PackageItemsMobileCards";
 import {
   FaTrash,
   FaCouch,
@@ -97,21 +98,21 @@ export default function PackageItemsTable({
   return (
     <div className="bg-white rounded-xl border border-gray-200/80 shadow-sm overflow-hidden">
       {/* Table Header with Photo Attachment Button */}
-      <div className="px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+      <div className="px-4 sm:px-6 py-4 border-b border-gray-100 flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <h3 className="text-sm sm:text-base font-bold text-gray-900 flex items-center gap-2 whitespace-nowrap">
             <span>Package Items</span>
-            <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+            <span className="text-[11px] sm:text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 whitespace-nowrap">
               {items.length} {items.length === 1 ? "item" : "items"}
             </span>
           </h3>
 
           {/* Photo / Design Attachment Button next to Package Items */}
           <label
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-bold cursor-pointer transition border border-blue-200 shadow-2xs"
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-[11px] sm:text-xs font-bold cursor-pointer transition border border-blue-200 shadow-2xs whitespace-nowrap shrink-0"
             title="Attach design photos from computer or mobile gallery"
           >
-            <FaCamera className="w-3.5 h-3.5 text-blue-600" />
+            <FaCamera className="w-3.5 h-3.5 text-blue-600 shrink-0" />
             <span>Attach Designs / Photos</span>
             {attachedPhotos.length > 0 && (
               <span className="bg-blue-600 text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-0.5">
@@ -135,28 +136,31 @@ export default function PackageItemsTable({
 
       {/* Attached Photos Thumbnail Preview Strip */}
       {attachedPhotos.length > 0 && (
-        <div className="px-6 py-3 bg-blue-50/40 border-b border-blue-100 flex flex-wrap items-center gap-2.5">
-          <span className="text-[11px] font-bold text-blue-900 flex items-center gap-1 mr-1">
+        <div className="px-4 sm:px-6 py-3 bg-blue-50/40 border-b border-blue-100 flex flex-wrap items-start gap-3">
+          <span className="text-[11px] font-bold text-blue-900 flex items-center gap-1 mt-4 shrink-0">
             <FaCamera className="w-3 h-3 text-blue-600" />
             Selected Designs ({attachedPhotos.length}):
           </span>
           {attachedPhotos.map((photo) => (
             <div
               key={photo.id}
-              className="relative group w-12 h-12 rounded-lg border border-blue-200 bg-white overflow-hidden shadow-2xs flex-shrink-0"
+              className="flex flex-col items-center gap-1.5 flex-shrink-0"
             >
-              <img
-                src={photo.url}
-                alt={photo.name}
-                className="w-full h-full object-cover"
-              />
+              <div className="w-14 h-14 rounded-lg border border-blue-200 bg-white overflow-hidden shadow-2xs">
+                <img
+                  src={photo.url}
+                  alt={photo.name}
+                  className="w-full h-full object-cover"
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => handleRemovePhoto(photo.id)}
-                className="absolute inset-0 bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                className="w-5 h-5 rounded-full bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 flex items-center justify-center shadow-2xs transition"
                 title="Remove photo"
+                aria-label="Remove photo"
               >
-                <FaTimes className="w-3 h-3 text-red-300 hover:text-red-100" />
+                <FaTimes className="w-2.5 h-2.5" />
               </button>
             </div>
           ))}
@@ -165,7 +169,7 @@ export default function PackageItemsTable({
 
       {/* Sweet Warning Notice if any item exceeds showroom stock */}
       {items.some((i) => i.stock !== undefined && (i.stock <= 0 || i.quantity > i.stock)) && (
-        <div className="mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs flex items-start gap-2.5 text-amber-900">
+        <div className="mx-4 sm:mx-6 mt-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs flex items-start gap-2.5 text-amber-900">
           <span className="text-base flex-shrink-0">⚠️</span>
           <div>
             <strong className="font-bold">Showroom Inventory Notice:</strong>
@@ -180,7 +184,20 @@ export default function PackageItemsTable({
         </div>
       )}
 
-      <div className="overflow-x-auto">
+      {/* Mobile Cards View (< md) */}
+      <div className="md:hidden">
+        <PackageItemsMobileCards
+          items={items}
+          activeConfigIndex={activeConfigIndex}
+          setActiveConfigIndex={setActiveConfigIndex}
+          onUpdateQuantity={onUpdateQuantity}
+          onUpdateItemConfig={onUpdateItemConfig}
+          onRemoveItem={onRemoveItem}
+        />
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full text-left border-collapse text-sm">
           <thead>
             <tr className="bg-gray-50 text-[11px] font-bold text-gray-500 uppercase tracking-wider border-b border-gray-200/60">

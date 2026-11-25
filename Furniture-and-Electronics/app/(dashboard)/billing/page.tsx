@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense } from "react";
-import { FaEdit, FaArrowLeft, FaCheckCircle } from "react-icons/fa";
+import { useState, Suspense } from "react";
+import { FaEdit, FaArrowLeft, FaCheckCircle, FaFileInvoice, FaCashRegister } from "react-icons/fa";
 import { useBillingTerminal } from "@/hooks/useBillingTerminal";
 import InvoiceTemplate from "@/components/dashboard/InvoiceTemplate";
 import ProductSearchBar from "@/components/dashboard/billing/ProductSearchBar";
@@ -28,17 +28,50 @@ export default function BillingPage() {
 
 function BillingTerminal() {
   const b = useBillingTerminal();
+  const [mobileTab, setMobileTab] = useState<"terminal" | "preview">("terminal");
 
   return (
-    <div className="relative grid grid-cols-1 xl:grid-cols-5 gap-6 h-[calc(100vh-8rem)]">
+    <div className="relative flex flex-col xl:grid xl:grid-cols-5 gap-4 xl:gap-6 min-h-[calc(100vh-7rem)] xl:h-[calc(100vh-8rem)]">
       {b.isLoadingEditBill && (
         <div className="absolute inset-0 z-40 bg-[#FAF6F0]/80 backdrop-blur-sm rounded-2xl flex items-center justify-center">
           <BanterLoader label="Loading bill details..." />
         </div>
       )}
 
+      {/* Mobile / Tablet 3D Segmented Switcher */}
+      <div className="xl:hidden flex items-center p-1 bg-[#EAE4DC] rounded-xl border border-[#DDD6CE] shadow-inner">
+        <button
+          type="button"
+          onClick={() => setMobileTab("terminal")}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-extrabold transition-all ${
+            mobileTab === "terminal"
+              ? "bg-white text-[#1C1A17] shadow-sm border border-[#DDD6CE]"
+              : "text-[#6E6862] hover:text-[#1C1A17]"
+          }`}
+        >
+          <FaCashRegister className="w-3.5 h-3.5 text-blue-600" />
+          <span>Billing Terminal ({b.cart.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMobileTab("preview")}
+          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-extrabold transition-all ${
+            mobileTab === "preview"
+              ? "bg-white text-[#1C1A17] shadow-sm border border-[#DDD6CE]"
+              : "text-[#6E6862] hover:text-[#1C1A17]"
+          }`}
+        >
+          <FaFileInvoice className="w-3.5 h-3.5 text-indigo-600" />
+          <span>Live Preview</span>
+        </button>
+      </div>
+
       {/* LEFT: Live Invoice Preview */}
-      <div className="xl:col-span-2 flex flex-col justify-start bg-[#F5F2ED]/95 backdrop-blur-md border border-[#E5DFD7] p-4 rounded-2xl shadow-sm overflow-y-auto max-h-full">
+      <div
+        className={`${
+          mobileTab === "preview" ? "flex" : "hidden"
+        } xl:flex xl:col-span-2 flex-col justify-start bg-[#F5F2ED]/95 backdrop-blur-md border border-[#E5DFD7] p-3 sm:p-4 rounded-2xl shadow-sm overflow-y-auto xl:max-h-full`}
+      >
         <div className="flex justify-between items-center mb-3">
           <span className="text-xs font-bold uppercase tracking-wider text-gray-400">
             Live Bill Preview
@@ -81,7 +114,11 @@ function BillingTerminal() {
       </div>
 
       {/* RIGHT: Input Form & Terminal */}
-      <div className="xl:col-span-3 bg-[#F5F2ED]/95 backdrop-blur-md rounded-2xl shadow-sm border border-[#E5DFD7] p-6 flex flex-col h-full overflow-y-auto">
+      <div
+        className={`${
+          mobileTab === "terminal" ? "flex" : "hidden"
+        } xl:flex xl:col-span-3 bg-[#F5F2ED]/95 backdrop-blur-md rounded-2xl shadow-sm border border-[#E5DFD7] p-4 sm:p-6 flex-col xl:h-full xl:overflow-y-auto`}
+      >
         {b.editingBill && (
           <div className="mb-4 px-4 py-2.5 rounded-xl bg-indigo-50 border border-indigo-200 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs font-bold text-indigo-900">

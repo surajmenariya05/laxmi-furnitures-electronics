@@ -67,7 +67,7 @@ export default function FinancePage() {
   }
 
   return (
-    <div className="p-6 h-full flex flex-col">
+    <div className="p-1 sm:p-6 h-full flex flex-col">
       {/* Header */}
       <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
         <div>

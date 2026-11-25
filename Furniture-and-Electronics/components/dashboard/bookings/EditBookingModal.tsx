@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
 import { BookingResponse } from "@/types/booking";
 import ProductPicker from "@/components/dashboard/bookings/new/ProductPicker";
+import EditBookingItemsMobileCards from "@/components/mobileview/bookings/EditBookingItemsMobileCards";
 import {
   FaUser,
   FaPhone,
@@ -277,21 +278,21 @@ export default function EditBookingModal({
       className="p-0 overflow-hidden rounded-2xl bg-white border border-[#E5DFD7] shadow-2xl"
     >
       {/* Modal Header */}
-      <div className="bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent border-b border-amber-200/80 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black shadow-sm">
+      <div className="bg-gradient-to-r from-amber-500/10 via-amber-400/5 to-transparent border-b border-amber-200/80 px-4 sm:px-6 py-3.5 sm:py-4 flex items-start justify-between gap-2.5">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="w-9 h-9 shrink-0 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black shadow-sm mt-0.5">
             <FaSave className="w-4 h-4" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg font-black text-gray-900 tracking-tight">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+              <h2 className="text-base sm:text-lg font-black text-gray-900 tracking-tight leading-tight">
                 Edit Advance Booking
               </h2>
-              <span className="font-mono text-xs font-black text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded border border-amber-300">
+              <span className="font-mono text-[11px] sm:text-xs font-black text-amber-900 bg-amber-100/90 px-2 py-0.5 rounded border border-amber-300 whitespace-nowrap">
                 {booking.bookingNumber}
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
               Modify customer details, dates, items, and advance payments. Changes to furniture sync with existing bills in-place.
             </p>
           </div>
@@ -300,13 +301,13 @@ export default function EditBookingModal({
         <button
           type="button"
           onClick={onClose}
-          className="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
+          className="w-8 h-8 shrink-0 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-700 transition-colors"
         >
           <FaTimes className="w-4 h-4" />
         </button>
       </div>
 
-      <div className="p-6 max-h-[75vh] overflow-y-auto space-y-6">
+      <div className="p-4 sm:p-6 max-h-[75vh] overflow-y-auto space-y-6">
         {errorMessage && (
           <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-semibold flex items-center gap-2">
             <FaExclamationTriangle className="w-4 h-4 shrink-0 text-red-600" />
@@ -441,8 +442,15 @@ export default function EditBookingModal({
             </div>
           )}
 
-          {/* Items Table */}
-          <div className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
+          {/* Mobile Item Cards */}
+          <EditBookingItemsMobileCards
+            items={items}
+            onUpdateItem={handleUpdateItem}
+            onRemoveItem={handleRemoveItem}
+          />
+
+          {/* Desktop Items Table */}
+          <div className="hidden md:block border border-gray-200 rounded-xl overflow-hidden bg-white shadow-2xs">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
                 <tr className="bg-gray-50/80 border-b border-gray-200 text-gray-500 uppercase tracking-wider text-[10px] font-black">

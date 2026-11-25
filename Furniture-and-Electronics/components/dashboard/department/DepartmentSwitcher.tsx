@@ -45,7 +45,7 @@ export default function DepartmentSwitcher({
             key={key}
             type="button"
             onClick={() => setDepartment(key)}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs md:text-sm rounded-lg font-medium transition-all duration-200 ${
+            className={`flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1 sm:py-1.5 text-[11px] sm:text-xs md:text-sm rounded-lg font-medium transition-all duration-200 ${
               isActive
                 ? activeClasses
                 : "text-slate-300 hover:text-white hover:bg-white/[0.06] border border-transparent"

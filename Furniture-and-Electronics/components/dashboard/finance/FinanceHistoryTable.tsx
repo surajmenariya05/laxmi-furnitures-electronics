@@ -3,6 +3,7 @@
 import React from "react";
 import { FaSearch, FaPen, FaEye, FaWallet } from "react-icons/fa";
 import { FinanceRecordItem } from "@/hooks/useFinanceRecords";
+import FinanceMobileCards from "@/components/mobileview/finance/FinanceMobileCards";
 
 interface FinanceHistoryTableProps {
   records: FinanceRecordItem[];
@@ -37,8 +38,18 @@ export default function FinanceHistoryTable({
         </div>
       </div>
 
-      {/* Data Table */}
-      <div className="flex-1 overflow-auto">
+      {/* Mobile Cards View (Option A) */}
+      <div className="md:hidden flex-1 overflow-auto">
+        <FinanceMobileCards
+          records={records}
+          isOwner={isOwner}
+          onEdit={onEdit}
+          onView={onView}
+        />
+      </div>
+
+      {/* Desktop Table View */}
+      <div className="hidden md:block flex-1 overflow-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>

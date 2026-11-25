@@ -85,6 +85,7 @@ export interface SidebarProps {
   defaultActivePage?: SidebarPage;
   onPageChange?: (page: SidebarPage) => void;
   className?: string;
+  idPrefix?: string;
 }
 
 /** Ink Well (#0B1421) navigation with a spring-animated Ophelia (#283041) active pill. */
@@ -94,6 +95,7 @@ export default function Sidebar({
   defaultActivePage = "Dashboard",
   onPageChange,
   className = "",
+  idPrefix = "desktop",
 }: SidebarProps) {
   const pathname = usePathname();
   const [localPage, setLocalPage] = useState<SidebarPage>(defaultActivePage);
@@ -167,7 +169,7 @@ export default function Sidebar({
                     >
                       {selected ? (
                         <motion.span
-                          layoutId="sidebar-active-indicator"
+                          layoutId={`${idPrefix}-sidebar-active-indicator`}
                           aria-hidden="true"
                           className="absolute inset-0 rounded-xl border border-white/[0.055] bg-[#283041] shadow-[0_7px_20px_rgba(0,0,0,0.14)]"
                           transition={{ type: "spring", stiffness: 430, damping: 36, mass: 0.8 }}

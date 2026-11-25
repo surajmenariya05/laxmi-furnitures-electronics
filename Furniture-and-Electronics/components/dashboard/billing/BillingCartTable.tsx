@@ -2,6 +2,7 @@
 
 import React from "react";
 import { FaTimes, FaEdit, FaCheck, FaUndo, FaCouch, FaTv } from "react-icons/fa";
+import BillingCartMobileCards from "@/components/mobileview/billing/BillingCartMobileCards";
 
 interface BillingCartTableProps {
   cart: any[];
@@ -47,7 +48,29 @@ export default function BillingCartTable({
           </span>
         </div>
       ) : (
-        <table className="w-full divide-y divide-gray-200">
+        <>
+          {/* Mobile Cart Cards (< sm) */}
+          <div className="sm:hidden">
+            <BillingCartMobileCards
+              cart={cart}
+              editingRateCartItemId={editingRateCartItemId}
+              tempRate={tempRate}
+              setTempRate={setTempRate}
+              getItemEffectivePrice={getItemEffectivePrice}
+              startEditingRate={startEditingRate}
+              saveCustomRate={saveCustomRate}
+              cancelCustomRate={cancelCustomRate}
+              updateSelectedUnit={updateSelectedUnit}
+              updateCustomSerial={updateCustomSerial}
+              updateQuantity={updateQuantity}
+              removeFromCart={removeFromCart}
+              handleNumberKeyDown={handleNumberKeyDown}
+            />
+          </div>
+
+          {/* Desktop Cart Table (sm+) */}
+          <div className="hidden sm:block">
+            <table className="w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th className="px-3 py-2.5 text-left text-xs font-bold text-gray-500 uppercase">
@@ -298,6 +321,8 @@ export default function BillingCartTable({
             })}
           </tbody>
         </table>
+          </div>
+        </>
       )}
     </div>
   );

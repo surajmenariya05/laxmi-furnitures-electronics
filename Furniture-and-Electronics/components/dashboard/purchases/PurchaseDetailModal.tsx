@@ -161,23 +161,23 @@ export default function PurchaseDetailModal({
             <h4 className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
               Purchased Items ({purchase.items.length})
             </h4>
-            <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <div className="border border-slate-300 rounded-xl overflow-x-auto bg-white shadow-2xs">
               <table className="w-full text-left text-xs">
-                <thead className="bg-gray-50 text-gray-700 text-[10.5px] uppercase font-extrabold border-b border-gray-200">
+                <thead className="bg-slate-100 text-gray-700 text-[10.5px] uppercase font-extrabold border-b border-slate-300">
                   <tr>
-                    <th className="py-2.5 px-3">#</th>
-                    <th className="py-2.5 px-3">Item Description</th>
-                    <th className="py-2.5 px-3 text-right">Cost/Unit</th>
-                    <th className="py-2.5 px-3 text-center">Qty</th>
-                    <th className="py-2.5 px-3 text-right">Line Total</th>
+                    <th className="py-2.5 px-2.5 sm:px-3">#</th>
+                    <th className="py-2.5 px-2.5 sm:px-3">Item Description</th>
+                    <th className="py-2.5 px-2.5 sm:px-3 text-right whitespace-nowrap">Cost/Unit</th>
+                    <th className="py-2.5 px-2 sm:px-3 text-center">Qty</th>
+                    <th className="py-2.5 px-2.5 sm:px-3 text-right whitespace-nowrap">Line Total</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-slate-200">
                   {purchase.items.map((item, idx) => (
                     <tr key={idx} className="hover:bg-gray-50/70">
-                      <td className="py-2.5 px-3 text-gray-500 font-bold">{idx + 1}</td>
+                      <td className="py-2.5 px-2.5 sm:px-3 text-gray-500 font-bold">{idx + 1}</td>
                       <td
-                        className="py-2.5 px-3 font-bold text-gray-900 cursor-default"
+                        className="py-2.5 px-2.5 sm:px-3 font-bold text-gray-900 cursor-default"
                         title={item.itemName}
                       >
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -194,14 +194,14 @@ export default function PurchaseDetailModal({
                           </div>
                         )}
                       </td>
-                      <td className="py-2.5 px-3 text-right font-mono font-bold text-gray-900">
-                        ₹ {Number(item.unitCostPrice).toLocaleString("en-IN")}
+                      <td className="py-2.5 px-2.5 sm:px-3 text-right font-mono font-bold text-gray-900 whitespace-nowrap">
+                        ₹{Number(item.unitCostPrice).toLocaleString("en-IN")}
                       </td>
-                      <td className="py-2.5 px-3 text-center font-black text-gray-900 font-mono text-xs">
+                      <td className="py-2.5 px-2 sm:px-3 text-center font-black text-gray-900 font-mono text-xs">
                         {item.quantity}
                       </td>
-                      <td className="py-2 px-3 text-right font-black text-gray-900 font-mono">
-                        ₹ {Number(item.lineTotal).toLocaleString("en-IN")}
+                      <td className="py-2.5 px-2.5 sm:px-3 text-right font-black text-gray-900 font-mono whitespace-nowrap">
+                        ₹{Number(item.lineTotal).toLocaleString("en-IN")}
                       </td>
                     </tr>
                   ))}
@@ -211,24 +211,26 @@ export default function PurchaseDetailModal({
           </div>
 
           {/* Totals Summary */}
-          <div className="grid grid-cols-3 gap-3 text-center">
-            <div className="p-3 bg-gray-50 rounded-xl border border-gray-200">
-              <span className="text-[10px] font-bold text-gray-500 uppercase block">Total Amount</span>
-              <span className="text-base font-black text-gray-900 font-mono mt-0.5 block">
-                ₹ {Number(purchase.totalAmount).toLocaleString("en-IN")}
-              </span>
-            </div>
-            <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200">
-              <span className="text-[10px] font-bold text-emerald-700 uppercase block">Total Paid</span>
-              <span className="text-base font-black text-[#15803D] font-mono mt-0.5 block">
-                ₹ {Number(purchase.paidAmount).toLocaleString("en-IN")}
-              </span>
-            </div>
-            <div className="p-3 bg-red-50 rounded-xl border border-red-200">
-              <span className="text-[10px] font-bold text-red-700 uppercase block">Remaining Due</span>
-              <span className="text-base font-black text-red-700 font-mono mt-0.5 block">
-                ₹ {Number(purchase.dueAmount).toLocaleString("en-IN")}
-              </span>
+          <div className="p-3 bg-[#F8F6F2] rounded-xl border border-slate-300">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 text-center">
+              <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200 shadow-2xs">
+                <span className="text-[10px] font-bold text-gray-500 uppercase block">Total Amount</span>
+                <span className="text-sm sm:text-base font-black text-gray-900 font-mono mt-0.5 block">
+                  ₹{Number(purchase.totalAmount).toLocaleString("en-IN")}
+                </span>
+              </div>
+              <div className="p-2.5 sm:p-3 bg-emerald-50 rounded-xl border border-emerald-300 shadow-2xs">
+                <span className="text-[10px] font-bold text-emerald-700 uppercase block">Total Paid</span>
+                <span className="text-sm sm:text-base font-black text-[#15803D] font-mono mt-0.5 block">
+                  ₹{Number(purchase.paidAmount).toLocaleString("en-IN")}
+                </span>
+              </div>
+              <div className="p-2.5 sm:p-3 bg-red-50 rounded-xl border border-red-300 shadow-2xs">
+                <span className="text-[10px] font-bold text-red-700 uppercase block">Remaining Due</span>
+                <span className="text-sm sm:text-base font-black text-red-700 font-mono mt-0.5 block">
+                  ₹{Number(purchase.dueAmount).toLocaleString("en-IN")}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -238,9 +240,9 @@ export default function PurchaseDetailModal({
               <h4 className="text-xs font-bold text-gray-600 uppercase tracking-wider mb-2">
                 Installment Payment Ledger ({purchase.payments.length})
               </h4>
-              <div className="border border-gray-200 rounded-xl overflow-hidden">
+              <div className="border border-slate-300 rounded-xl overflow-x-auto bg-white shadow-2xs">
                 <table className="w-full text-left text-xs">
-                  <thead className="bg-gray-50 text-gray-500 text-[10px] uppercase font-bold border-b border-gray-200">
+                  <thead className="bg-slate-100 text-gray-600 text-[10px] uppercase font-bold border-b border-slate-300">
                     <tr>
                       <th className="py-2 px-3">Date</th>
                       <th className="py-2 px-3">Mode</th>
@@ -248,7 +250,7 @@ export default function PurchaseDetailModal({
                       <th className="py-2 px-3 text-right">Amount Paid</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-slate-200">
                     {purchase.payments.map((pmt, idx) => (
                       <tr key={pmt.id || idx} className="hover:bg-gray-50">
                         <td className="py-2 px-3 text-gray-600 font-medium whitespace-nowrap">

@@ -21,12 +21,13 @@ export default function BookingsHeader() {
         </p>
       </div>
 
-      <div className="flex items-center gap-2.5">
+      <div className="w-full sm:w-auto">
         <TactileButton
           href="/bookings/new"
           variant="celebrate"
           size="md"
           icon={<FaPlus className="w-3.5 h-3.5" />}
+          className="w-full sm:w-auto justify-center"
         >
           New Advance Booking
         </TactileButton>

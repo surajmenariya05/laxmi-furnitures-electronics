@@ -12,7 +12,6 @@ import {
   BookingDeliveredWithDueTemplateData,
   BookingSlipCopyTemplateData,
   DuePaymentTemplateData,
-  VendorPaymentTemplateData,
   BookingCancelledTemplateData,
 } from "./types";
 
@@ -234,50 +233,7 @@ export function formatDuePaymentMessage(data: DuePaymentTemplateData): string {
 }
 
 /**
- * 4. Wholesale Purchase / Vendor Payment Advice Message
- */
-export function formatVendorPaymentMessage(data: VendorPaymentTemplateData): string {
-  const companySuffix = data.vendorCompany ? ` (${data.vendorCompany})` : "";
-
-  if (data.isFullySettled) {
-    return [
-      `🤝 *FULL SETTLEMENT ADVICE: LAXMI ELECTRONICS & FURNITURES*`,
-      ``,
-      `Dear *${data.vendorName}*${companySuffix},`,
-      `We have disbursed the final settlement payment of *₹${formatCurrency(data.amountPaid)}* for Purchase *#${data.purchaseNumber}*.`,
-      ``,
-      `✅ *Settlement Details:*`,
-      `• Purchase Total: *₹${formatCurrency(data.totalAmount)}*`,
-      `• Total Disbursed: *₹${formatCurrency(data.totalAmount)}*`,
-      `• Outstanding Balance: *₹0 (Fully Settled)*`,
-      `• Payment Mode: ${data.paymentMode}${data.transactionRef ? ` | Ref: ${data.transactionRef}` : ""}`,
-      ``,
-      STORE_SIGNATURE,
-    ].join("\n");
-  }
-
-  return [
-    `💼 *PAYMENT ADVICE: LAXMI ELECTRONICS & FURNITURES*`,
-    ``,
-    `Dear *${data.vendorName}*${companySuffix},`,
-    `A payment has been disbursed towards Purchase Reference *#${data.purchaseNumber}*.`,
-    ``,
-    `💵 *Disbursement Summary:*`,
-    `• Amount Credited: *₹${formatCurrency(data.amountPaid)}*`,
-    `• Payment Mode: ${data.paymentMode}${data.transactionRef ? ` | Ref: ${data.transactionRef}` : ""}`,
-    `• Date: ${data.paymentDate}`,
-    ``,
-    `📊 *Vendor Ledger Status:*`,
-    `• Purchase Total: *₹${formatCurrency(data.totalAmount)}*`,
-    `• Total Paid: *₹${formatCurrency(data.paidAmount)}*`,
-    `• Remaining Balance: *₹${formatCurrency(data.dueAmount)}*`,
-    ``,
-    STORE_SIGNATURE,
-  ].join("\n");
-}
-
-/**
- * 5. Advance Booking Cancellation & Refund Advice Message
+ * 4. Advance Booking Cancellation & Refund Advice Message
  */
 export function formatBookingCancelledMessage(data: BookingCancelledTemplateData): string {
   const hasRefund = data.refundAmount > 0;

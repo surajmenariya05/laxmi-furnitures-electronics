@@ -530,18 +530,16 @@ export default function InvoiceTemplate({
 
           {/* Column 3: Authorised Signatory */}
           <div className="flex-1 p-2.5 flex flex-col justify-between items-center text-center">
-            {/* Signature Graphic Area (Ready for user uploaded signature) */}
-            <div className="h-9 w-full flex items-center justify-center relative">
+            {/* Signature Graphic Area */}
+            <div className="h-10 w-full flex items-center justify-center relative">
               <img
-                src="/uploads/branding/signature.png"
-                alt="Signature"
-                className="h-9 object-contain"
+                src="/laxmi_authorized_signature_transparent.png"
+                alt="Authorized Signature"
+                className="h-10 object-contain"
                 onError={(e) => {
                   e.currentTarget.style.display = "none";
                 }}
               />
-              {/* Fallback signature line */}
-              <div className="w-24 border-b border-dashed border-gray-400"></div>
             </div>
 
             <div>

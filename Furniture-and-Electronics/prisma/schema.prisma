@@ -243,14 +243,27 @@ model FinanceProvider {
 
 model FinanceRecord {
   id                Int             @id @default(autoincrement())
-  billId            Int             @unique @map("bill_id")
+  billId            Int?            @unique @map("bill_id")
   financeProviderId Int             @map("finance_provider_id")
-  emiAmount         Decimal         @map("emi_amount")
+  invoiceNumber     String?         @map("invoice_number")
+  customerName      String          @default("Guest") @map("customer_name")
+  customerPhone     String?         @map("customer_phone")
+  customerAddress   String?         @map("customer_address")
+  productName       String          @default("") @map("product_name")
+  hsnSac            String?         @map("hsn_sac")
+  quantity          Int             @default(1)
+  productPrice      Decimal         @default(0) @map("product_price")
+  downpayment       Decimal         @default(0)
+  netAmountReceived Decimal         @default(0) @map("net_amount_received")
+  financeDate       DateTime        @default(now()) @map("finance_date")
+  emiAmount         Decimal?        @default(0) @map("emi_amount")
   months            Int?
   createdAt         DateTime        @default(now()) @map("created_at")
-  bill              Bill            @relation(fields: [billId], references: [id])
+  updatedAt         DateTime        @default(now()) @updatedAt @map("updated_at")
+  bill              Bill?           @relation(fields: [billId], references: [id])
   financeProvider   FinanceProvider @relation(fields: [financeProviderId], references: [id])
 
+  @@index([financeDate])
   @@map("finance_records")
 }
 

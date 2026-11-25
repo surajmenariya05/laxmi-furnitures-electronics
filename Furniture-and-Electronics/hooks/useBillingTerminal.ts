@@ -67,12 +67,6 @@ export function useBillingTerminal() {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // Finance states
-  const [financeProviders, setFinanceProviders] = useState<any[]>([]);
-  const [financeProviderId, setFinanceProviderId] = useState("");
-  const [emiAmount, setEmiAmount] = useState("");
-  const [financeMonths, setFinanceMonths] = useState("");
-
   // Print & Modals
   const [createdBill, setCreatedBill] = useState<any>(null);
   const [lastCreatedBill, setLastCreatedBill] = useState<any>(null);
@@ -134,12 +128,6 @@ export function useBillingTerminal() {
         setCgstPercent(Number(bill.cgstPercent || 0) > 0 ? String(Number(bill.cgstPercent)) : "");
         setPaidAmount(String(Number(bill.paidAmount ?? bill.totalAmount ?? 0)));
 
-        if (bill.financeRecord) {
-          setFinanceProviderId(String(bill.financeRecord.financeProviderId || ""));
-          setEmiAmount(String(bill.financeRecord.emiAmount || ""));
-          setFinanceMonths(bill.financeRecord.months ? String(bill.financeRecord.months) : "");
-        }
-
         const mappedCart = (bill.billItems || []).map((bi: any) => ({
           cartItemId: `existing-${bi.id}`,
           billItemId: bi.id,
@@ -167,22 +155,6 @@ export function useBillingTerminal() {
       cancelled = true;
     };
   }, [editBillIdParam]);
-
-  // Fetch finance providers
-  useEffect(() => {
-    const fetchFinanceProviders = async () => {
-      try {
-        const res = await fetch("/api/v1/finance/providers");
-        if (res.ok) {
-          const data = await res.json();
-          setFinanceProviders(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch finance providers", err);
-      }
-    };
-    fetchFinanceProviders();
-  }, []);
 
   // Close product dropdown on outside click
   useEffect(() => {
@@ -451,20 +423,6 @@ export function useBillingTerminal() {
       setError("Customer Phone number must be exactly 10 digits");
       return;
     }
-    if (paymentMode.toLowerCase() === "finance") {
-      if (!financeProviderId) {
-        setError("Please select a Finance Provider");
-        return;
-      }
-      if (!emiAmount || parseFloat(emiAmount) <= 0) {
-        setError("Please enter a valid EMI Amount");
-        return;
-      }
-      if (!financeMonths || parseInt(financeMonths) <= 0) {
-        setError("Please enter valid Months");
-        return;
-      }
-    }
     for (const item of cart) {
       if (item.product.productType !== "quantity" && !item.isExisting) {
         const hasUnit = Boolean(item.selectedUnitId);
@@ -515,12 +473,6 @@ export function useBillingTerminal() {
         paidAmount: paidAmount === "" ? totalAmount : parseFloat(paidAmount),
         items: itemsPayload,
       };
-
-      if (paymentMode.toLowerCase() === "finance") {
-        billData.financeProviderId = financeProviderId;
-        billData.emiAmount = emiAmount;
-        billData.financeMonths = financeMonths;
-      }
 
       const bill = await createBill(billData);
       await mutate(() => true);
@@ -595,12 +547,6 @@ export function useBillingTerminal() {
         items: itemsPayload,
       };
 
-      if (paymentMode.toLowerCase() === "finance") {
-        billData.financeProviderId = financeProviderId;
-        billData.emiAmount = emiAmount;
-        billData.financeMonths = financeMonths;
-      }
-
       const res = await updateBill(editingBill.id, billData);
       const updatedBill = res.bill;
       await mutate(() => true);
@@ -668,9 +614,6 @@ export function useBillingTerminal() {
     setPaidAmount("");
     setSgstPercent("0");
     setCgstPercent("0");
-    setFinanceProviderId("");
-    setEmiAmount("");
-    setFinanceMonths("");
   };
 
   const navigateToHistory = () => router.push("/billing/history");
@@ -721,13 +664,6 @@ export function useBillingTerminal() {
     setCgstPercent,
     paidAmount,
     setPaidAmount,
-    financeProviders,
-    financeProviderId,
-    setFinanceProviderId,
-    emiAmount,
-    setEmiAmount,
-    financeMonths,
-    setFinanceMonths,
     // Totals
     grossTotal,
     taxableAmount,

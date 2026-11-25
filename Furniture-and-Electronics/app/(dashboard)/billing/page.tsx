@@ -160,13 +160,6 @@ function BillingTerminal() {
           paymentMode={b.paymentMode}
           setPaymentMode={b.setPaymentMode}
           onOpenUpiModal={() => b.setShowUpiModal(true)}
-          financeProviders={b.financeProviders}
-          financeProviderId={b.financeProviderId}
-          setFinanceProviderId={b.setFinanceProviderId}
-          emiAmount={b.emiAmount}
-          setEmiAmount={b.setEmiAmount}
-          financeMonths={b.financeMonths}
-          setFinanceMonths={b.setFinanceMonths}
           discount={b.discount}
           setDiscount={b.setDiscount}
           sgstPercent={b.sgstPercent}

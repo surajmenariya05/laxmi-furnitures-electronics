@@ -1,71 +1,64 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { FaSearch, FaCog, FaTrash, FaPlus, FaWallet } from "react-icons/fa";
-import { useDebounce } from "@/hooks/useDebounce";
-import useSWR from "swr";
-import { fetcher } from "@/lib/fetcher";
+import { FaCog, FaPlus, FaWallet } from "react-icons/fa";
 import FinanceLoading from "./loading";
+import { useFinanceRecords, FinanceRecordItem } from "@/hooks/useFinanceRecords";
+import FinanceDateFilter from "@/components/dashboard/finance/FinanceDateFilter";
+import FinanceKpiCards from "@/components/dashboard/finance/FinanceKpiCards";
+import FinanceHistoryTable from "@/components/dashboard/finance/FinanceHistoryTable";
+import FinanceFormModal from "@/components/dashboard/finance/FinanceFormModal";
+import FinanceInvoiceModal from "@/components/dashboard/finance/FinanceInvoiceModal";
+import ManageProvidersModal from "@/components/dashboard/finance/ManageProvidersModal";
 
 export default function FinancePage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const debouncedSearch = useDebounce(searchQuery, 500);
-  
-  const { data: recordsData, mutate: mutateRecords, error: recordsError } = useSWR(`/api/v1/finance/records?search=${encodeURIComponent(debouncedSearch)}`, fetcher, { dedupingInterval: 5000 });
-  const { data: providersData, mutate: mutateProviders } = useSWR("/api/v1/finance/providers", fetcher, { dedupingInterval: 5000 });
-
-  const records = recordsData || [];
-  const providers = providersData || [];
-  const isLoading = !recordsData && !recordsError;
+  const {
+    isOwner,
+    searchQuery,
+    setSearchQuery,
+    dateRange,
+    startDate,
+    setStartDate,
+    endDate,
+    setEndDate,
+    appliedCustomRange,
+    handleSelectPreset,
+    handleApplyCustomRange,
+    records,
+    kpis,
+    providers,
+    isLoading,
+    mutateProviders,
+    createRecord,
+    updateRecord,
+  } = useFinanceRecords();
 
   const [showManageModal, setShowManageModal] = useState(false);
-  const [newProviderName, setNewProviderName] = useState("");
-  const [isManaging, setIsManaging] = useState(false);
+  const [showFormModal, setShowFormModal] = useState(false);
+  const [editingRecord, setEditingRecord] = useState<FinanceRecordItem | null>(null);
+  const [viewingRecord, setViewingRecord] = useState<FinanceRecordItem | null>(null);
 
-  // Automatically handled by SWR
   useEffect(() => {
     if (showManageModal) {
       mutateProviders();
     }
-  }, [showManageModal]);
+  }, [showManageModal, mutateProviders]);
 
-  const handleAddProvider = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newProviderName.trim()) return;
-
-    try {
-      setIsManaging(true);
-      const res = await fetch("/api/v1/finance/providers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newProviderName }),
-      });
-      if (res.ok) {
-        setNewProviderName("");
-        await mutateProviders();
-      } else {
-        const err = await res.json();
-        alert(err.error || "Failed to add provider");
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsManaging(false);
-    }
+  const handleOpenCreate = () => {
+    setEditingRecord(null);
+    setShowFormModal(true);
   };
 
-  const handleRemoveProvider = async (id: number) => {
-    if (!confirm("Are you sure you want to remove this finance provider?")) return;
+  const handleOpenEdit = (record: FinanceRecordItem) => {
+    setEditingRecord(record);
+    setShowFormModal(true);
+  };
 
-    try {
-      const res = await fetch(`/api/v1/finance/providers/${id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        await mutateProviders();
-      }
-    } catch (err) {
-      console.error("Failed to remove provider", err);
+  const handleSaveRecord = async (payload: any, editingId?: number) => {
+    if (editingId) {
+      await updateRecord(editingId, payload);
+    } else {
+      await createRecord(payload);
     }
   };
 
@@ -74,162 +67,88 @@ export default function FinancePage() {
   }
 
   return (
-    <div className="p-6 h-full flex flex-col bg-gray-50">
-      <div className="flex justify-between items-center mb-6">
+    <div className="p-6 h-full flex flex-col">
+      {/* Header */}
+      <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-black text-black tracking-tight flex items-center gap-2">
-            <FaWallet className="text-blue-600" /> Financed Bills
+          <h1 className="text-3xl font-black text-black tracking-tight flex items-center gap-2.5">
+            <FaWallet className="text-blue-600" />
+            <span>Finance Management</span>
           </h1>
-          <p className="text-sm text-gray-500 mt-1 font-medium">Track customers who purchased via Finance.</p>
-        </div>
-        <button
-          onClick={() => setShowManageModal(true)}
-          className="flex items-center gap-2 bg-white border-2 border-gray-200 hover:border-gray-300 text-gray-700 font-bold py-2 px-4 rounded-lg shadow-sm transition"
-        >
-          <FaCog /> Manage Providers
-        </button>
-      </div>
-
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 flex-1 flex flex-col overflow-hidden">
-        {/* Toolbar */}
-        <div className="p-4 border-b border-gray-100 flex gap-4">
-          <div className="relative flex-1 max-w-md">
-            <FaSearch className="absolute left-3 top-3 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by customer name, phone, or bill no..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition font-medium text-sm"
-            />
-          </div>
+          <p className="text-sm text-gray-500 mt-1 font-medium">
+            Create, track, and print customer finance deals.
+          </p>
         </div>
 
-        {/* Data Table */}
-        <div className="flex-1 overflow-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50 sticky top-0 z-10">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Bill No.</th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Customer Details</th>
-                <th className="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Finance Provider</th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">EMI Amount</th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Months</th>
-                <th className="px-6 py-3 text-right text-xs font-bold text-gray-500 uppercase tracking-wider">Bill Total</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {records.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
-                    <div className="flex flex-col items-center">
-                      <FaWallet className="text-4xl text-gray-300 mb-3" />
-                      <p className="text-lg font-semibold text-gray-600">No finance records found.</p>
-                      <p className="text-sm">When you bill items via Finance, they will appear here.</p>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                records.map((record: any) => (
-                  <tr key={record.id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {new Date(record.createdAt).toLocaleDateString("en-IN")}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">
-                      #{record.billNumber}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-bold text-gray-900">{record.customerName}</div>
-                      <div className="text-xs text-gray-500 font-medium">{record.customerPhone}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">
-                        {record.providerName}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
-                      ₹{parseFloat(record.emiAmount).toLocaleString("en-IN")}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
-                      {record.months ? record.months : "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right">
-                      ₹{parseFloat(record.totalAmount).toLocaleString("en-IN")}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <FinanceDateFilter
+            dateRange={dateRange}
+            startDate={startDate}
+            setStartDate={setStartDate}
+            endDate={endDate}
+            setEndDate={setEndDate}
+            appliedCustomRange={appliedCustomRange}
+            onSelectPreset={handleSelectPreset}
+            onApplyCustomRange={handleApplyCustomRange}
+          />
+
+          {/* 3D Tactile Manage Providers Button */}
+          <button
+            type="button"
+            onClick={() => setShowManageModal(true)}
+            className="inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-bold text-[#1C1A17] bg-gradient-to-b from-white to-[#F3EFEA] hover:from-[#FAF6F0] hover:to-[#EAE3DA] border border-[#D7CFC5] border-b-2 border-b-[#B8AEA2] shadow-[0_2px_4px_rgba(28,26,23,0.08),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
+          >
+            <FaCog className="w-3.5 h-3.5 text-gray-600" />
+            <span>Manage Providers</span>
+          </button>
+
+          {/* 3D Tactile Create Finance Button */}
+          <button
+            type="button"
+            onClick={handleOpenCreate}
+            className="inline-flex items-center gap-2 h-10 px-4 rounded-xl text-sm font-extrabold text-white bg-gradient-to-b from-[#2E62EB] to-[#1D4ED8] hover:from-[#3B6EF0] hover:to-[#1E40AF] border border-[#1E40AF] border-b-2 border-b-[#172554] shadow-[0_2px_6px_rgba(29,78,216,0.28),inset_0_1px_0_rgba(255,255,255,0.3)] hover:shadow-md active:translate-y-px transition-all duration-200"
+          >
+            <FaPlus className="w-3 h-3" />
+            <span>Create Finance</span>
+          </button>
         </div>
       </div>
 
-      {/* Manage Providers Modal */}
-      {showManageModal && (
-        <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-xl max-w-md w-full overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="text-lg font-bold text-gray-900">Manage Finance Providers</h3>
-              <button
-                onClick={() => setShowManageModal(false)}
-                className="text-gray-400 hover:text-gray-600 text-2xl font-bold transition"
-              >
-                &times;
-              </button>
-            </div>
-            
-            <div className="p-6 flex-1 overflow-y-auto">
-              <form onSubmit={handleAddProvider} className="mb-6 flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Enter provider name (e.g. Bajaj)"
-                  value={newProviderName}
-                  onChange={(e) => setNewProviderName(e.target.value)}
-                  className="flex-1 border-2 border-gray-200 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none focus:border-blue-500 transition"
-                  required
-                />
-                <button
-                  type="submit"
-                  disabled={isManaging}
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition disabled:opacity-50"
-                >
-                  <FaPlus /> Add
-                </button>
-              </form>
+      {/* Top KPI Cards */}
+      <FinanceKpiCards kpis={kpis} isOwner={isOwner} />
 
-              <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3">Active Providers</h4>
-              <ul className="space-y-2">
-                {providers.length === 0 ? (
-                  <li className="text-sm text-gray-500 italic text-center py-4 bg-gray-50 rounded-lg">No active providers found.</li>
-                ) : (
-                  providers.map((provider: any) => (
-                    <li key={provider.id} className="flex justify-between items-center bg-gray-50 border border-gray-200 p-3 rounded-lg">
-                      <span className="font-bold text-gray-800">{provider.name}</span>
-                      <button
-                        onClick={() => handleRemoveProvider(provider.id)}
-                        className="text-red-500 hover:text-red-700 p-2 hover:bg-red-50 rounded-md transition"
-                        title="Remove Provider"
-                      >
-                        <FaTrash />
-                      </button>
-                    </li>
-                  ))
-                )}
-              </ul>
-            </div>
-            
-            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex justify-end">
-              <button
-                onClick={() => setShowManageModal(false)}
-                className="bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-bold py-2 px-6 rounded-lg transition"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Finance History Table */}
+      <FinanceHistoryTable
+        records={records}
+        isOwner={isOwner}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onEdit={handleOpenEdit}
+        onView={(rec) => setViewingRecord(rec)}
+      />
+
+      {/* Modals */}
+      <FinanceFormModal
+        isOpen={showFormModal}
+        onClose={() => setShowFormModal(false)}
+        editingRecord={editingRecord}
+        providers={providers}
+        isOwner={isOwner}
+        onSave={handleSaveRecord}
+      />
+
+      <FinanceInvoiceModal
+        record={viewingRecord}
+        isOpen={Boolean(viewingRecord)}
+        onClose={() => setViewingRecord(null)}
+      />
+
+      <ManageProvidersModal
+        isOpen={showManageModal}
+        onClose={() => setShowManageModal(false)}
+        providers={providers}
+        mutateProviders={mutateProviders}
+      />
     </div>
   );
 }

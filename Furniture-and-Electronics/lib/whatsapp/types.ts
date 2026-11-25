@@ -98,20 +98,6 @@ export interface DuePaymentTemplateData {
   isFullyPaid: boolean;
 }
 
-export interface VendorPaymentTemplateData {
-  vendorName: string;
-  vendorCompany?: string | null;
-  purchaseNumber: string;
-  amountPaid: number;
-  paymentMode: string;
-  transactionRef?: string | null;
-  paymentDate: string;
-  totalAmount: number;
-  paidAmount: number;
-  dueAmount: number;
-  isFullySettled: boolean;
-}
-
 export interface BookingCancelledTemplateData {
   customerName: string;
   bookingNumber: string;

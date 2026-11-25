@@ -106,8 +106,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     let { 
       customerName, customerPhone, customerAddress, paymentMode, discount = 0, items,
-      sgstPercent = 0, cgstPercent = 0, paidAmount,
-      financeProviderId, emiAmount, financeMonths
+      sgstPercent = 0, cgstPercent = 0, paidAmount
     } = body;
 
     customerName = formatName(customerName);
@@ -355,16 +354,6 @@ export async function POST(req: Request) {
           create: billItemsData,
         },
       };
-
-      if (paymentMode.toLowerCase() === "finance" && financeProviderId && emiAmount !== undefined) {
-        billData.financeRecord = {
-          create: {
-            financeProviderId: parseInt(financeProviderId),
-            emiAmount: parseFloat(emiAmount),
-            months: financeMonths ? parseInt(financeMonths) : null,
-          }
-        };
-      }
 
       const bill = await tx.bill.create({
         data: billData,

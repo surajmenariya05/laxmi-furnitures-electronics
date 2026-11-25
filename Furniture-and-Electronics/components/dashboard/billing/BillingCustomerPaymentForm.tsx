@@ -13,13 +13,6 @@ interface BillingCustomerPaymentFormProps {
   paymentMode: string;
   setPaymentMode: (mode: string) => void;
   onOpenUpiModal: () => void;
-  financeProviders: any[];
-  financeProviderId: string;
-  setFinanceProviderId: (val: string) => void;
-  emiAmount: string;
-  setEmiAmount: (val: string) => void;
-  financeMonths: string;
-  setFinanceMonths: (val: string) => void;
   discount: string;
   setDiscount: (val: string) => void;
   sgstPercent: string;
@@ -48,13 +41,6 @@ export default function BillingCustomerPaymentForm({
   paymentMode,
   setPaymentMode,
   onOpenUpiModal,
-  financeProviders,
-  financeProviderId,
-  setFinanceProviderId,
-  emiAmount,
-  setEmiAmount,
-  financeMonths,
-  setFinanceMonths,
   discount,
   setDiscount,
   sgstPercent,
@@ -152,8 +138,8 @@ export default function BillingCustomerPaymentForm({
           <label className="block text-sm font-bold text-gray-700 mb-1">
             Payment Mode <span className="text-red-500">*</span>
           </label>
-          <div className="grid grid-cols-4 gap-2">
-            {["cash", "upi", "card", "finance"].map((mode) => (
+          <div className="grid grid-cols-3 gap-2">
+            {["cash", "upi", "card"].map((mode) => (
               <button
                 key={mode}
                 type="button"
@@ -174,70 +160,6 @@ export default function BillingCustomerPaymentForm({
             ))}
           </div>
         </div>
-
-        {/* Conditional Finance Fields */}
-        {paymentMode === "finance" && (
-          <div className="grid grid-cols-5 gap-3 mt-2 p-3 bg-blue-50 border border-blue-100 rounded-lg">
-            <div className="col-span-2">
-              <label className="block text-xs font-bold text-gray-700 truncate">
-                Finance Provider
-              </label>
-              <div className="relative mt-1">
-                <select
-                  className="peer appearance-none block w-full border-2 border-gray-300 rounded-lg py-2 pl-2 pr-6 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-600 transition cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap"
-                  value={financeProviderId}
-                  onChange={(e) => {
-                    setFinanceProviderId(e.target.value);
-                    e.target.blur();
-                  }}
-                >
-                  <option value="">Select...</option>
-                  {financeProviders.map((provider) => (
-                    <option key={provider.id} value={provider.id}>
-                      {provider.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-500 peer-focus:rotate-90 transition-transform duration-200">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 5l7 7-7 7"
-                    ></path>
-                  </svg>
-                </div>
-              </div>
-            </div>
-            <div className="col-span-2">
-              <label className="block text-xs font-bold text-gray-700 truncate">
-                EMI Amount (₹)
-              </label>
-              <input
-                type="number"
-                min="0"
-                className="mt-1 block w-full border-2 border-gray-300 rounded-lg py-2 px-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-600 transition"
-                value={emiAmount}
-                onChange={(e) => setEmiAmount(e.target.value)}
-                onKeyDown={(e) => handleNumberKeyDown(e, true)}
-                onWheel={(e) => (e.target as HTMLInputElement).blur()}
-              />
-            </div>
-            <div className="col-span-1">
-              <label className="block text-xs font-bold text-gray-700 truncate">Months</label>
-              <input
-                type="number"
-                min="1"
-                className="mt-1 block w-full border-2 border-gray-300 rounded-lg py-2 px-2 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-600 transition"
-                value={financeMonths}
-                onChange={(e) => setFinanceMonths(e.target.value)}
-                onKeyDown={(e) => handleNumberKeyDown(e, false)}
-                onWheel={(e) => (e.target as HTMLInputElement).blur()}
-              />
-            </div>
-          </div>
-        )}
 
         {/* Discount Amount */}
         <div>

@@ -342,7 +342,17 @@ export default function BookingSlipPrintTemplate({
         </div>
         <div className="text-right">
           <p className="font-bold text-gray-700">For Laxmi Electronics & Furnitures</p>
-          <div className="w-40 border-b border-gray-400 mt-5 ml-auto" />
+          <div className="flex justify-end my-1">
+            <img
+              src="/laxmi_authorized_signature_transparent.png"
+              alt="Authorized Signature"
+              className="h-10 object-contain"
+              onError={(e) => {
+                e.currentTarget.style.display = "none";
+              }}
+            />
+          </div>
+          <div className="w-40 border-b border-gray-400 ml-auto" />
         </div>
       </div>
     </div>

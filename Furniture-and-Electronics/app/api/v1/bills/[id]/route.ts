@@ -81,9 +81,6 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       cgstPercent = 0,
       paidAmount,
       items,
-      financeProviderId,
-      emiAmount,
-      financeMonths,
     } = body;
 
     customerName = formatName(customerName);
@@ -409,28 +406,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
         },
       });
 
-      // 4. Handle FinanceRecord
-      if (paymentMode.toLowerCase() === "finance" && financeProviderId) {
-        const finData = {
-          financeProviderId: parseInt(financeProviderId, 10),
-          emiAmount: parseFloat(emiAmount) || 0,
-          months: financeMonths ? parseInt(financeMonths, 10) : null,
-        };
-        if (existingBill.financeRecord) {
-          await tx.financeRecord.update({
-            where: { billId: existingBill.id },
-            data: finData,
-          });
-        } else {
-          await tx.financeRecord.create({
-            data: { billId: existingBill.id, ...finData },
-          });
-        }
-      } else if (existingBill.financeRecord) {
-        await tx.financeRecord.delete({ where: { billId: existingBill.id } });
-      }
-
-      // 5. Sync linked Booking if applicable
+      // 4. Sync linked Booking if applicable
       if (existingBill.bookingId) {
         const bookingBills = await tx.bill.findMany({
           where: { bookingId: existingBill.bookingId },

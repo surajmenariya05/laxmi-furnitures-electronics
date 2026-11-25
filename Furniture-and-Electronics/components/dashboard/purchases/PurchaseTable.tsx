@@ -31,15 +31,15 @@ export default function PurchaseTable({
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase tracking-wider text-[10.5px] font-extrabold">
-                <th className="py-3 px-4">Date & Purchase #</th>
-                <th className="py-3 px-4">Vendor / Supplier</th>
-                <th className="py-3 px-4">Dept</th>
-                <th className="py-3 px-4">Items Summary</th>
-                <th className="py-3 px-4 text-right">Total (₹)</th>
-                <th className="py-3 px-4 text-right">Paid (₹)</th>
-                <th className="py-3 px-4 text-right">Due (₹)</th>
-                <th className="py-3 px-4 text-center">Status</th>
-                <th className="py-3 px-4 text-right">Actions</th>
+                <th className="py-3 px-3">Date & Purchase #</th>
+                <th className="py-3 px-3">Vendor / Supplier</th>
+                <th className="py-3 px-3">Dept</th>
+                <th className="py-3 px-3">Items Summary</th>
+                <th className="py-3 px-3 text-right">Total (₹)</th>
+                <th className="py-3 px-3 text-right">Paid (₹)</th>
+                <th className="py-3 px-3 text-right">Due (₹)</th>
+                <th className="py-3 px-2.5 text-center">Status</th>
+                <th className="py-3 px-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -108,15 +108,15 @@ export default function PurchaseTable({
         <table className="w-full text-left border-collapse text-xs">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200 text-gray-600 uppercase tracking-wider text-[10.5px] font-extrabold">
-              <th className="py-3 px-4">Date & Purchase #</th>
-              <th className="py-3 px-4">Vendor / Supplier</th>
-              <th className="py-3 px-4">Dept</th>
-              <th className="py-3 px-4">Items Summary</th>
-              <th className="py-3 px-4 text-right">Total (₹)</th>
-              <th className="py-3 px-4 text-right">Paid (₹)</th>
-              <th className="py-3 px-4 text-right">Due (₹)</th>
-              <th className="py-3 px-4 text-center">Status</th>
-              <th className="py-3 px-4 text-right w-[240px] min-w-[240px]">Actions</th>
+              <th className="py-3 px-3">Date & Purchase #</th>
+              <th className="py-3 px-3">Vendor / Supplier</th>
+              <th className="py-3 px-3">Dept</th>
+              <th className="py-3 px-3">Items Summary</th>
+              <th className="py-3 px-3 text-right">Total (₹)</th>
+              <th className="py-3 px-3 text-right">Paid (₹)</th>
+              <th className="py-3 px-3 text-right">Due (₹)</th>
+              <th className="py-3 px-2.5 text-center">Status</th>
+              <th className="py-3 px-3 text-right whitespace-nowrap">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
@@ -146,7 +146,7 @@ export default function PurchaseTable({
               return (
                 <tr key={p.id} className="hover:bg-blue-50/40 transition-colors">
                   {/* Date & Number */}
-                  <td className="py-3 px-4 whitespace-nowrap">
+                  <td className="py-3 px-3 whitespace-nowrap">
                     <span className="font-mono font-bold text-blue-700 block text-xs">
                       {p.purchaseNumber}
                     </span>
@@ -159,7 +159,7 @@ export default function PurchaseTable({
                   </td>
 
                   {/* Vendor Info */}
-                  <td className="py-3 px-4">
+                  <td className="py-3 px-3">
                     <div className="font-bold text-gray-900">{p.vendor.name}</div>
                     <div className="text-[11px] text-gray-500 font-mono">{p.vendor.phone}</div>
                     {p.vendor.address && (
@@ -170,7 +170,7 @@ export default function PurchaseTable({
                   </td>
 
                   {/* Dept Badge */}
-                  <td className="py-3 px-4 whitespace-nowrap">
+                  <td className="py-3 px-3 whitespace-nowrap">
                     <span
                       className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-extrabold tracking-wide uppercase ${
                         p.department === "ELECTRONICS"
@@ -229,7 +229,7 @@ export default function PurchaseTable({
                   </td>
 
                   {/* Status Badge */}
-                  <td className="py-3 px-4 text-center whitespace-nowrap">
+                  <td className="py-3 px-2.5 text-center whitespace-nowrap">
                     {p.paymentStatus === "PAID" && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10.5px] font-extrabold bg-[#EBFDE7] text-[#14532D] border border-[#81FF7A]/80 border-b-[#4ADE80] shadow-[0_2px_4px_rgba(20,83,45,0.12),inset_0_1px_0_rgba(255,255,255,0.9)]">
                         <FaCheckCircle className="w-3 h-3 text-emerald-600" />
@@ -251,8 +251,8 @@ export default function PurchaseTable({
                   </td>
 
                   {/* Actions */}
-                  <td className="py-3 px-4 whitespace-nowrap text-right text-sm font-medium w-[240px] min-w-[240px]">
-                    <div className="flex items-center justify-end gap-1.5 w-full">
+                  <td className="py-3 px-3 whitespace-nowrap text-right text-sm font-medium">
+                    <div className="inline-flex items-center justify-end gap-1.5">
                       {!p.isStockAdded && onReceiveStock && (
                         <button
                           type="button"

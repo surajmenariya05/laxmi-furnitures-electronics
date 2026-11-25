@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Modal } from "@/components/ui/modal";
-import { FaTimes, FaMoneyBillWave, FaCheckCircle } from "react-icons/fa";
+import { FaTimes, FaMoneyBillWave, FaCheckCircle, FaChevronDown } from "react-icons/fa";
 import { Purchase, PurchasePaymentMode } from "@/types/purchase";
 import { recordPurchaseInstallment } from "@/lib/api/purchase";
 
@@ -24,6 +24,7 @@ export default function PayInstallmentModal({
   const currentDue = Number(purchase.dueAmount);
   const [amount, setAmount] = useState<string>(String(currentDue));
   const [paymentMode, setPaymentMode] = useState<PurchasePaymentMode>("CASH");
+  const [modeDropdownOpen, setModeDropdownOpen] = useState(false);
   const [transactionRef, setTransactionRef] = useState("");
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -157,18 +158,63 @@ export default function PayInstallmentModal({
 
           {/* Payment Mode */}
           <div className="grid grid-cols-2 gap-2">
-            <div>
+            <div className="relative">
               <label className="block text-xs font-bold text-gray-600 mb-1">Payment Mode</label>
-              <select
-                value={paymentMode}
-                onChange={(e) => setPaymentMode(e.target.value as PurchasePaymentMode)}
-                className="w-full py-2 px-2.5 border border-gray-300 rounded-lg text-xs bg-white font-semibold"
+              <button
+                type="button"
+                onClick={() => setModeDropdownOpen((prev) => !prev)}
+                className="w-full flex items-center justify-between gap-2 py-2 px-2.5 border border-gray-300 rounded-lg text-xs bg-white font-semibold text-gray-900 text-left focus:outline-none focus:ring-1 focus:ring-amber-500"
               >
-                <option value="CASH">Cash</option>
-                <option value="UPI">UPI</option>
-                <option value="BANK_TRANSFER">Bank Transfer (NEFT)</option>
-                <option value="CHEQUE">Cheque</option>
-              </select>
+                <span className="truncate">
+                  {paymentMode === "CASH"
+                    ? "Cash"
+                    : paymentMode === "UPI"
+                    ? "UPI"
+                    : paymentMode === "BANK_TRANSFER"
+                    ? "Bank Transfer (NEFT)"
+                    : "Cheque"}
+                </span>
+                <FaChevronDown
+                  className={`w-2.5 h-2.5 text-gray-400 shrink-0 transition-transform ${
+                    modeDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {modeDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-20"
+                    onClick={() => setModeDropdownOpen(false)}
+                  />
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-gray-200 rounded-xl shadow-lg py-1">
+                    {(
+                      [
+                        { value: "CASH", label: "Cash" },
+                        { value: "UPI", label: "UPI" },
+                        { value: "BANK_TRANSFER", label: "Bank Transfer (NEFT)" },
+                        { value: "CHEQUE", label: "Cheque" },
+                      ] as const
+                    ).map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setPaymentMode(opt.value);
+                          setModeDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs font-semibold hover:bg-amber-50 transition-colors ${
+                          paymentMode === opt.value
+                            ? "bg-amber-50 text-amber-800 font-bold"
+                            : "text-gray-800"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-600 mb-1">Ref / UTR / Cheque #</label>

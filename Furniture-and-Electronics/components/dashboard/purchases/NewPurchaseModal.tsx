@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
-import { FaTimes, FaPlus, FaTrash, FaBuilding } from "react-icons/fa";
+import { FaTimes, FaPlus, FaTrash, FaBuilding, FaChevronDown } from "react-icons/fa";
 import { Vendor, Department, PurchasePaymentMode, PurchaseItemInput } from "@/types/purchase";
 import { createPurchase } from "@/lib/api/purchase";
 import { getProducts, getCategories } from "@/lib/api/inventory";
 import { serializeTransportNotes } from "@/lib/purchase-transport";
 import ConfirmStockModal from "./ConfirmStockModal";
 import CatalogProductPicker from "./CatalogProductPicker";
+import NewPurchaseItemsMobileCards from "@/components/mobileview/purchases/NewPurchaseItemsMobileCards";
 
 interface CatalogProduct {
   id: number;
@@ -43,6 +44,8 @@ export default function NewPurchaseModal({
   initialDepartment = "FURNITURE",
 }: NewPurchaseModalProps) {
   const [department, setDepartment] = useState<Department>(initialDepartment);
+  const [deptDropdownOpen, setDeptDropdownOpen] = useState(false);
+  const [vendorDropdownOpen, setVendorDropdownOpen] = useState(false);
   const [isNewVendor, setIsNewVendor] = useState(false);
   const [vendorId, setVendorId] = useState<string>("");
   const effectiveVendorId = vendorId || (vendors[0]?.id ? String(vendors[0].id) : "");
@@ -313,20 +316,62 @@ export default function NewPurchaseModal({
         )}
 
         {/* Scrollable Form Body */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 sm:space-y-6">
           {/* Section 1: Department & Supplier Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50/60 rounded-xl border border-gray-200">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-3.5 sm:p-4 bg-gray-50/60 rounded-xl border border-gray-200">
             {/* Dept */}
-            <div>
+            <div className="relative">
               <label className="block text-xs font-bold text-gray-700 uppercase mb-1">Department</label>
-              <select
-                value={department}
-                onChange={(e) => setDepartment(e.target.value as Department)}
-                className="w-full py-2 px-3 border border-gray-300 rounded-lg text-xs font-bold bg-white text-gray-900 focus:ring-2 focus:ring-blue-500"
+              <button
+                type="button"
+                onClick={() => {
+                  setDeptDropdownOpen((prev) => !prev);
+                  setVendorDropdownOpen(false);
+                }}
+                className="w-full flex items-center justify-between gap-2 py-2 px-3 border border-gray-300 rounded-lg text-xs font-bold bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 text-left"
               >
-                <option value="FURNITURE">🛋️ Furniture Division</option>
-                <option value="ELECTRONICS">⚡ Electronics Division</option>
-              </select>
+                <span className="truncate">
+                  {department === "FURNITURE" ? "🛋️ Furniture Division" : "⚡ Electronics Division"}
+                </span>
+                <FaChevronDown
+                  className={`w-3 h-3 text-gray-400 shrink-0 transition-transform ${
+                    deptDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {deptDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-20"
+                    onClick={() => setDeptDropdownOpen(false)}
+                  />
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-gray-200 rounded-xl shadow-lg py-1">
+                    {(
+                      [
+                        { value: "FURNITURE", label: "🛋️ Furniture Division" },
+                        { value: "ELECTRONICS", label: "⚡ Electronics Division" },
+                      ] as const
+                    ).map((opt) => (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setDepartment(opt.value);
+                          setDeptDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs font-bold hover:bg-blue-50 transition-colors ${
+                          department === opt.value
+                            ? "bg-blue-50 text-blue-700"
+                            : "text-gray-800"
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Vendor Source Toggle */}
@@ -343,19 +388,65 @@ export default function NewPurchaseModal({
               </div>
 
               {!isNewVendor ? (
-                <select
-                  value={effectiveVendorId}
-                  onChange={(e) => setVendorId(e.target.value)}
-                  required
-                  className="w-full py-2 px-3 border border-gray-300 rounded-lg text-xs font-semibold bg-white text-gray-900 focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">-- Choose Vendor --</option>
-                  {vendors.map((v) => (
-                    <option key={v.id} value={String(v.id)}>
-                      {v.name} ({v.phone})
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVendorDropdownOpen((prev) => !prev);
+                      setDeptDropdownOpen(false);
+                    }}
+                    className="w-full flex items-center justify-between gap-2 py-2 px-3 border border-gray-300 rounded-lg text-xs font-semibold bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 text-left"
+                  >
+                    <span className={`truncate ${effectiveVendorId ? "text-gray-900" : "text-gray-400"}`}>
+                      {(() => {
+                        const found = vendors.find((v) => String(v.id) === String(effectiveVendorId));
+                        return found ? `${found.name} (${found.phone})` : "-- Choose Vendor --";
+                      })()}
+                    </span>
+                    <FaChevronDown
+                      className={`w-3 h-3 text-gray-400 shrink-0 transition-transform ${
+                        vendorDropdownOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {vendorDropdownOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-20"
+                        onClick={() => setVendorDropdownOpen(false)}
+                      />
+                      <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-gray-200 rounded-xl shadow-lg max-h-52 overflow-y-auto py-1">
+                        {vendors.length === 0 ? (
+                          <div className="px-3 py-2 text-xs text-gray-400">
+                            No vendors found. Click &quot;+ Add New Vendor&quot;.
+                          </div>
+                        ) : (
+                          vendors.map((v) => {
+                            const isSelected = String(v.id) === String(effectiveVendorId);
+                            return (
+                              <button
+                                key={v.id}
+                                type="button"
+                                onClick={() => {
+                                  setVendorId(String(v.id));
+                                  setVendorDropdownOpen(false);
+                                }}
+                                className={`w-full text-left px-3 py-2 text-xs hover:bg-blue-50 transition-colors truncate ${
+                                  isSelected
+                                    ? "bg-blue-50 font-bold text-blue-700"
+                                    : "text-gray-800 font-medium"
+                                }`}
+                              >
+                                {v.name} ({v.phone})
+                              </button>
+                            );
+                          })
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2 mt-1">
                   <input
@@ -449,23 +540,34 @@ export default function NewPurchaseModal({
             </div>
           </div>
 
-          {/* Section 3: Items Table */}
-          <div className="border border-gray-200 rounded-xl overflow-hidden">
-            <div className="bg-gray-100/70 px-4 py-2.5 flex items-center justify-between border-b border-gray-200">
-              <span className="text-xs font-bold text-gray-800 uppercase tracking-wide">
+          {/* Section 3: Purchase Items */}
+          <div className="border border-[#DED6CA] bg-[#F8F6F2] rounded-xl overflow-hidden shadow-2xs">
+            <div className="bg-white px-3.5 sm:px-4 py-2.5 flex items-center justify-between border-b border-gray-200">
+              <span className="text-xs font-extrabold text-gray-800 uppercase tracking-wide">
                 Purchase Items ({items.length})
               </span>
               <button
                 type="button"
                 onClick={handleAddItemRow}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800"
+                className="inline-flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-2.5 py-1 rounded-lg border border-blue-200 transition"
               >
                 <FaPlus className="w-3 h-3" />
                 <span>Add Item</span>
               </button>
             </div>
 
-            <div className="overflow-x-auto">
+            {/* Mobile Item Cards */}
+            <NewPurchaseItemsMobileCards
+              items={items}
+              department={department}
+              categories={categories}
+              onSelectProduct={handleSelectProduct}
+              onItemChange={handleItemChange}
+              onRemoveItemRow={handleRemoveItemRow}
+            />
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto bg-white">
               <table className="w-full text-left text-xs">
                 <thead className="bg-gray-50 text-gray-500 text-[10px] uppercase font-bold border-b border-gray-200">
                   <tr>
@@ -594,18 +696,18 @@ export default function NewPurchaseModal({
           </div>
 
           {/* Section 4: Direct Inventory Sync Checkbox */}
-          <div className="p-3 bg-blue-50/50 border border-blue-200 rounded-xl flex items-start gap-3">
+          <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl flex items-start gap-2.5">
             <input
               type="checkbox"
               id="stockAddedCheckbox"
               checked={isStockAdded}
               onChange={(e) => setIsStockAdded(e.target.checked)}
-              className="mt-0.5 w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer"
+              className="mt-0.5 w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer shrink-0"
             />
-            <label htmlFor="stockAddedCheckbox" className="text-xs text-blue-900 cursor-pointer">
-              <span className="font-bold block">✓ Add items to showroom inventory stock immediately</span>
-              <span className="text-[11px] text-blue-700">
-                Increments stock for linked catalog products and updates cost prices. (Uncheck only if shipment is in-transit).
+            <label htmlFor="stockAddedCheckbox" className="text-xs text-blue-950 cursor-pointer leading-snug">
+              <span className="font-extrabold block">Add stock to inventory immediately</span>
+              <span className="text-[11px] text-blue-700 font-medium">
+                Updates stock &amp; cost prices now. Uncheck if shipment is in transit.
               </span>
             </label>
           </div>

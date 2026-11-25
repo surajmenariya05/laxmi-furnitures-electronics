@@ -74,7 +74,9 @@ export default function CategorySelector({
   let displayLabel = showAllOption ? "All Categories" : "Select Category";
   if (selectedCatDirectly) {
     if (selectedCatDirectly.parentCategoryId === null) {
-      displayLabel = `${selectedCatDirectly.name} (All)`;
+      displayLabel = showAllOption
+        ? `${selectedCatDirectly.name} (All)`
+        : selectedCatDirectly.name;
     } else {
       const parent = categories.find((c) => c.id === selectedCatDirectly.parentCategoryId);
       displayLabel = `${parent ? parent.name : ""} > ${selectedCatDirectly.name}`;
@@ -280,7 +282,7 @@ export default function CategorySelector({
               </div>
 
               <div className="max-h-60 overflow-y-auto divide-y divide-gray-100">
-                {showAllOption && activeParent && (
+                {activeParent && (
                   <button
                     type="button"
                     onClick={() => {
@@ -290,10 +292,14 @@ export default function CategorySelector({
                     className={`w-full text-left px-4 py-2.5 text-sm hover:bg-blue-50 transition-colors flex justify-between items-center cursor-pointer ${
                       selectedCategoryId === activeParent.id.toString()
                         ? "bg-blue-50 text-blue-700 font-bold"
-                        : "text-gray-700 font-medium"
+                        : "text-blue-700 font-semibold bg-blue-50/40"
                     }`}
                   >
-                    <span>{activeParent.name} (All)</span>
+                    <span>
+                      {showAllOption
+                        ? `${activeParent.name} (All)`
+                        : `Use ${activeParent.name} (Main)`}
+                    </span>
                     {selectedCategoryId === activeParent.id.toString() && (
                       <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

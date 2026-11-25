@@ -88,11 +88,11 @@ export default function InventoryPage() {
   // Observer for infinite scroll
   const observer = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useCallback((node: HTMLElement | null) => {
-    if (isValidating) return;
+    if (isValidating || !hasMore) return;
     if (observer.current) observer.current.disconnect();
     
     observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
+      if (entries[0].isIntersecting && hasMore && !isValidating) {
         setSize(size + 1);
       }
     });
@@ -337,7 +337,7 @@ export default function InventoryPage() {
         products={products}
         loading={loading}
         role={role}
-        lastElementRef={lastElementRef}
+        lastElementRef={() => {}}
         expandedImeiId={expandedImeiId}
         expandedImeis={expandedImeis}
         isLoadingImeis={isLoadingImeis}
@@ -371,10 +371,9 @@ export default function InventoryPage() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {products.map((product, index) => {
-                const isLast = products.length === index + 1;
+              {products.map((product) => {
                 return (
-                <tr key={product.id} ref={isLast ? lastElementRef : null}>
+                <tr key={product.id}>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-3">
                       
@@ -500,7 +499,9 @@ export default function InventoryPage() {
           </table>
         </div>
       
-      {isValidating && products.length > 0 && (
+      {hasMore && products.length > 0 && <div ref={lastElementRef} className="h-2" />}
+
+      {hasMore && isValidating && products.length > 0 && (
         <div className="p-6 flex justify-center items-center">
           <FaSpinner className="w-6 h-6 animate-spin text-blue-500" />
         </div>

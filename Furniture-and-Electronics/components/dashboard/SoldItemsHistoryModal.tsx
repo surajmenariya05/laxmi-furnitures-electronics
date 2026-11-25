@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { X, Search, Loader2 } from "lucide-react";
+import { X, Search, Loader2, ChevronDown, Calendar } from "lucide-react";
 import { Modal } from "@/components/ui/modal";
 import SoldItemsMobileCards from "@/components/mobileview/dashboard/SoldItemsMobileCards";
 
@@ -23,6 +23,30 @@ export default function SoldItemsHistoryModal({
   const [subCategory, setSubCategory] = useState<string>("");
   const [fromDate, setFromDate] = useState<string>("");
   const [toDate, setToDate] = useState<string>("");
+  const [parentDropdownOpen, setParentDropdownOpen] = useState(false);
+  const [subDropdownOpen, setSubDropdownOpen] = useState(false);
+  const toDateInputRef = useRef<HTMLInputElement>(null);
+
+  const openToDatePicker = () => {
+    const input = toDateInputRef.current;
+    if (!input) return;
+    try {
+      if (typeof input.showPicker === "function") {
+        input.showPicker();
+        return;
+      }
+    } catch {
+      // Fallback below
+    }
+    input.focus();
+    input.click();
+  };
+
+  const formatDisplayDate = (iso: string) => {
+    if (!iso) return "dd-mm-yyyy";
+    const parts = iso.split("-");
+    return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : iso;
+  };
   
   const [items, setItems] = useState<any[]>([]);
   const [page, setPage] = useState(1);
@@ -32,11 +56,11 @@ export default function SoldItemsHistoryModal({
   // Observer for infinite scroll
   const observer = useRef<IntersectionObserver | null>(null);
   const lastElementRef = useCallback((node: HTMLElement | null) => {
-    if (loading) return;
+    if (loading || !hasMore) return;
     if (observer.current) observer.current.disconnect();
     
     observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore) {
+      if (entries[0].isIntersecting && hasMore && !loading) {
         setPage(prev => prev + 1);
       }
     });
@@ -129,7 +153,18 @@ export default function SoldItemsHistoryModal({
         </div>
 
         {/* Filters */}
-        <div className="px-4 sm:px-6 py-3 sm:py-4 border-b bg-white grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+        <div className="relative px-4 sm:px-6 py-3 sm:py-4 border-b bg-white grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4">
+          {/* Hidden To Date input anchored at left-0 so native calendar never overflows right on mobile */}
+          <input
+            ref={toDateInputRef}
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            aria-label="To Date"
+            tabIndex={-1}
+            className="absolute left-0 bottom-0 w-px h-px opacity-0 pointer-events-none"
+          />
+
           <div>
             <label className="block text-[11px] sm:text-xs font-medium text-gray-500 mb-1">From Date</label>
             <input
@@ -141,42 +176,139 @@ export default function SoldItemsHistoryModal({
           </div>
           <div>
             <label className="block text-[11px] sm:text-xs font-medium text-gray-500 mb-1">To Date</label>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="w-full border rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-            />
+            <button
+              type="button"
+              onClick={openToDatePicker}
+              className="w-full flex items-center justify-between gap-2 border rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-white text-left focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              <span className={toDate ? "text-gray-900 font-medium tabular-nums" : "text-gray-500"}>
+                {formatDisplayDate(toDate)}
+              </span>
+              <Calendar className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+            </button>
           </div>
-          <div>
+          <div className="relative">
             <label className="block text-[11px] sm:text-xs font-medium text-gray-500 mb-1">Parent Category</label>
-            <select
-              value={parentCategory}
-              onChange={(e) => {
-                setParentCategory(e.target.value);
-                setSubCategory("");
+            <button
+              type="button"
+              onClick={() => {
+                setParentDropdownOpen((prev) => !prev);
+                setSubDropdownOpen(false);
               }}
-              className="w-full border rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-full flex items-center justify-between gap-2 border rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-white text-left focus:ring-2 focus:ring-blue-500 outline-none"
             >
-              <option value="">All Categories</option>
-              {parents.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+              <span className="truncate text-gray-900">
+                {parents.find((c) => String(c.id) === parentCategory)?.name || "All Categories"}
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform ${
+                  parentDropdownOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {parentDropdownOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-20"
+                  onClick={() => setParentDropdownOpen(false)}
+                />
+                <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto py-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setParentCategory("");
+                      setSubCategory("");
+                      setParentDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs sm:text-sm hover:bg-blue-50 ${
+                      !parentCategory ? "bg-blue-50 font-bold text-blue-700" : "text-gray-700"
+                    }`}
+                  >
+                    All Categories
+                  </button>
+                  {parents.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        setParentCategory(String(c.id));
+                        setSubCategory("");
+                        setParentDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs sm:text-sm hover:bg-blue-50 truncate ${
+                        parentCategory === String(c.id)
+                          ? "bg-blue-50 font-bold text-blue-700"
+                          : "text-gray-800"
+                      }`}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
-          <div>
+          <div className="relative">
             <label className="block text-[11px] sm:text-xs font-medium text-gray-500 mb-1">Subcategory</label>
-            <select
-              value={subCategory}
-              onChange={(e) => setSubCategory(e.target.value)}
+            <button
+              type="button"
               disabled={!parentCategory}
-              className="w-full border rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:opacity-50"
+              onClick={() => {
+                setSubDropdownOpen((prev) => !prev);
+                setParentDropdownOpen(false);
+              }}
+              className="w-full flex items-center justify-between gap-2 border rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm bg-white text-left focus:ring-2 focus:ring-blue-500 outline-none disabled:bg-gray-50 disabled:opacity-50"
             >
-              <option value="">All Subcategories</option>
-              {subs.map(c => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+              <span className="truncate text-gray-900">
+                {subs.find((c) => String(c.id) === subCategory)?.name || "All Subcategories"}
+              </span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-gray-400 shrink-0 transition-transform ${
+                  subDropdownOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+
+            {subDropdownOpen && parentCategory && (
+              <>
+                <div
+                  className="fixed inset-0 z-20"
+                  onClick={() => setSubDropdownOpen(false)}
+                />
+                <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-gray-200 rounded-xl shadow-lg max-h-48 overflow-y-auto py-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSubCategory("");
+                      setSubDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 text-xs sm:text-sm hover:bg-blue-50 ${
+                      !subCategory ? "bg-blue-50 font-bold text-blue-700" : "text-gray-700"
+                    }`}
+                  >
+                    All Subcategories
+                  </button>
+                  {subs.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => {
+                        setSubCategory(String(c.id));
+                        setSubDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-xs sm:text-sm hover:bg-blue-50 truncate ${
+                        subCategory === String(c.id)
+                          ? "bg-blue-50 font-bold text-blue-700"
+                          : "text-gray-800"
+                      }`}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -188,7 +320,7 @@ export default function SoldItemsHistoryModal({
             </div>
           )}
 
-          <SoldItemsMobileCards items={items} lastElementRef={lastElementRef} />
+          <SoldItemsMobileCards items={items} lastElementRef={() => {}} />
 
           <div className="hidden md:block border rounded-xl bg-white shadow-sm overflow-hidden">
             <table className="w-full text-sm text-left">
@@ -210,8 +342,7 @@ export default function SoldItemsHistoryModal({
                     </td>
                   </tr>
                 ) : (
-                  items.map((item, index) => {
-                    const isLast = items.length === index + 1;
+                  items.map((item) => {
                     const date = new Date(item.bill.createdAt).toLocaleDateString("en-IN", {
                       day: "2-digit", month: "short", year: "numeric"
                     });
@@ -225,7 +356,6 @@ export default function SoldItemsHistoryModal({
                       <tr 
                         key={item.id} 
                         className="hover:bg-blue-50/50 transition-colors group"
-                        ref={isLast ? lastElementRef : null}
                       >
                         <td className="px-4 py-3 whitespace-nowrap text-gray-600">{date}</td>
                         <td className="px-4 py-3 whitespace-nowrap">
@@ -268,6 +398,8 @@ export default function SoldItemsHistoryModal({
               </tbody>
             </table>
           </div>
+
+          {hasMore && items.length > 0 && <div ref={lastElementRef} className="h-2" />}
 
           {loading && (
             <div className="p-6 flex justify-center items-center">

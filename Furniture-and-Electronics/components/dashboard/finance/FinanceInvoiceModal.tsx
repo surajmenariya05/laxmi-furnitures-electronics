@@ -50,15 +50,15 @@ export default function FinanceInvoiceModal({
       className="bg-[#FAF7F2] rounded-2xl shadow-2xl max-w-3xl w-full flex flex-col max-h-[92vh] overflow-hidden border border-[#E5DFD7]"
     >
       {/* Modal Bar */}
-      <div className="px-6 py-3.5 bg-[#F3EDE3] border-b border-[#E5DFD7] flex justify-between items-center">
-        <span className="text-xs font-extrabold uppercase tracking-widest text-[#4A1018]">
+      <div className="px-4 sm:px-6 py-3 sm:py-3.5 bg-[#F3EDE3] border-b border-[#E5DFD7] flex justify-between items-center gap-2">
+        <span className="text-[11px] sm:text-xs font-extrabold uppercase tracking-widest text-[#4A1018] truncate">
           Finance Tax Invoice · #{record.invoiceNumber}
         </span>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={() => handlePrint()}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[#4A1018] hover:bg-[#3A0C12] text-white text-xs font-bold shadow-xs transition"
+            className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-lg bg-[#4A1018] hover:bg-[#3A0C12] text-white text-xs font-bold shadow-xs transition whitespace-nowrap"
           >
             <FaPrint className="w-3 h-3" />
             <span>Print</span>
@@ -74,10 +74,10 @@ export default function FinanceInvoiceModal({
       </div>
 
       {/* Editorial Luxury Invoice Body */}
-      <div className="flex-1 overflow-y-auto p-6 bg-[#EAE4DC]/60">
+      <div className="flex-1 overflow-auto p-3 sm:p-6 bg-[#EAE4DC]/60">
         <div
           ref={printRef}
-          className="bg-[#FAF7F2] text-[#2C221E] mx-auto max-w-[760px] p-8 print:p-6 shadow-sm border border-[#E6DFD3] relative overflow-hidden break-inside-avoid"
+          className="bg-[#FAF7F2] text-[#2C221E] mx-auto min-w-[680px] md:min-w-0 max-w-[760px] p-6 sm:p-8 print:min-w-0 print:p-6 shadow-sm border border-[#E6DFD3] relative overflow-hidden break-inside-avoid"
           style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}
         >
           {/* Top Branded Header */}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/ui/modal";
 import { FinanceRecordItem } from "@/hooks/useFinanceRecords";
-import { FaWallet, FaTimes, FaCheckCircle, FaLock } from "react-icons/fa";
+import { FaWallet, FaTimes, FaCheckCircle, FaLock, FaChevronDown } from "react-icons/fa";
 
 interface FinanceFormModalProps {
   isOpen: boolean;
@@ -26,6 +26,7 @@ export default function FinanceFormModal({
   const [customerPhone, setCustomerPhone] = useState("");
   const [customerAddress, setCustomerAddress] = useState("");
   const [financeProviderId, setFinanceProviderId] = useState("");
+  const [providerDropdownOpen, setProviderDropdownOpen] = useState(false);
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [financeDate, setFinanceDate] = useState("");
   const [productName, setProductName] = useState("");
@@ -216,22 +217,70 @@ export default function FinanceFormModal({
             Product & Finance Info
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
+            <div className="relative">
               <label className="block text-xs font-bold text-gray-700 mb-1">
                 Finance Provider <span className="text-rose-500">*</span>
               </label>
-              <select
-                value={financeProviderId}
-                onChange={(e) => setFinanceProviderId(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white focus:outline-none focus:border-indigo-500"
+              <button
+                type="button"
+                onClick={() => setProviderDropdownOpen((prev) => !prev)}
+                className="w-full flex items-center justify-between gap-2 border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold bg-white text-left focus:outline-none focus:border-indigo-500"
               >
-                <option value="">Select Provider...</option>
-                {providers.map((p: any) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+                <span className={`truncate ${financeProviderId ? "text-gray-900" : "text-gray-400"}`}>
+                  {providers.find((p: any) => String(p.id) === String(financeProviderId))?.name ||
+                    "Select Provider..."}
+                </span>
+                <FaChevronDown
+                  className={`w-3 h-3 text-gray-400 shrink-0 transition-transform ${
+                    providerDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {providerDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-20"
+                    onClick={() => setProviderDropdownOpen(false)}
+                  />
+                  <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-gray-200 rounded-xl shadow-lg max-h-52 overflow-y-auto py-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFinanceProviderId("");
+                        setProviderDropdownOpen(false);
+                      }}
+                      className={`w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 transition-colors ${
+                        !financeProviderId
+                          ? "bg-indigo-50 font-bold text-indigo-700"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      Select Provider...
+                    </button>
+                    {providers.map((p: any) => {
+                      const isSelected = String(p.id) === String(financeProviderId);
+                      return (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            setFinanceProviderId(String(p.id));
+                            setProviderDropdownOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 text-sm hover:bg-indigo-50 transition-colors truncate ${
+                            isSelected
+                              ? "bg-indigo-50 font-bold text-indigo-700"
+                              : "text-gray-800 font-medium"
+                          }`}
+                        >
+                          {p.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
             </div>
             <div>
               <label className="block text-xs font-bold text-gray-700 mb-1">

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { getBills, getBill } from "@/lib/api/billing";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useDebounce } from "@/hooks/useDebounce";
 import { FaSpinner, FaPen, FaWhatsapp, FaEye, FaDownload } from "react-icons/fa";
@@ -44,6 +45,7 @@ interface BillsPageResponse {
 }
 
 export default function BillingHistoryPage() {
+  const router = useRouter();
   const { department } = useDepartment();
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebounce(search, 500);
@@ -102,13 +104,8 @@ export default function BillingHistoryPage() {
   }, [bills, mutate]);
 
   const openEditModal = (bill: BillItem) => {
-    setSelectedBill(bill);
-    setEditData({
-      name: bill.customer?.name || bill.customerName || "",
-      phone: bill.customer?.phone || bill.customerPhone || "",
-      address: bill.customer?.address || "",
-    });
-    setShowEditModal(true);
+    if (bill.status === "voided") return;
+    router.push(`/billing?editBillId=${bill.id}`);
   };
 
   const handleSaveCustomer = async (e: React.FormEvent) => {

@@ -229,23 +229,56 @@ export async function POST(req: Request) {
 
         if (product.productType !== "quantity") {
           // Serialized: quantity must be 1 per unit
-          if (!productUnitId) {
+          let unitId: number;
+
+          if (productUnitId) {
+            const unit = await tx.productUnit.findUnique({
+              where: { id: parseInt(productUnitId) },
+            });
+
+            if (!unit || unit.status !== "in_stock") {
+              throw new Error(`Selected serial number unit is no longer available.`);
+            }
+
+            await tx.productUnit.update({
+              where: { id: unit.id },
+              data: { status: "sold", soldAt: new Date() },
+            });
+            unitId = unit.id;
+          } else if (item.serialNumber && String(item.serialNumber).trim()) {
+            const cleanSerial = String(item.serialNumber).trim();
+            const existingUnit = await tx.productUnit.findUnique({
+              where: { imeiNumber: cleanSerial },
+            });
+
+            if (existingUnit) {
+              if (existingUnit.status !== "in_stock") {
+                throw new Error(`Serial number "${cleanSerial}" is already sold.`);
+              }
+              await tx.productUnit.update({
+                where: { id: existingUnit.id },
+                data: { status: "sold", soldAt: new Date() },
+              });
+              unitId = existingUnit.id;
+            } else {
+              const newUnit = await tx.productUnit.create({
+                data: {
+                  productId: product.id,
+                  imeiNumber: cleanSerial,
+                  status: "sold",
+                  costPrice: product.costPrice,
+                  soldAt: new Date(),
+                },
+              });
+              unitId = newUnit.id;
+            }
+          } else {
             throw new Error(`Serial number unit is required for serialized product: ${product.name}`);
           }
 
-          const unit = await tx.productUnit.findUnique({
-            where: { id: parseInt(productUnitId) },
-          });
-
-          if (!unit || unit.status !== "in_stock") {
-            throw new Error(`Selected serial number unit is no longer available.`);
+          if (product.quantityInStock < 1) {
+            throw new Error(`Insufficient stock for product ${product.name}. Available: ${product.quantityInStock}`);
           }
-
-          // Mark unit as sold
-          await tx.productUnit.update({
-            where: { id: unit.id },
-            data: { status: "sold", soldAt: new Date() },
-          });
 
           // Decrement product stock by 1
           await tx.product.update({
@@ -255,7 +288,7 @@ export async function POST(req: Request) {
 
           billItemsData.push({
             productId: product.id,
-            productUnitId: unit.id,
+            productUnitId: unitId,
             quantity: 1,
             mrp: Number(product.sellingPrice),
             unitPrice: effectivePrice,

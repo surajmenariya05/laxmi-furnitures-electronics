@@ -5,6 +5,7 @@ import { Modal } from "@/components/ui/modal";
 import { FaTimes, FaUsers, FaPlus, FaTrash, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
 import { Vendor } from "@/types/purchase";
 import { createVendor, deleteVendor } from "@/lib/api/purchase";
+import VendorMobileCards from "@/components/mobileview/purchases/VendorMobileCards";
 
 interface VendorManagementModalProps {
   isOpen: boolean;
@@ -193,13 +194,21 @@ export default function VendorManagementModal({
             </form>
           )}
 
-          {/* Vendors List Table */}
+          {/* Vendors List Cards (Mobile) & Table (Desktop) */}
           {vendors.length === 0 ? (
             <div className="p-8 text-center text-gray-400 text-xs">
-              No vendors registered yet. Click "+ Add New Vendor" above.
+              No vendors registered yet. Click &quot;+ Add New Vendor&quot; above.
             </div>
           ) : (
-            <div className="border border-gray-200 rounded-xl overflow-hidden">
+            <>
+              <VendorMobileCards
+                vendors={vendors}
+                isOwner={Boolean(isOwner)}
+                deletingId={deletingId}
+                onDelete={handleDelete}
+              />
+
+              <div className="hidden md:block border border-gray-200 rounded-xl overflow-hidden">
               <table className="w-full text-left text-xs">
                 <thead className="bg-gray-50 text-gray-500 text-[10px] uppercase font-bold border-b border-gray-200">
                   <tr>
@@ -290,7 +299,8 @@ export default function VendorManagementModal({
                   })}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </>
           )}
         </div>
       </Modal>

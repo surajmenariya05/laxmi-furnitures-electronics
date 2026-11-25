@@ -164,35 +164,35 @@ export default function PurchasesPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto pb-12 animate-fade-in">
       {/* Page Title & Subtitle + Date Filter */}
-      <div className="relative z-30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight">
-            Purchases & Vendor Settlements
+      <div className="relative z-30 flex items-start sm:items-center justify-between gap-2.5 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-2xl font-black text-gray-900 tracking-tight leading-tight">
+            Purchases &amp; Vendor Settlements
           </h1>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-[11px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 leading-snug">
             Track wholesale procurements, manage supplier accounts payable, and settle installments.
           </p>
         </div>
 
         {/* Date Selector Dropdown matching Analytics style */}
-        <div className="relative" ref={dropdownRef}>
+        <div className="relative shrink-0" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setDropdownOpen(!dropdownOpen)}
-            className="border border-[#DDD6CE] rounded-xl px-4 py-2 bg-white text-sm min-w-[150px] text-left flex justify-between items-center text-[#1C1A17] font-bold hover:border-[#D5CDC3] transition shadow-2xs"
+            className="border border-[#DDD6CE] rounded-xl px-3 sm:px-4 py-1.5 sm:py-2 bg-white text-xs sm:text-sm min-w-[115px] sm:min-w-[150px] text-left flex justify-between items-center text-[#1C1A17] font-bold hover:border-[#D5CDC3] transition shadow-2xs whitespace-nowrap"
           >
             {dateRange === "all"
               ? "All Time"
               : dateRange === "custom"
               ? "Custom Range"
               : `Last ${dateRange} Days`}
-            <span className="ml-2 text-[#6E6862] text-xs">▼</span>
+            <span className="ml-2 text-[#6E6862] text-[10px] sm:text-xs">▼</span>
           </button>
 
           {dropdownOpen && (
-            <div className="absolute top-full right-0 mt-2 bg-[#F5F2ED] border border-[#DDD6CE] rounded-2xl shadow-2xl z-50 w-80 p-3">
+            <div className="absolute top-full right-0 mt-2 bg-[#F5F2ED] border border-[#DDD6CE] rounded-2xl shadow-2xl z-50 w-[calc(100vw-2rem)] max-w-[320px] sm:w-80 p-3">
               <div className="flex flex-col space-y-1">
                 <button
                   type="button"

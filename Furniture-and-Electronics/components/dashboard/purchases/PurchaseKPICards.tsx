@@ -14,18 +14,18 @@ interface PurchaseKPICardsProps {
 export default function PurchaseKPICards({ kpis, loading }: PurchaseKPICardsProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4 xl:gap-5">
         {[1, 2, 3, 4].map((i) => (
           <div
             key={i}
-            className="min-h-36 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_2px_8px_rgba(15,23,42,0.045)] flex items-start justify-between"
+            className="min-h-28 sm:min-h-36 rounded-2xl border border-slate-200/80 bg-white p-3.5 sm:p-5 shadow-[0_2px_8px_rgba(15,23,42,0.045)] flex items-start justify-between"
           >
             <div className="space-y-3 flex-1">
+              <Skeleton className="h-3 w-20 rounded" />
+              <Skeleton className="h-7 w-24 sm:w-36 rounded" />
               <Skeleton className="h-3 w-24 rounded" />
-              <Skeleton className="h-8 w-36 rounded" />
-              <Skeleton className="h-3 w-28 rounded" />
             </div>
-            <Skeleton className="w-11 h-11 rounded-xl" />
+            <Skeleton className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl" />
           </div>
         ))}
       </div>
@@ -36,7 +36,7 @@ export default function PurchaseKPICards({ kpis, loading }: PurchaseKPICardsProp
   const transportCount = kpis.transportBillsCount || 0;
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4 xl:gap-5">
       <KpiCard
         label="Total Purchases"
         value={`₹ ${kpis.totalPurchaseAmount.toLocaleString("en-IN")}`}

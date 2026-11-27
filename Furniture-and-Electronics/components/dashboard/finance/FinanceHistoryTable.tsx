@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FaSearch, FaPen, FaEye, FaWallet } from "react-icons/fa";
+import { FaSearch, FaPen, FaEye, FaWallet, FaWhatsapp } from "react-icons/fa";
 import { FinanceRecordItem } from "@/hooks/useFinanceRecords";
 import FinanceMobileCards from "@/components/mobileview/finance/FinanceMobileCards";
 
@@ -12,6 +12,7 @@ interface FinanceHistoryTableProps {
   setSearchQuery: (q: string) => void;
   onEdit: (record: FinanceRecordItem) => void;
   onView: (record: FinanceRecordItem) => void;
+  onResendWhatsApp: (record: FinanceRecordItem) => void;
 }
 
 export default function FinanceHistoryTable({
@@ -21,6 +22,7 @@ export default function FinanceHistoryTable({
   setSearchQuery,
   onEdit,
   onView,
+  onResendWhatsApp,
 }: FinanceHistoryTableProps) {
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-[#E5DFD7] flex-1 flex flex-col overflow-hidden">
@@ -45,6 +47,7 @@ export default function FinanceHistoryTable({
           isOwner={isOwner}
           onEdit={onEdit}
           onView={onView}
+          onResendWhatsApp={onResendWhatsApp}
         />
       </div>
 
@@ -167,6 +170,18 @@ export default function FinanceHistoryTable({
                           View
                         </span>
                         <FaEye className="w-3 h-3 text-[#35347A] transition-transform group-hover:scale-110 shrink-0" />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => onResendWhatsApp(rec)}
+                        className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#11633B] bg-gradient-to-b from-[#ECFDF5] to-[#D1FAE5] hover:from-[#F0FDF4] hover:to-[#A7F3D0] border border-[#86EFAC] border-b-2 border-b-[#16A34A] hover:border-[#15803D] rounded-full shadow-[0_2px_4px_rgba(22,163,74,0.12),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
+                        title="Send / Resend PDF on WhatsApp"
+                      >
+                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[52px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
+                          Resend
+                        </span>
+                        <FaWhatsapp className="w-3.5 h-3.5 text-[#15803D] transition-transform group-hover:scale-110 shrink-0" />
                       </button>
                     </div>
                   </td>

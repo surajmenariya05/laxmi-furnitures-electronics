@@ -10,6 +10,7 @@ import FinanceHistoryTable from "@/components/dashboard/finance/FinanceHistoryTa
 import FinanceFormModal from "@/components/dashboard/finance/FinanceFormModal";
 import FinanceInvoiceModal from "@/components/dashboard/finance/FinanceInvoiceModal";
 import ManageProvidersModal from "@/components/dashboard/finance/ManageProvidersModal";
+import FinanceWhatsAppResendModal from "@/components/dashboard/finance/FinanceWhatsAppResendModal";
 import { useToast } from "@/components/dashboard/providers/ToastProvider";
 import {
   dispatchFinanceWhatsAppInBackground,
@@ -43,6 +44,7 @@ export default function FinancePage() {
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState<FinanceRecordItem | null>(null);
   const [viewingRecord, setViewingRecord] = useState<FinanceRecordItem | null>(null);
+  const [resendingRecord, setResendingRecord] = useState<FinanceRecordItem | null>(null);
 
   useEffect(() => {
     if (showManageModal) {
@@ -144,6 +146,7 @@ export default function FinancePage() {
         setSearchQuery={setSearchQuery}
         onEdit={handleOpenEdit}
         onView={(rec) => setViewingRecord(rec)}
+        onResendWhatsApp={(rec) => setResendingRecord(rec)}
       />
 
       {/* Modals */}
@@ -160,6 +163,20 @@ export default function FinancePage() {
         record={viewingRecord}
         isOpen={Boolean(viewingRecord)}
         onClose={() => setViewingRecord(null)}
+      />
+
+      <FinanceWhatsAppResendModal
+        isOpen={Boolean(resendingRecord)}
+        onClose={() => setResendingRecord(null)}
+        record={resendingRecord}
+        providers={providers}
+        onSend={(record, recipients) =>
+          dispatchFinanceWhatsAppInBackground({
+            record,
+            recipients,
+            showToast,
+          })
+        }
       />
 
       <ManageProvidersModal

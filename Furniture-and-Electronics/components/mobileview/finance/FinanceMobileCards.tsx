@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FaPen, FaEye, FaWallet } from "react-icons/fa";
+import { FaPen, FaEye, FaWallet, FaWhatsapp } from "react-icons/fa";
 import { FinanceRecordItem } from "@/hooks/useFinanceRecords";
 
 interface FinanceMobileCardsProps {
@@ -9,6 +9,7 @@ interface FinanceMobileCardsProps {
   isOwner: boolean;
   onEdit: (record: FinanceRecordItem) => void;
   onView: (record: FinanceRecordItem) => void;
+  onResendWhatsApp: (record: FinanceRecordItem) => void;
 }
 
 export default function FinanceMobileCards({
@@ -16,6 +17,7 @@ export default function FinanceMobileCards({
   isOwner,
   onEdit,
   onView,
+  onResendWhatsApp,
 }: FinanceMobileCardsProps) {
   return (
     <div className="flex-1 overflow-auto p-3 space-y-3 bg-[#F8F6F2]">
@@ -102,11 +104,11 @@ export default function FinanceMobileCards({
               )}
             </div>
 
-            <div className="grid grid-cols-2 gap-2.5 pt-0.5">
+            <div className="grid grid-cols-3 gap-2 pt-0.5">
               <button
                 type="button"
                 onClick={() => onEdit(rec)}
-                className="w-full inline-flex items-center justify-center gap-1.5 h-9 px-3 text-xs font-bold text-[#7A5416] bg-gradient-to-b from-[#FCF7EB] to-[#F7ECD6] border border-[#E5CE9A] border-b-2 border-b-[#C69C4D] rounded-full shadow-2xs active:translate-y-px"
+                className="w-full inline-flex items-center justify-center gap-1 h-9 px-2 text-xs font-bold text-[#7A5416] bg-gradient-to-b from-[#FCF7EB] to-[#F7ECD6] border border-[#E5CE9A] border-b-2 border-b-[#C69C4D] rounded-full shadow-2xs active:translate-y-px"
               >
                 <FaPen className="w-2.5 h-2.5 shrink-0" />
                 <span>Edit</span>
@@ -114,10 +116,18 @@ export default function FinanceMobileCards({
               <button
                 type="button"
                 onClick={() => onView(rec)}
-                className="w-full inline-flex items-center justify-center gap-1.5 h-9 px-3 text-xs font-bold text-[#35347A] bg-gradient-to-b from-[#F5F5FC] to-[#E9E9F8] border border-[#C6C5ED] border-b-2 border-b-[#7F7ECC] rounded-full shadow-2xs active:translate-y-px"
+                className="w-full inline-flex items-center justify-center gap-1 h-9 px-2 text-xs font-bold text-[#35347A] bg-gradient-to-b from-[#F5F5FC] to-[#E9E9F8] border border-[#C6C5ED] border-b-2 border-b-[#7F7ECC] rounded-full shadow-2xs active:translate-y-px"
               >
                 <FaEye className="w-3 h-3 shrink-0" />
-                <span>View Invoice</span>
+                <span>Invoice</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onResendWhatsApp(rec)}
+                className="w-full inline-flex items-center justify-center gap-1 h-9 px-2 text-xs font-bold text-[#11633B] bg-gradient-to-b from-[#ECFDF5] to-[#D1FAE5] border border-[#86EFAC] border-b-2 border-b-[#16A34A] rounded-full shadow-2xs active:translate-y-px"
+              >
+                <FaWhatsapp className="w-3.5 h-3.5 shrink-0 text-[#15803D]" />
+                <span>Send</span>
               </button>
             </div>
           </div>

@@ -4,6 +4,7 @@ import React from "react";
 import { FaSearch, FaPen, FaEye, FaWallet, FaWhatsapp } from "react-icons/fa";
 import { FinanceRecordItem } from "@/hooks/useFinanceRecords";
 import FinanceMobileCards from "@/components/mobileview/finance/FinanceMobileCards";
+import ActionTooltip from "@/components/ui/ActionTooltip";
 
 interface FinanceHistoryTableProps {
   records: FinanceRecordItem[];
@@ -151,36 +152,30 @@ export default function FinanceHistoryTable({
                       <button
                         type="button"
                         onClick={() => onEdit(rec)}
-                        className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#7A5416] bg-gradient-to-b from-[#FCF7EB] to-[#F7ECD6] hover:from-[#FEFBF4] hover:to-[#F2E2C2] border border-[#E5CE9A] border-b-2 border-b-[#C69C4D] hover:border-[#B38632] rounded-full shadow-[0_2px_4px_rgba(122,84,22,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
-                        title="Edit Finance Details"
+                        aria-label="Edit Finance Details"
+                        className="group relative inline-flex items-center justify-center w-7 h-7 shrink-0 text-xs font-bold text-[#7A5416] bg-gradient-to-b from-[#FCF7EB] to-[#F7ECD6] hover:from-[#FEFBF4] hover:to-[#F2E2C2] border border-[#E5CE9A] border-b-2 border-b-[#C69C4D] hover:border-[#B38632] rounded-full shadow-[0_2px_4px_rgba(122,84,22,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-150"
                       >
-                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[36px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
-                          Edit
-                        </span>
+                        <ActionTooltip label="Edit Deal" />
                         <FaPen className="w-2.5 h-2.5 text-[#7A5416] transition-transform group-hover:scale-110 shrink-0" />
                       </button>
 
                       <button
                         type="button"
                         onClick={() => onView(rec)}
-                        className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#35347A] bg-gradient-to-b from-[#F5F5FC] to-[#E9E9F8] hover:from-[#FAF9FE] hover:to-[#DFDFFA] border border-[#C6C5ED] border-b-2 border-b-[#7F7ECC] hover:border-[#6C6BBF] rounded-full shadow-[0_2px_4px_rgba(53,52,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
-                        title="View Finance Invoice"
+                        aria-label="View Finance Invoice"
+                        className="group relative inline-flex items-center justify-center w-7 h-7 shrink-0 text-xs font-bold text-[#35347A] bg-gradient-to-b from-[#F5F5FC] to-[#E9E9F8] hover:from-[#FAF9FE] hover:to-[#DFDFFA] border border-[#C6C5ED] border-b-2 border-b-[#7F7ECC] hover:border-[#6C6BBF] rounded-full shadow-[0_2px_4px_rgba(53,52,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-150"
                       >
-                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[42px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
-                          View
-                        </span>
+                        <ActionTooltip label="View Invoice" />
                         <FaEye className="w-3 h-3 text-[#35347A] transition-transform group-hover:scale-110 shrink-0" />
                       </button>
 
                       <button
                         type="button"
                         onClick={() => onResendWhatsApp(rec)}
-                        className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#11633B] bg-gradient-to-b from-[#ECFDF5] to-[#D1FAE5] hover:from-[#F0FDF4] hover:to-[#A7F3D0] border border-[#86EFAC] border-b-2 border-b-[#16A34A] hover:border-[#15803D] rounded-full shadow-[0_2px_4px_rgba(22,163,74,0.12),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
-                        title="Send / Resend PDF on WhatsApp"
+                        aria-label="Send / Resend PDF on WhatsApp"
+                        className="group relative inline-flex items-center justify-center w-7 h-7 shrink-0 text-xs font-bold text-[#11633B] bg-gradient-to-b from-[#ECFDF5] to-[#D1FAE5] hover:from-[#F0FDF4] hover:to-[#A7F3D0] border border-[#86EFAC] border-b-2 border-b-[#16A34A] hover:border-[#15803D] rounded-full shadow-[0_2px_4px_rgba(22,163,74,0.12),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-150"
                       >
-                        <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[52px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
-                          Resend
-                        </span>
+                        <ActionTooltip label="Resend PDF" align="right" />
                         <FaWhatsapp className="w-3.5 h-3.5 text-[#15803D] transition-transform group-hover:scale-110 shrink-0" />
                       </button>
                     </div>

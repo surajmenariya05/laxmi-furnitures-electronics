@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { FaPen, FaWhatsapp, FaEye, FaDownload } from "react-icons/fa";
+import ActionTooltip from "@/components/ui/ActionTooltip";
 import { BillingHistoryItem } from "@/components/mobileview/billing/BillingHistoryMobileCards";
 
 interface BillingHistoryTableProps {
@@ -163,18 +164,16 @@ export default function BillingHistoryTable({
                   <span className="text-xs text-gray-400">-</span>
                 )}
               </td>
-              <td className="px-4 py-3.5 whitespace-nowrap text-right text-sm font-medium w-[185px] min-w-[185px]">
+              <td className="px-4 py-3.5 whitespace-nowrap text-right text-sm font-medium w-[155px] min-w-[155px]">
                 <div className="flex items-center justify-end gap-1.5 w-full">
                   {role === "owner" && bill.status !== "voided" && bill.customer && (
                     <button
                       type="button"
                       onClick={() => onEdit(bill)}
-                      title="Edit Bill"
-                      className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#785428] bg-gradient-to-b from-[#FFFDF9] to-[#F5EFEB] hover:from-[#FDFBF7] hover:to-[#EDE3D6] border border-[#E2D4BE] border-b-2 border-b-[#C4A87C] hover:border-[#BFA070] rounded-full shadow-[0_2px_4px_rgba(120,84,40,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
+                      aria-label="Edit Bill"
+                      className="group relative inline-flex items-center justify-center w-7 h-7 shrink-0 text-xs font-bold text-[#785428] bg-gradient-to-b from-[#FFFDF9] to-[#F5EFEB] hover:from-[#FDFBF7] hover:to-[#EDE3D6] border border-[#E2D4BE] border-b-2 border-b-[#C4A87C] hover:border-[#BFA070] rounded-full shadow-[0_2px_4px_rgba(120,84,40,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-150"
                     >
-                      <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[42px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
-                        Edit
-                      </span>
+                      <ActionTooltip label="Edit Bill" />
                       <FaPen className="w-2.5 h-2.5 text-[#785428] transition-transform group-hover:scale-110 shrink-0" />
                     </button>
                   )}
@@ -182,12 +181,10 @@ export default function BillingHistoryTable({
                     type="button"
                     onClick={() => onSendWhatsapp(bill)}
                     disabled={sendingWhatsappId === bill.id || bill.status === "voided"}
-                    className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#136338] bg-gradient-to-b from-[#F2FBF6] to-[#E4F5EB] hover:from-[#F8FEFA] hover:to-[#DBEFE3] border border-[#A8E2BF] border-b-2 border-b-[#4BAE74] hover:border-[#3C9C63] rounded-full shadow-[0_2px_4px_rgba(19,99,56,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Send via WhatsApp"
+                    aria-label="Send via WhatsApp"
+                    className="group relative inline-flex items-center justify-center w-7 h-7 shrink-0 text-xs font-bold text-[#136338] bg-gradient-to-b from-[#F2FBF6] to-[#E4F5EB] hover:from-[#F8FEFA] hover:to-[#DBEFE3] border border-[#A8E2BF] border-b-2 border-b-[#4BAE74] hover:border-[#3C9C63] rounded-full shadow-[0_2px_4px_rgba(19,99,56,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[62px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
-                      WhatsApp
-                    </span>
+                    <ActionTooltip label="WhatsApp" />
                     {sendingWhatsappId === bill.id ? (
                       <div className="w-3 h-3 border-2 border-[#136338] border-t-transparent rounded-full animate-spin shrink-0" />
                     ) : (
@@ -196,24 +193,20 @@ export default function BillingHistoryTable({
                   </button>
                   <Link
                     href={`/billing/${bill.id}`}
-                    className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#35347A] bg-gradient-to-b from-[#F5F5FC] to-[#E9E9F8] hover:from-[#FAF9FE] hover:to-[#DFDFFA] border border-[#C6C5ED] border-b-2 border-b-[#7F7ECC] hover:border-[#6C6BBF] rounded-full shadow-[0_2px_4px_rgba(53,52,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200"
-                    title="View Details"
+                    aria-label="View Details"
+                    className="group relative inline-flex items-center justify-center w-7 h-7 shrink-0 text-xs font-bold text-[#35347A] bg-gradient-to-b from-[#F5F5FC] to-[#E9E9F8] hover:from-[#FAF9FE] hover:to-[#DFDFFA] border border-[#C6C5ED] border-b-2 border-b-[#7F7ECC] hover:border-[#6C6BBF] rounded-full shadow-[0_2px_4px_rgba(53,52,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-150"
                   >
-                    <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[42px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
-                      View
-                    </span>
+                    <ActionTooltip label="View Bill" />
                     <FaEye className="w-3 h-3 text-[#35347A] transition-transform group-hover:scale-110 shrink-0" />
                   </Link>
                   <button
                     type="button"
                     onClick={() => onDownloadBill(bill.id)}
                     disabled={bill.status === "voided"}
-                    className="group relative inline-flex items-center justify-center h-7 px-2 shrink-0 text-xs font-bold text-[#16507A] bg-gradient-to-b from-[#F2F8FC] to-[#E2F0F9] hover:from-[#F7FBFE] hover:to-[#D5E9F5] border border-[#AED5EE] border-b-2 border-b-[#4E97C7] hover:border-[#3884B5] rounded-full shadow-[0_2px_4px_rgba(22,80,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Download Bill"
+                    aria-label="Download Bill"
+                    className="group relative inline-flex items-center justify-center w-7 h-7 shrink-0 text-xs font-bold text-[#16507A] bg-gradient-to-b from-[#F2F8FC] to-[#E2F0F9] hover:from-[#F7FBFE] hover:to-[#D5E9F5] border border-[#AED5EE] border-b-2 border-b-[#4E97C7] hover:border-[#3884B5] rounded-full shadow-[0_2px_4px_rgba(22,80,122,0.1),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[60px] group-hover:opacity-100 group-hover:mr-1 transition-all duration-300 ease-out text-[11px] font-bold">
-                      Download
-                    </span>
+                    <ActionTooltip label="Download PDF" align="right" />
                     <FaDownload className="w-2.5 h-2.5 text-[#16507A] transition-transform group-hover:scale-110 shrink-0" />
                   </button>
                 </div>

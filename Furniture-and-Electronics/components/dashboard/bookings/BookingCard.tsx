@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { BookingResponse } from "@/types/booking";
 import { FaWhatsapp, FaPen, FaTrashAlt } from "react-icons/fa";
 import DuePaymentPill from "@/components/ui/DuePaymentPill";
+import ActionTooltip from "@/components/ui/ActionTooltip";
 import BookingDueBreakdownModal from "./BookingDueBreakdownModal";
 
 interface BookingCardProps {
@@ -220,13 +221,11 @@ export default function BookingCard({
                   e.stopPropagation();
                   onEdit(booking);
                 }}
-                className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-amber-800 bg-[#FFFDF5] hover:bg-amber-50 border border-amber-300/80 border-b-2 border-b-amber-400 rounded-full shadow-[0_2px_4px_rgba(217,119,6,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200"
-                title="Edit Booking"
+                aria-label="Edit Booking"
+                className="group relative inline-flex items-center justify-center w-7 h-7 text-xs font-bold text-amber-800 bg-[#FFFDF5] hover:bg-amber-50 border border-amber-300/80 border-b-2 border-b-amber-400 rounded-full shadow-[0_2px_4px_rgba(217,119,6,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-150"
               >
+                <ActionTooltip label="Edit" />
                 <FaPen className="w-2.5 h-2.5 text-amber-700 transition-transform group-hover:scale-110 shrink-0" />
-                <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[45px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
-                  Edit
-                </span>
               </button>
             )}
 
@@ -237,13 +236,11 @@ export default function BookingCard({
                   e.stopPropagation();
                   onDelete(booking);
                 }}
-                className="group relative inline-flex items-center justify-center h-7 px-2 text-xs font-bold text-rose-800 bg-[#FFF5F5] hover:bg-rose-50 border border-rose-300/80 border-b-2 border-b-rose-400 rounded-full shadow-[0_2px_4px_rgba(225,29,72,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-200"
-                title="Delete Booking"
+                aria-label="Delete Booking"
+                className="group relative inline-flex items-center justify-center w-7 h-7 text-xs font-bold text-rose-800 bg-[#FFF5F5] hover:bg-rose-50 border border-rose-300/80 border-b-2 border-b-rose-400 rounded-full shadow-[0_2px_4px_rgba(225,29,72,0.15),inset_0_1px_0_rgba(255,255,255,0.9)] hover:shadow-md active:translate-y-px transition-all duration-150"
               >
+                <ActionTooltip label="Delete" align="right" />
                 <FaTrashAlt className="w-2.5 h-2.5 text-rose-700 transition-transform group-hover:scale-110 shrink-0" />
-                <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover:max-w-[50px] group-hover:opacity-100 group-hover:ml-1 transition-all duration-300 ease-out text-[11px] font-bold">
-                  Delete
-                </span>
               </button>
             )}
           </div>

@@ -28,6 +28,13 @@ async function ensureTableExists() {
         details TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+      CREATE TABLE IF NOT EXISTS public."whatsapp_auth_state" (
+        session_id VARCHAR(64) NOT NULL DEFAULT 'default',
+        key_id TEXT NOT NULL,
+        value JSONB NOT NULL,
+        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (session_id, key_id)
+      );
     `);
     tableInitialized = true;
   } catch (err) {

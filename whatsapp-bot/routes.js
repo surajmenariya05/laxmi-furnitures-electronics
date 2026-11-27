@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const { API_KEY } = require('./config');
 const { getSettings, updateSettings } = require('./db');
-const { initWhatsappSocket, disconnectWhatsapp, getGlobalSocket } = require('./whatsapp');
+const { initWhatsappSocket, disconnectWhatsapp, getGlobalSocket, clearPostgresSession } = require('./whatsapp');
 const { dispatchMessage } = require('./sender');
 
 const router = Router();
@@ -56,6 +56,9 @@ router.post('/connect', async (req, res) => {
     }
 
     const settings = await getSettings();
+    if (settings.status !== 'connected') {
+      await clearPostgresSession();
+    }
     await updateSettings(settings.id, { status: 'connecting', qr_code: null });
 
     initWhatsappSocket().catch((err) => {

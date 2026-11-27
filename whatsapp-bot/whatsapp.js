@@ -1,7 +1,6 @@
-const fs = require('fs');
-const path = require('path');
-const { sessionDir, logger, MAX_RECONNECT_ATTEMPTS } = require('./config');
+const { logger, MAX_RECONNECT_ATTEMPTS } = require('./config');
 const { getSettings, updateSettings } = require('./db');
+const { usePostgresAuthState, clearPostgresSession } = require('./pg-auth');
 
 let globalSocket = null;
 let isInitializing = false;
@@ -9,21 +8,6 @@ let cachedWaVersion = null;
 let globalConnectionTimeout = null;
 let reconnectTimer = null;
 let reconnectAttempts = 0;
-
-function clearSessionFiles() {
-  if (fs.existsSync(sessionDir)) {
-    try {
-      for (const entry of fs.readdirSync(sessionDir)) {
-        fs.rmSync(path.join(sessionDir, entry), { recursive: true, force: true });
-      }
-      console.log('🧹 Session files cleared.');
-    } catch (err) {
-      console.warn('Warning clearing session directory:', err.message);
-    }
-  } else {
-    fs.mkdirSync(sessionDir, { recursive: true });
-  }
-}
 
 async function initWhatsappSocket() {
   if (isInitializing) {
@@ -37,11 +21,7 @@ async function initWhatsappSocket() {
   try {
     const baileys = await import('@whiskeysockets/baileys');
     const makeWASocket = baileys.default;
-    const { DisconnectReason, useMultiFileAuthState, fetchLatestBaileysVersion, Browsers } = baileys;
-
-    if (!fs.existsSync(sessionDir)) {
-      fs.mkdirSync(sessionDir, { recursive: true });
-    }
+    const { DisconnectReason, fetchLatestBaileysVersion, Browsers } = baileys;
 
     const settings = await getSettings();
 
@@ -55,7 +35,7 @@ async function initWhatsappSocket() {
 
     await updateSettings(settings.id, { status: 'connecting', qr_code: null });
 
-    const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
+    const { state, saveCreds } = await usePostgresAuthState(baileys);
 
     let versionToUse = cachedWaVersion;
     if (!versionToUse) {
@@ -86,7 +66,7 @@ async function initWhatsappSocket() {
         try { globalSocket.end(undefined); } catch (e) { /* ignore */ }
         globalSocket = null;
         reconnectAttempts = 0;
-        clearSessionFiles();
+        await clearPostgresSession();
         await updateSettings(settings.id, { status: 'disconnected', qr_code: null });
       }
     }, 60000);
@@ -141,35 +121,27 @@ async function initWhatsappSocket() {
           return;
         }
 
-        if (statusCode === 515) {
-          // 515 is normal pairing restart handshake
+        if (statusCode === DisconnectReason.loggedOut) {
+          console.log('🛑 Session logged out from device. Clearing session from PostgreSQL.');
+          globalSocket = null;
+          isInitializing = false;
+          reconnectAttempts = 0;
+          await clearPostgresSession();
+          await updateSettings(settings.id, { status: 'disconnected', qr_code: null });
+        } else {
+          // Transient disconnect or 515 handshake restart: retry without wiping DB session
           reconnectAttempts++;
           if (reconnectAttempts > MAX_RECONNECT_ATTEMPTS) {
-            console.log(`🛑 Max reconnect attempts (${MAX_RECONNECT_ATTEMPTS}) reached. Resetting session.`);
+            console.log(`🛑 Max reconnect attempts (${MAX_RECONNECT_ATTEMPTS}) reached (code: ${statusCode}). Stopping reconnects.`);
             globalSocket = null;
             isInitializing = false;
             reconnectAttempts = 0;
-            clearSessionFiles();
             await updateSettings(settings.id, { status: 'disconnected', qr_code: null });
           } else {
-            console.log(`🔄 Reconnecting in 5s (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+            console.log(`🔄 Reconnecting in 5s (code: ${statusCode}, attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
             isInitializing = false;
             reconnectTimer = setTimeout(() => initWhatsappSocket(), 5000);
           }
-        } else if (statusCode === DisconnectReason.loggedOut) {
-          console.log('🛑 Session logged out. Resetting state.');
-          globalSocket = null;
-          isInitializing = false;
-          reconnectAttempts = 0;
-          clearSessionFiles();
-          await updateSettings(settings.id, { status: 'disconnected', qr_code: null });
-        } else {
-          console.log(`⚠️ Unexpected disconnect (code: ${statusCode}). Resetting to disconnected.`);
-          globalSocket = null;
-          isInitializing = false;
-          reconnectAttempts = 0;
-          clearSessionFiles();
-          await updateSettings(settings.id, { status: 'disconnected', qr_code: null });
         }
       }
     });
@@ -200,8 +172,8 @@ async function disconnectWhatsapp() {
 
   const settings = await getSettings();
   await updateSettings(settings.id, { status: 'disconnected', qr_code: null });
-  clearSessionFiles();
-  console.log('✅ WhatsApp disconnected and cleaned up.');
+  await clearPostgresSession();
+  console.log('✅ WhatsApp disconnected and PostgreSQL session cleared.');
 }
 
 function getGlobalSocket() {
@@ -212,6 +184,6 @@ module.exports = {
   initWhatsappSocket,
   disconnectWhatsapp,
   getGlobalSocket,
-  clearSessionFiles,
+  clearPostgresSession,
 };
 

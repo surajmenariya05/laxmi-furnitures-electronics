@@ -6,6 +6,20 @@ import { fetcher } from "@/lib/fetcher";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useAuth } from "@/hooks/useAuth";
 
+export interface FinanceProviderContactItem {
+  id: number;
+  financeProviderId: number;
+  name: string;
+  phone: string;
+}
+
+export interface FinanceProviderItem {
+  id: number;
+  name: string;
+  isActive: boolean;
+  contacts?: FinanceProviderContactItem[];
+}
+
 export interface FinanceRecordItem {
   id: number;
   billId?: number | null;
@@ -91,7 +105,7 @@ export function useFinanceRecords() {
     totalCount: 0,
     totalBankReceived: 0,
   };
-  const providers: any[] = providersData || [];
+  const providers: FinanceProviderItem[] = providersData || [];
   const isLoading = !recordsResponse && !recordsError;
 
   const handleSelectPreset = (preset: "ALL" | "7" | "30" | "90") => {

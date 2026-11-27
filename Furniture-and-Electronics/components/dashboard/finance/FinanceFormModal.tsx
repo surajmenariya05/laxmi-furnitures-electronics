@@ -1,17 +1,22 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Modal } from "@/components/ui/modal";
-import { FinanceRecordItem } from "@/hooks/useFinanceRecords";
-import { FaWallet, FaTimes, FaCheckCircle, FaLock, FaChevronDown } from "react-icons/fa";
+import { FinanceRecordItem, FinanceProviderItem } from "@/hooks/useFinanceRecords";
+import { FinanceWhatsAppRecipient } from "@/lib/whatsapp/background-finance-dispatch";
+import { FaWallet, FaTimes, FaCheckCircle, FaLock, FaChevronDown, FaWhatsapp } from "react-icons/fa";
 
 interface FinanceFormModalProps {
   isOpen: boolean;
   onClose: () => void;
   editingRecord: FinanceRecordItem | null;
-  providers: any[];
+  providers: FinanceProviderItem[];
   isOwner: boolean;
-  onSave: (payload: any, editingId?: number) => Promise<void>;
+  onSave: (
+    payload: any,
+    editingId?: number,
+    selectedRecipients?: FinanceWhatsAppRecipient[]
+  ) => Promise<void>;
 }
 
 export default function FinanceFormModal({
@@ -38,6 +43,20 @@ export default function FinanceFormModal({
   const [netAmountReceived, setNetAmountReceived] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [selectedContactIds, setSelectedContactIds] = useState<number[]>([]);
+
+  const selectedProvider = useMemo(
+    () => providers.find((p) => String(p.id) === financeProviderId),
+    [providers, financeProviderId]
+  );
+  const providerContacts = useMemo(
+    () => selectedProvider?.contacts || [],
+    [selectedProvider]
+  );
+
+  useEffect(() => {
+    setSelectedContactIds([]);
+  }, [financeProviderId, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -119,7 +138,13 @@ export default function FinanceFormModal({
         payload.netAmountReceived = parseFloat(netAmountReceived || "0") || 0;
       }
 
-      await onSave(payload, editingRecord?.id);
+      const selectedRecipients: FinanceWhatsAppRecipient[] = !editingRecord
+        ? providerContacts
+            .filter((c) => selectedContactIds.includes(c.id))
+            .map((c) => ({ name: c.name, phone: c.phone }))
+        : [];
+
+      await onSave(payload, editingRecord?.id, selectedRecipients);
       onClose();
     } catch (err: any) {
       setError(err.message || "Failed to save finance record");
@@ -420,6 +445,72 @@ export default function FinanceFormModal({
             )}
           </div>
         </div>
+
+        {/* WhatsApp Recipients (only when creating and provider has contacts) */}
+        {!editingRecord && providerContacts.length > 0 && (
+          <div className="bg-white p-4 rounded-xl border border-emerald-200/90">
+            <div className="flex items-center justify-between gap-2 mb-2.5">
+              <div className="flex items-center gap-2 text-xs font-extrabold uppercase tracking-wider text-emerald-800">
+                <FaWhatsapp className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Send Invoice PDF on WhatsApp</span>
+              </div>
+              {providerContacts.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSelectedContactIds(
+                      selectedContactIds.length === providerContacts.length
+                        ? []
+                        : providerContacts.map((c) => c.id)
+                    )
+                  }
+                  className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 underline"
+                >
+                  {selectedContactIds.length === providerContacts.length
+                    ? "Clear All"
+                    : "Select All"}
+                </button>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {providerContacts.map((contact) => {
+                const checked = selectedContactIds.includes(contact.id);
+                return (
+                  <label
+                    key={contact.id}
+                    className={`flex items-center gap-2.5 p-2.5 rounded-lg border cursor-pointer transition ${
+                      checked
+                        ? "bg-emerald-50 border-emerald-400 text-emerald-950"
+                        : "bg-gray-50/70 border-gray-200 text-gray-800 hover:bg-gray-100/70"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() =>
+                        setSelectedContactIds((prev) =>
+                          prev.includes(contact.id)
+                            ? prev.filter((id) => id !== contact.id)
+                            : [...prev, contact.id]
+                        )
+                      }
+                      className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500 shrink-0"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs font-bold truncate">{contact.name}</div>
+                      <div className="text-[11px] text-gray-500 font-medium">
+                        +91 {contact.phone}
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+            <p className="text-[11px] text-gray-500 mt-2">
+              Selected representatives will receive the Tax Invoice PDF in the background right after saving.
+            </p>
+          </div>
+        )}
 
         <div className="pt-2 flex justify-end gap-2.5">
           <button

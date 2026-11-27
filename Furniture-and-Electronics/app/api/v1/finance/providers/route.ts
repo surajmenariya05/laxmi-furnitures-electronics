@@ -12,7 +12,13 @@ export async function GET(req: Request) {
 
     const providers = await prisma.financeProvider.findMany({
       where: { isActive: true },
-      orderBy: { name: "asc" }
+      orderBy: { name: "asc" },
+      include: {
+        contacts: {
+          where: { isActive: true },
+          orderBy: { createdAt: "asc" },
+        },
+      },
     });
 
     return NextResponse.json(providers);

@@ -10,6 +10,11 @@ import FinanceHistoryTable from "@/components/dashboard/finance/FinanceHistoryTa
 import FinanceFormModal from "@/components/dashboard/finance/FinanceFormModal";
 import FinanceInvoiceModal from "@/components/dashboard/finance/FinanceInvoiceModal";
 import ManageProvidersModal from "@/components/dashboard/finance/ManageProvidersModal";
+import { useToast } from "@/components/dashboard/providers/ToastProvider";
+import {
+  dispatchFinanceWhatsAppInBackground,
+  FinanceWhatsAppRecipient,
+} from "@/lib/whatsapp/background-finance-dispatch";
 
 export default function FinancePage() {
   const {
@@ -33,6 +38,7 @@ export default function FinancePage() {
     updateRecord,
   } = useFinanceRecords();
 
+  const { showToast } = useToast();
   const [showManageModal, setShowManageModal] = useState(false);
   const [showFormModal, setShowFormModal] = useState(false);
   const [editingRecord, setEditingRecord] = useState<FinanceRecordItem | null>(null);
@@ -54,11 +60,22 @@ export default function FinancePage() {
     setShowFormModal(true);
   };
 
-  const handleSaveRecord = async (payload: any, editingId?: number) => {
+  const handleSaveRecord = async (
+    payload: any,
+    editingId?: number,
+    selectedRecipients?: FinanceWhatsAppRecipient[]
+  ) => {
     if (editingId) {
       await updateRecord(editingId, payload);
     } else {
-      await createRecord(payload);
+      const created = await createRecord(payload);
+      if (created && selectedRecipients && selectedRecipients.length > 0) {
+        dispatchFinanceWhatsAppInBackground({
+          record: created,
+          recipients: selectedRecipients,
+          showToast,
+        });
+      }
     }
   };
 

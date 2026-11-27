@@ -265,3 +265,13 @@ export function formatBookingCancelledMessage(data: BookingCancelledTemplateData
   return lines.join("\n");
 }
 
+/**
+ * 5. Finance Tax Invoice Message for Finance Provider Representatives
+ */
+export function formatFinanceInvoiceMessage(data: {
+  contactName: string;
+  invoiceNumber: string;
+}): string {
+  return `Hello ${data.contactName}, Please find attached the Finance Tax Invoice #${data.invoiceNumber} from Laxmi Electronics & Furniture.`;
+}
+

@@ -232,13 +232,27 @@ model DeliverySchedule {
 }
 
 model FinanceProvider {
-  id        Int             @id @default(autoincrement())
-  name      String          @unique
-  isActive  Boolean         @default(true) @map("is_active")
-  createdAt DateTime        @default(now()) @map("created_at")
+  id        Int                      @id @default(autoincrement())
+  name      String                   @unique
+  isActive  Boolean                  @default(true) @map("is_active")
+  createdAt DateTime                 @default(now()) @map("created_at")
   records   FinanceRecord[]
+  contacts  FinanceProviderContact[]
 
   @@map("finance_providers")
+}
+
+model FinanceProviderContact {
+  id                Int             @id @default(autoincrement())
+  financeProviderId Int             @map("finance_provider_id")
+  name              String
+  phone             String
+  isActive          Boolean         @default(true) @map("is_active")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  financeProvider   FinanceProvider @relation(fields: [financeProviderId], references: [id], onDelete: Cascade)
+
+  @@index([financeProviderId, isActive])
+  @@map("finance_provider_contacts")
 }
 
 model FinanceRecord {

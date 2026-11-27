@@ -10,6 +10,9 @@ let reconnectTimer = null;
 let reconnectAttempts = 0;
 
 async function initWhatsappSocket() {
+  clearTimeout(reconnectTimer);
+  clearTimeout(globalConnectionTimeout);
+
   if (isInitializing) {
     console.log('⏳ WhatsApp initialization already in progress, skipping...');
     return;
@@ -59,17 +62,17 @@ async function initWhatsappSocket() {
 
     globalSocket = sock;
 
-    // 60-second watchdog timer for scanning QR code
+    // 90-second watchdog timer for scanning QR code
     globalConnectionTimeout = setTimeout(async () => {
       if (globalSocket === sock) {
-        console.log('⏱️ WhatsApp QR pairing timed out after 60s. Terminating socket...');
+        console.log('⏱️ WhatsApp QR pairing timed out after 90s. Terminating socket...');
         try { globalSocket.end(undefined); } catch (e) { /* ignore */ }
         globalSocket = null;
         reconnectAttempts = 0;
         await clearPostgresSession();
         await updateSettings(settings.id, { status: 'disconnected', qr_code: null });
       }
-    }, 60000);
+    }, 90000);
 
     sock.ev.on('creds.update', saveCreds);
 

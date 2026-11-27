@@ -18,7 +18,7 @@ async function clearPostgresSession(sessionId = DEFAULT_SESSION_ID) {
 
 /**
  * Baileys-compatible PostgreSQL auth state adapter with in-memory read cache
- * to minimize Neon compute wakeups while surviving container restarts.
+ * and single-roundtrip batched writes so pairing never hits pre-key timeouts.
  */
 async function usePostgresAuthState(baileys, sessionId = DEFAULT_SESSION_ID) {
   const { initAuthCreds, BufferJSON, proto } = baileys;
@@ -69,32 +69,46 @@ async function usePostgresAuthState(baileys, sessionId = DEFAULT_SESSION_ID) {
           return result;
         },
         set: async (data) => {
+          const upsertKeyIds = [];
+          const upsertValues = [];
+          const deleteKeyIds = [];
+
+          for (const category of Object.keys(data)) {
+            const entries = data[category] || {};
+            for (const id of Object.keys(entries)) {
+              const value = entries[id];
+              const keyId = `${category}-${id}`;
+              if (value) {
+                cache.set(keyId, value);
+                upsertKeyIds.push(keyId);
+                upsertValues.push(JSON.stringify(value, BufferJSON.replacer));
+              } else {
+                cache.delete(keyId);
+                deleteKeyIds.push(keyId);
+              }
+            }
+          }
+
+          if (upsertKeyIds.length === 0 && deleteKeyIds.length === 0) return;
+
           const client = await pool.connect();
           try {
             await client.query('BEGIN');
-            for (const category of Object.keys(data)) {
-              const entries = data[category] || {};
-              for (const id of Object.keys(entries)) {
-                const value = entries[id];
-                const keyId = `${category}-${id}`;
-                if (value) {
-                  cache.set(keyId, value);
-                  const serialized = JSON.stringify(value, BufferJSON.replacer);
-                  await client.query(
-                    `INSERT INTO public."whatsapp_auth_state" (session_id, key_id, value, updated_at)
-                     VALUES ($1, $2, $3::jsonb, CURRENT_TIMESTAMP)
-                     ON CONFLICT (session_id, key_id)
-                     DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
-                    [sessionId, keyId, serialized]
-                  );
-                } else {
-                  cache.delete(keyId);
-                  await client.query(
-                    'DELETE FROM public."whatsapp_auth_state" WHERE session_id = $1 AND key_id = $2',
-                    [sessionId, keyId]
-                  );
-                }
-              }
+            if (upsertKeyIds.length > 0) {
+              await client.query(
+                `INSERT INTO public."whatsapp_auth_state" (session_id, key_id, value, updated_at)
+                 SELECT $1, k, v::jsonb, CURRENT_TIMESTAMP
+                 FROM UNNEST($2::text[], $3::text[]) AS t(k, v)
+                 ON CONFLICT (session_id, key_id)
+                 DO UPDATE SET value = EXCLUDED.value, updated_at = CURRENT_TIMESTAMP`,
+                [sessionId, upsertKeyIds, upsertValues]
+              );
+            }
+            if (deleteKeyIds.length > 0) {
+              await client.query(
+                'DELETE FROM public."whatsapp_auth_state" WHERE session_id = $1 AND key_id = ANY($2::text[])',
+                [sessionId, deleteKeyIds]
+              );
             }
             await client.query('COMMIT');
           } catch (err) {

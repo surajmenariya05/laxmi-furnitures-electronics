@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { FaWhatsapp, FaMoneyBillWave } from "react-icons/fa";
+import ActionTooltip from "@/components/ui/ActionTooltip";
 
 interface DuePaymentsTableProps {
   dues: any[];
@@ -165,15 +166,17 @@ export default function DuePaymentsTable({
                       <div className="flex justify-center items-center gap-3">
                         {bill.customer?.phone ? (
                           <button
+                            type="button"
                             onClick={() => onSendWhatsapp(bill)}
                             disabled={sendingWhatsappId === bill.id}
-                            className="text-gray-400 hover:text-green-600 bg-gray-100 hover:bg-green-50 p-2 rounded-full transition disabled:opacity-50"
-                            title="Send WhatsApp Reminder with Invoice PDF"
+                            aria-label="Send WhatsApp Reminder with Invoice PDF"
+                            className="group relative inline-flex items-center justify-center w-8 h-8 shrink-0 text-[#11633B] bg-gradient-to-b from-[#ECFDF5] to-[#D1FAE5] hover:from-[#F0FDF4] hover:to-[#A7F3D0] border border-[#86EFAC] border-b-2 border-b-[#16A34A] hover:border-[#15803D] rounded-full shadow-[0_2px_4px_rgba(22,163,74,0.16),inset_0_1px_0_rgba(255,255,255,0.95)] hover:shadow-md active:translate-y-px transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
                           >
+                            <ActionTooltip label="Send Reminder" align="right" />
                             {sendingWhatsappId === bill.id ? (
-                              <div className="animate-spin h-[1.1rem] w-[1.1rem] border-2 border-green-600 border-t-transparent rounded-full mx-auto" />
+                              <div className="animate-spin h-4 w-4 border-2 border-[#15803D] border-t-transparent rounded-full" />
                             ) : (
-                              <FaWhatsapp className="text-[1.1rem]" />
+                              <FaWhatsapp className="w-4 h-4 text-[#15803D] transition-transform group-hover:scale-110 shrink-0" />
                             )}
                           </button>
                         ) : (

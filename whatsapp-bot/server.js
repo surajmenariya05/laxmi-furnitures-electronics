@@ -12,6 +12,23 @@
 
 const express = require('express');
 const { PORT } = require('./config');
+
+// Suppress noisy libsignal key-buffer dumps (e.g. "Closing session: SessionEntry ...")
+for (const method of ['info', 'log', 'debug']) {
+  const orig = console[method].bind(console);
+  console[method] = (...args) => {
+    const first = typeof args[0] === 'string' ? args[0] : '';
+    if (
+      first.startsWith('Closing session:') ||
+      first.startsWith('Opening session:') ||
+      first.startsWith('Migrating session') ||
+      first.startsWith('Removing old closed session')
+    ) {
+      return;
+    }
+    orig(...args);
+  };
+}
 const { getSettings } = require('./db');
 const { initWhatsappSocket } = require('./whatsapp');
 const routes = require('./routes');

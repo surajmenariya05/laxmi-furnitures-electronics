@@ -17,7 +17,7 @@ if (!DATABASE_URL) {
   process.exit(1);
 }
 
-const logger = pino({ level: process.env.LOG_LEVEL || 'warn' });
+const logger = pino({ level: process.env.LOG_LEVEL || 'silent' });
 
 module.exports = {
   PORT,

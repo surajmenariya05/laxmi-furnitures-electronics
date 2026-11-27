@@ -179,7 +179,12 @@ export default function FinanceInvoiceModal({
                 <tr className="border-b border-[#E5DCCF]">
                   <td className="py-3.5 px-3">1</td>
                   <td className="py-3.5 px-3 font-semibold text-[#2C221E]">
-                    {record.productName}
+                    <div>{record.productName}</div>
+                    {record.serialNumber && (
+                      <div className="text-[10.5px] font-mono font-normal text-[#6E5C4F] mt-0.5">
+                        S/N: {record.serialNumber}
+                      </div>
+                    )}
                   </td>
                   <td className="py-3.5 px-3 text-center text-[#6E5C4F]">
                     {record.hsnSac || "—"}

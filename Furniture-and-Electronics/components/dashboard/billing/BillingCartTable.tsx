@@ -282,21 +282,48 @@ export default function BillingCartTable({
                           ? (item.product.quantityInStock || 0) + (item.originalQuantity || 0)
                           : item.product.quantityInStock;
                         return (
-                          <input
-                            type="number"
-                            min="1"
-                            max={maxStock}
-                            className="border border-gray-300 rounded-md px-2 py-1 text-xs w-16 text-center font-semibold focus:ring-1 focus:ring-blue-500"
-                            value={item.quantity}
-                            onChange={(e) =>
-                              updateQuantity(
-                                item.cartItemId,
-                                Math.min(maxStock, Math.max(1, parseInt(e.target.value) || 1))
-                              )
-                            }
-                            onKeyDown={(e) => handleNumberKeyDown(e, false)}
-                            onWheel={(e) => (e.target as HTMLInputElement).blur()}
-                          />
+                          <div className="inline-flex items-center rounded-lg border border-gray-300 bg-white overflow-hidden shadow-2xs">
+                            <button
+                              type="button"
+                              disabled={item.quantity <= 1}
+                              onClick={() =>
+                                updateQuantity(item.cartItemId, Math.max(1, item.quantity - 1))
+                              }
+                              className="w-7 h-7 flex items-center justify-center bg-gray-50 hover:bg-gray-100 text-gray-700 font-black text-sm border-r border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                              aria-label="Decrease quantity"
+                            >
+                              −
+                            </button>
+                            <input
+                              type="number"
+                              min="1"
+                              max={maxStock}
+                              className="w-11 h-7 text-xs text-center font-bold text-gray-900 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                              value={item.quantity}
+                              onChange={(e) =>
+                                updateQuantity(
+                                  item.cartItemId,
+                                  Math.min(maxStock, Math.max(1, parseInt(e.target.value) || 1))
+                                )
+                              }
+                              onKeyDown={(e) => handleNumberKeyDown(e, false)}
+                              onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                            />
+                            <button
+                              type="button"
+                              disabled={item.quantity >= maxStock}
+                              onClick={() =>
+                                updateQuantity(
+                                  item.cartItemId,
+                                  Math.min(maxStock, item.quantity + 1)
+                                )
+                              }
+                              className="w-7 h-7 flex items-center justify-center bg-gray-50 hover:bg-gray-100 text-gray-700 font-black text-sm border-l border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                              aria-label="Increase quantity"
+                            >
+                              +
+                            </button>
+                          </div>
                         );
                       })()
                     )}

@@ -16,6 +16,7 @@ export interface FinanceRecordItem {
   customerPhone: string;
   customerAddress: string;
   productName: string;
+  serialNumber?: string;
   hsnSac: string;
   quantity: number;
   productPrice: number;

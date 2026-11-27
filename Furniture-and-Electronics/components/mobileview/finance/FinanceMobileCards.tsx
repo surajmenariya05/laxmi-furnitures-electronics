@@ -61,8 +61,15 @@ export default function FinanceMobileCards({
                   </div>
                 )}
               </div>
-              <div className="text-xs font-semibold text-slate-700 border-t border-[#D6E1EE] pt-1.5 leading-snug break-words">
-                {rec.productName}
+              <div className="flex items-start justify-between gap-2 border-t border-[#D6E1EE] pt-1.5">
+                <div className="text-xs font-semibold text-slate-700 leading-snug break-words min-w-0 flex-1">
+                  {rec.productName}
+                </div>
+                {rec.serialNumber && (
+                  <span className="shrink-0 text-[10.5px] font-mono font-semibold text-slate-700 bg-white border border-[#CBD8E8] px-2 py-0.5 rounded-md">
+                    S/N: {rec.serialNumber}
+                  </span>
+                )}
               </div>
             </div>
 

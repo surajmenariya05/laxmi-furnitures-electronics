@@ -30,6 +30,7 @@ export default function FinanceFormModal({
   const [invoiceNumber, setInvoiceNumber] = useState("");
   const [financeDate, setFinanceDate] = useState("");
   const [productName, setProductName] = useState("");
+  const [serialNumber, setSerialNumber] = useState("");
   const [hsnSac, setHsnSac] = useState("");
   const [quantity, setQuantity] = useState("1");
   const [productPrice, setProductPrice] = useState("");
@@ -53,6 +54,7 @@ export default function FinanceFormModal({
           : new Date().toISOString().split("T")[0]
       );
       setProductName(editingRecord.productName || "");
+      setSerialNumber(editingRecord.serialNumber || "");
       setHsnSac(editingRecord.hsnSac || "");
       setQuantity(String(editingRecord.quantity || 1));
       setProductPrice(String(editingRecord.productPrice || ""));
@@ -68,6 +70,7 @@ export default function FinanceFormModal({
       setInvoiceNumber("");
       setFinanceDate(new Date().toISOString().split("T")[0]);
       setProductName("");
+      setSerialNumber("");
       setHsnSac("");
       setQuantity("1");
       setProductPrice("");
@@ -106,6 +109,7 @@ export default function FinanceFormModal({
         invoiceNumber: invoiceNumber.trim(),
         financeDate,
         productName: productName.trim(),
+        serialNumber: serialNumber.trim(),
         hsnSac: hsnSac.trim(),
         quantity: Math.max(1, parseInt(quantity, 10) || 1),
         productPrice: parseFloat(productPrice),
@@ -306,7 +310,7 @@ export default function FinanceFormModal({
               />
             </div>
 
-            <div className="md:col-span-2">
+            <div className="md:col-span-3">
               <label className="block text-xs font-bold text-gray-700 mb-1">
                 Item / Product Name <span className="text-rose-500">*</span>
               </label>
@@ -318,8 +322,20 @@ export default function FinanceFormModal({
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:border-indigo-500"
               />
             </div>
-            <div className="grid grid-cols-2 gap-2">
-              <div>
+            <div className="md:col-span-3 grid grid-cols-12 gap-2.5">
+              <div className="col-span-12 sm:col-span-6">
+                <label className="block text-xs font-bold text-gray-700 mb-1">
+                  Serial No. / S/N
+                </label>
+                <input
+                  type="text"
+                  placeholder="Optional S/N"
+                  value={serialNumber}
+                  onChange={(e) => setSerialNumber(e.target.value)}
+                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm font-mono font-semibold focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+              <div className="col-span-6 sm:col-span-3">
                 <label className="block text-xs font-bold text-gray-700 mb-1">
                   HSN / SAC
                 </label>
@@ -331,7 +347,7 @@ export default function FinanceFormModal({
                   className="w-full border border-gray-300 rounded-lg px-2.5 py-2 text-sm font-semibold focus:outline-none focus:border-indigo-500"
                 />
               </div>
-              <div>
+              <div className="col-span-6 sm:col-span-3">
                 <label className="block text-xs font-bold text-gray-700 mb-1">
                   Qty
                 </label>

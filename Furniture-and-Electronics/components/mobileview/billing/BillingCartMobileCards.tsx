@@ -161,13 +161,23 @@ export default function BillingCartMobileCards({
                     />
                   )
                 ) : (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs text-gray-500 font-semibold">Qty:</span>
+                  <div className="inline-flex items-center rounded-lg border border-gray-300 bg-white overflow-hidden shadow-2xs">
+                    <button
+                      type="button"
+                      disabled={item.quantity <= 1}
+                      onClick={() =>
+                        updateQuantity(item.cartItemId, Math.max(1, item.quantity - 1))
+                      }
+                      className="w-7 h-7 flex items-center justify-center bg-gray-50 hover:bg-gray-100 text-gray-700 font-black text-sm border-r border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      aria-label="Decrease quantity"
+                    >
+                      −
+                    </button>
                     <input
                       type="number"
                       min="1"
                       max={maxStock}
-                      className="border border-gray-300 rounded-md px-2 py-1 text-xs w-14 text-center font-bold"
+                      className="w-10 h-7 text-xs text-center font-extrabold text-gray-900 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                       value={item.quantity}
                       onChange={(e) =>
                         updateQuantity(
@@ -178,6 +188,20 @@ export default function BillingCartMobileCards({
                       onKeyDown={(e) => handleNumberKeyDown(e, false)}
                       onWheel={(e) => (e.target as HTMLInputElement).blur()}
                     />
+                    <button
+                      type="button"
+                      disabled={item.quantity >= maxStock}
+                      onClick={() =>
+                        updateQuantity(
+                          item.cartItemId,
+                          Math.min(maxStock, item.quantity + 1)
+                        )
+                      }
+                      className="w-7 h-7 flex items-center justify-center bg-gray-50 hover:bg-gray-100 text-gray-700 font-black text-sm border-l border-gray-200 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
                   </div>
                 )}
               </div>

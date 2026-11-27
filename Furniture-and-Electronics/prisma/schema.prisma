@@ -250,6 +250,7 @@ model FinanceRecord {
   customerPhone     String?         @map("customer_phone")
   customerAddress   String?         @map("customer_address")
   productName       String          @default("") @map("product_name")
+  serialNumber      String?         @map("serial_number")
   hsnSac            String?         @map("hsn_sac")
   quantity          Int             @default(1)
   productPrice      Decimal         @default(0) @map("product_price")

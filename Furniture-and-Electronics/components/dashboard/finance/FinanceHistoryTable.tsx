@@ -104,11 +104,18 @@ export default function FinanceHistoryTable({
                     {new Date(rec.financeDate).toLocaleDateString("en-IN")}
                   </td>
                   <td className="px-5 py-3.5 whitespace-nowrap">
-                    <span className="font-mono font-bold text-gray-900">
-                      #{rec.invoiceNumber}
-                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-mono font-bold text-gray-900">
+                        #{rec.invoiceNumber}
+                      </span>
+                      {rec.serialNumber && (
+                        <span className="text-[10.5px] font-mono font-semibold text-slate-700 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">
+                          S/N: {rec.serialNumber}
+                        </span>
+                      )}
+                    </div>
                     <div
-                      className="text-[11px] text-gray-500 max-w-[160px] truncate"
+                      className="text-[11px] text-gray-500 max-w-[180px] truncate mt-0.5"
                       title={rec.productName}
                     >
                       {rec.productName}
